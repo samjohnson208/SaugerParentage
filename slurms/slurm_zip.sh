@@ -13,5 +13,5 @@
 #SBATCH --mem=1G
 
 
-gzip /project/ysctrout/hatchsauger/1Saug/demultiplex/sample_fastq/Evens/*.fq
+gunzip /project/ysctrout/hatchsauger/1Saug/rawreads/*.fastq.gz
 
