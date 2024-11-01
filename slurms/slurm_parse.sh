@@ -15,4 +15,5 @@
 module load arcc/1.0 gcc/12.2.0 perl/5.34.1
 
 cd /project/ysctrout/hatchsauger/1Saug/rawreads
-perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv 1SaugEvens.fastq LH0
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugOdds_Demux.csv 1SaugOdds.fastq LH0
+
