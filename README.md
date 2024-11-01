@@ -34,5 +34,13 @@ sbatch slurm_zip.sh
 ```{bash}
 salloc --account=ysctrout --time=3:00:00
 grep -c "^@" 1SaugEvens.fastq
+   # 1,111,224,597
 grep -c "^@" 1SaugOdds.fastq
+   # 1,156,307,046
+```
+
+### Parsing
+
+```{bash}
+sbatch slurm_parse.sh
 ```
