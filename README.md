@@ -58,9 +58,11 @@ split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugOdds.fastq odd_f
 
 ### Parsing
 
-Created new scripts to parallelize the parsing process across all files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_
-COME BACK TO THIS
+Created new scripts to parallelize the parsing process across all split files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_parse_evens.pl and run_parse_odds.pl 
+
+Made sure to do the math so that this doesn't time out again. 164 fq files after the split, but 167 jobs? Ask Josh. Does that mean there are reporting jobs going on at the same time?
 
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_evens.pl even_fq_*
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_odds.pl odd_fq_*
 ```
