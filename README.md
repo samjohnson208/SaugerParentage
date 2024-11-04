@@ -11,6 +11,12 @@ Below is the code and notes for the Wind River Sauger Parentage Analysis bioinfo
 
 * Demultiplex
 
+   * Count Raw Reads
+
+   * Splitting Raw Files
+
+   * Parsing
+
 * Split .fastq
 
 * Alignment
@@ -31,7 +37,7 @@ Requires an ssh key for your hpc server to connect it with the repository. Then 
 sbatch slurm_zip.sh
 ```
 
-### Count raw reads
+### Count Raw Reads
 
 See code below. Establish an allocated interactive job, then you're checking for n raw reads using the @ symbols that separate reads in the .fastq file structure.
 
@@ -41,6 +47,13 @@ grep -c "^@" 1SaugEvens.fastq
    # 1,111,224,597
 grep -c "^@" 1SaugOdds.fastq
    # 1,156,307,046
+```
+
+### Splitting Raw Files
+
+```{bash}
+split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugEvens.fastq even_fq_
+split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugOdds.fastq odd_fq_
 ```
 
 ### Parsing
