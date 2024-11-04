@@ -13,5 +13,5 @@
 #SBATCH --mem=1G
 
 
-gunzip /project/ysctrout/hatchsauger/1Saug/rawreads/*.fastq.gz
+gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1Saug*.fastq
 
