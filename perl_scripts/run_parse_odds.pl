@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-## run_parse.pl by JPJ 27 i 23
+## run_parse_odds.pl by SPJ & JPJ 110424
 ## PURPOSE: parse multiple fastq files
-## USAGE: perl run_parse.pl split_fq_*
+## USAGE: perl run_parse_odds.pl odd_fq_*
 
 
 use strict;
@@ -21,7 +21,7 @@ if (@ARGV < 1) {
 ##########################################################
 
 my $account = "ysctrout";     ## partition
-my $time = "1-00:00:00";     ## max time allowed for analysis
+my $time = "5-00:00:00";     ## max time allowed for analysis
 my $mem = "1G";             ## memory
 
 
@@ -49,8 +49,8 @@ foreach my $file (@ARGV) {
   ## actual work
   
   push @slurmdirectives, "module load arcc/1.0 gcc/12.2.0 perl/5.34.1";
-  push @slurmdirectives, "cd /project/ysctrout/jjahner/suckers/rawreads/";
-  push @slurmdirectives, "perl /home/jjahner/perl_scripts/parse_barcodes768.pl sucker_barcodes.csv $file VL0";
+  push @slurmdirectives, "cd /project/ysctrout/hatchsauger/1Saug/rawreads";
+  push @slurmdirectives, "perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugOdds_Demux.csv $file LH0";
 
   
   ## join slurmdirectives and print
