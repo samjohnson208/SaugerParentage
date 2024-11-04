@@ -58,8 +58,9 @@ split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugOdds.fastq odd_f
 
 ### Parsing
 
-Obtained the following slurm script from JPJ. Must provide correct file paths to the script and to the raw data files (See lines 17 and 18). This also happens in the interactive job! Don't run jobs like this on the login node!
+Created new scripts to parallelize the parsing process across all files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_
+COME BACK TO THIS
 
 ```{bash}
-sbatch slurm_parse.sh
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_evens.pl even_fq_*
 ```
