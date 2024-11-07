@@ -17,6 +17,8 @@ Below is the code and notes for the Wind River Sauger Parentage Analysis bioinfo
 
    * Parsing
 
+   * Count mids
+
 * Split .fastq
 
 * Alignment
@@ -58,11 +60,25 @@ split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugOdds.fastq odd_f
 
 ### Parsing
 
-Created new scripts to parallelize the parsing process across all split files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_parse_evens.pl and run_parse_odds.pl 
+Created new scripts to parallelize the parsing process across all split files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_parse_evens.pl and run_parse_odds.pl (Located in perl_scripts directory)
 
-Made sure to do the math so that this doesn't time out again. 164 fq files after the split, but 167 jobs? Ask Josh. Does that mean there are reporting jobs going on at the same time?
 
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_evens.pl even_fq_*
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_odds.pl odd_fq_*
+```
+
+### Count mids
+
+```{bash}
+## how many good mids?
+
+grep "Good mids" parsereport_* | cut -f 4 -d " " > good_mids_count.txt
+   #for all of these parsed report files, take the fourth column of the line that has "Good mids"
+module load arcc/1.0 gcc/12.2.0 r/4.4.0
+R
+
+dat <- read.delim("good_mids_count.txt", header = FALSE)
+sum(dat[,1])
+	## 166 files, 1,394,271,363 good mids
 ```
