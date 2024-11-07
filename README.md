@@ -81,4 +81,7 @@ R
 dat <- read.delim("good_mids_count.txt", header = FALSE)
 sum(dat[,1])
 	## 166 files, 1,394,271,363 good mids
+
+#exit R with 
+quit()
 ```
