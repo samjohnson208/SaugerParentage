@@ -17,8 +17,6 @@ Below is the code and notes for the Wind River Sauger Parentage Analysis bioinfo
 
    * Parsing
 
-   * Count mids
-
 * Split .fastq
 
 * Alignment
@@ -52,6 +50,7 @@ grep -c "^@" 1SaugOdds.fastq
 ```
 
 ### Splitting Raw Files
+Since it would take incrdibly long to parse the 1SaugEvens/Odds.fastqs, we need to make them smaller to parallelize the parsing process. In this case, we're splitting the big files into smaller ones that are each 55 million lines long.
 
 ```{bash}
 split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugEvens.fastq even_fq_
@@ -60,15 +59,18 @@ split -d -l 55000000 --verbose --additional-suffix \.fastq 1SaugOdds.fastq odd_f
 
 ### Parsing
 
-Created new scripts to parallelize the parsing process across all split files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_parse_evens.pl and run_parse_odds.pl (Located in perl_scripts directory)
+Created new scripts to parallelize the parsing process across all split files in evens and odds that start with "even_fq" or "odd_fq". Those scripts are run_parse_evens.pl and run_parse_odds.pl.
 
 
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_evens.pl even_fq_*
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_parse_odds.pl odd_fq_*
 ```
+Parsed files contain reads that start with the individual sample id (SAR_YY_XXXX). However, the files are not sorted by sample id. That's the split .fastq step (see below). 
 
-### Count mids
+The parsing process also generates reports, and these reports describe, for the parsed files, how many good mids there are among all of the reads.
+
+Count the number of good mids within each parsed report. To do this, you'll need to load R as a module.
 
 ```{bash}
 ## how many good mids?
@@ -85,3 +87,30 @@ sum(dat[,1])
 #exit R with 
 quit()
 ```
+
+Concatenate all parsed files into a single file called all_parsed.fastq using slurm_cat.sh
+Now, this file contains ALL of the reads that correspond to sample id's, which theoretically, should be the same number of all of the good mids from the above step. In other words, n reads in all_parsed.fastq should = 1,394,271,363.
+
+```{bash}
+sbatch slurm_cat.sh
+```
+
+## Split .fastq
+
+Make ID's file and check nrow using...
+
+```{bash}
+grep -h "_" *Demux.csv | cut -f 3 -d "," > sauger_ids.txt
+wc -l sauger_ids.txt
+# 1184 (12 plates * 96) + 32 other samples
+```
+
+Splitting the concatenated all_parsed.fastq into individual .fastq files that correspond to each individual Sample ids using slurm_sauger_split.sh 
+
+First, the script makes empty files in your rawreads directory (SAR_YY_XXXX.fastq, n = 1184), then assigns each read in all_parsed.fastq to those sample-specific .fastq's.
+
+```{bash}
+sbatch slurm_sauger_split.sh
+```
+
+
