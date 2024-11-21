@@ -113,4 +113,23 @@ First, the script makes empty files in your rawreads directory (SAR_YY_XXXX.fast
 sbatch slurm_sauger_split.sh
 ```
 
+## Alignment
 
+### Yellow Perch Reference
+First step is to remove the line endings after 60 characters, using remove60_fasta.pl
+```{bash}
+## remove 60 line endings
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/remove60_fasta.pl Perca_flavescens.fasta
+```
+Second step is to rename the reference names into something a bit more meaningful/reasonable.
+```{bash}
+## change reference names to something shorter
+
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/rename_scaff.pl no60_Perca_flavescens.fasta
+
+mv renamed_no60_Perca_flavescens.fasta.txt yellowperch_genome.fna
+```
+Third step is to make an index for the reference genome bwa (Burrow Wheeler Align).
+```{bash}
+sbatch slurm_sauger_bwa_index.sh
+```
