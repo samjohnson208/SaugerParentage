@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## slurm_zip.sh by JPJ 27 i 23
-## PURPOSE: to zip big files
+## PURPOSE: to zip or unzip big files
 ## USAGE: sbatch slurm_zip.sh
 
 #SBATCH --job-name=zip
@@ -13,5 +13,5 @@
 #SBATCH --mem=1G
 
 
-gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1Saug*.fastq
+gunzip /project/ysctrout/hatchsauger/1Saug/rawreads/1Saug*.fastq.gz
 
