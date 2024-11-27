@@ -1,25 +1,21 @@
 #!/bin/bash
 
-## slurm_woodcock_runbwa.sh by JPJ 5 vi 23
+## slurm_sauger_runbwa.sh by JPJ and SPJ 112724
 ## PURPOSE: to use runbwa.pl
-## USAGE: sbatch slurm_sucker_runbwa.sh
+## USAGE: sbatch slurm_sauger_runbwa.sh
 
 #SBATCH --job-name=runbwa
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
 #SBATCH --account=ysctrout
-#SBATCH --time=1-0:00:00
+#SBATCH --time=3-0:00:00
 #SBATCH --mem=5G
-#SBATCH -o /project/ysctrout/jjahner/suckers/slurms/std/stdout_runbwa
-#SBATCH -e /project/ysctrout/jjahner/suckers/slurms/std/stderr_runbwa
+#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_runbwa
+#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_runbwa
 
 module load arcc/1.0 gcc/12.2.0 bwa/0.7.17
 
-cd /project/ysctrout/jjahner/suckers/
+cd /project/ysctrout/hatchsauger/
 
-## new fastqs
-## perl runbwa.pl fastqs/*.fastq
-
-## reference individuals
-perl runbwa.pl ref_forJosh/*.fastq
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawreads/*.fastq
