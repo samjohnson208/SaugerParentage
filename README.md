@@ -112,6 +112,7 @@ First, the script makes empty files in your rawreads directory (SAR_YY_XXXX.fast
 ```{bash}
 sbatch slurm_sauger_split.sh
 ```
+Keep in mind, this slurm script is running an embedded perl script, splitFastq_universal_regex.pl. In the last few lines of that slurm script. You're setting the working directory to the raw reads, then providing the file path to the perl script, then the id's text file, and the all_parsed.fastq. 
 
 ## Alignment
 
