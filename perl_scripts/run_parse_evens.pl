@@ -48,9 +48,9 @@ foreach my $file (@ARGV) {
   
   ## actual work
   
-  push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0 perl/5.38.0_x86_64";
+  push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
   push @slurmdirectives, "cd /project/ysctrout/hatchsauger/1Saug/rawreads";
-  push @slurmdirectives, "perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
+  push @slurmdirectives, "~/miniconda3/bin/perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
 
   
   ## join slurmdirectives and print
