@@ -17,6 +17,8 @@ Below is the code and notes for the Wind River Sauger Parentage Analysis bioinfo
 
    * Parsing
 
+   * Debugging perl on Medbow
+
 * Split .fastq
 
 * Alignment
@@ -94,6 +96,15 @@ Now, this file contains ALL of the reads that correspond to sample id's, which t
 ```{bash}
 sbatch slurm_cat.sh
 ```
+
+### Debugging perl on Medbow
+
+After the transition, perl parsing script no longer worked. Required this command to activate perl module.
+
+```{bash}
+ /usr/bin/perl -MCPAN -e'install Text::Levenshtein::XS'
+```
+No longer required to run the perl module at the beginning of this script. Reason unknown. 
 
 ## Split .fastq
 
