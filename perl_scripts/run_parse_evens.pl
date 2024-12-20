@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-## run_parse_evens.pl by SPJ & JPJ 110424
+## run_parse_evens.pl by SPJ & JPJ 110424 modified by SPJ & JPJ 121924
 ## PURPOSE: parse multiple fastq files
 ## USAGE: perl run_parse_evens.pl even_fq_*
 
@@ -50,7 +50,7 @@ foreach my $file (@ARGV) {
   
   push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
   push @slurmdirectives, "cd /project/ysctrout/hatchsauger/1Saug/rawreads";
-  push @slurmdirectives, "perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
+  push @slurmdirectives, "operl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
 
   
   ## join slurmdirectives and print

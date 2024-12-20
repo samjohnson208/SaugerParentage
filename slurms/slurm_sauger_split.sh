@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## slurm_sauger_split.sh by SPJ & JPJ 110724
+## slurm_sauger_split.sh by SPJ & JPJ 110724, modified by SPJ 121924
 ## PURPOSE: to split fastqs by sample id
 ## USAGE: sbatch slurm_sauger_split.sh
 
@@ -15,7 +15,7 @@
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_split
 
 
-module load arcc/1.0 gcc/12.2.0 perl/5.34.1
+module load arcc/1.0 gcc/14.2.0
 
 cd /project/ysctrout/hatchsauger/1Saug/rawreads
 

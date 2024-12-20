@@ -79,7 +79,7 @@ Count the number of good mids within each parsed report. To do this, you'll need
 
 grep "Good mids" parsereport_* | cut -f 4 -d " " > good_mids_count.txt
    #for all of these parsed report files, take the fourth column of the line that has "Good mids"
-module load arcc/1.0 gcc/12.2.0 r/4.4.0
+module load arcc/1.0 gcc/14.2.0 r/4.4.0
 R
 
 dat <- read.delim("good_mids_count.txt", header = FALSE)

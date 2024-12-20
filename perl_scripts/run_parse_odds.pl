@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-## run_parse_odds.pl by SPJ & JPJ 110424
+## run_parse_odds.pl by SPJ & JPJ 110424, modified by SPJ & JPJ 121924
 ## PURPOSE: parse multiple fastq files
 ## USAGE: perl run_parse_odds.pl odd_fq_*
 
