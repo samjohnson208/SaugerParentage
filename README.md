@@ -89,13 +89,22 @@ sum(dat[,1])
 #exit R with 
 quit()
 ```
+This stayed the same after fixing the demux error (from 11/27) on 12/18/24, and rerunning it on 12/19/24. No surprises there. Number of good mids should stay the same.
 
-Concatenate all parsed files into a single file called all_parsed.fastq using slurm_cat.sh
-Now, this file contains ALL of the reads that correspond to sample id's, which theoretically, should be the same number of all of the good mids from the above step. In other words, n reads in all_parsed.fastq should = 1,394,271,363.
+Next step is to concatenate all parsed files into a single file called all_parsed.fastq using slurm_cat.sh
+Now, this file contains ALL of the reads that correspond to sample id's, which theoretically, should be the same number of all of the good mids from the above step. In other words, n reads in all_parsed.fastq should = 1,394,271,363. 
 
 ```{bash}
 sbatch slurm_cat.sh
 ```
+
+And when you run this...
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+grep -c "^@" all_parsed.fastq
+# 1,394,271,363
+```
+You do in fact get the number of good mids!
 
 ### Debugging perl on Medbow
 
