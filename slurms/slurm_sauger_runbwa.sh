@@ -18,4 +18,4 @@ module load arcc/1.0 gcc/12.2.0 bwa/0.7.17
 
 cd /project/ysctrout/hatchsauger/
 
-perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawreads/*.fastq
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/*.fastq
