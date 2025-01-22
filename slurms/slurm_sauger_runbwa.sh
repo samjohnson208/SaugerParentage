@@ -14,7 +14,7 @@
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_runbwa
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_runbwa
 
-module load arcc/1.0 gcc/12.2.0 bwa/0.7.17
+module load arcc/1.0 gcc/14.2.0 bwa/0.7.17
 
 cd /project/ysctrout/hatchsauger/
 
