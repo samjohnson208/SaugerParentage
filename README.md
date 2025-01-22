@@ -154,3 +154,11 @@ Third step is to make an index for the reference genome bwa (Burrow Wheeler Alig
 ```{bash}
 sbatch slurm_sauger_bwa_index.sh
 ```
+
+
+Run Burrow Wheeler Align on /project/ysctrout/hatchsauger/1Saug/rawfastqs/*.fastq
+
+Generates for you a sam_sai directory that houses the output from this step, aligned reads with assoc. alignment scores. For each individual's split .fastq, you get a .sam and .sai file (standard alignment map, index, respectively). Can less into .sam but not .sai
+```{bash}
+sbatch slurm_sauger_runbwa.sh
+```
