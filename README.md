@@ -162,3 +162,28 @@ Generates for you a sam_sai directory that houses the output from this step, ali
 ```{bash}
 sbatch slurm_sauger_runbwa.sh
 ```
+
+## Variant Calling
+
+### .sam to .bam
+```{bash}
+sbatch slurm_sauger_sam2bam.sh
+```
+Note: Delete .sam's and .sai's after converting to .bam's and .bai's to save space. Navigate to directory and rm *.sam/.sai
+
+### Make bam list
+Variants slurm script requires a text file with all of the sorted.bam file names. This generates that file.
+```{bash}
+ls *.sorted.bam > bam_list.txt
+```
+
+### Call variants
+```{bash}
+sbatch slurm_sauger_variants.sh
+```
+
+
+
+
+
+
