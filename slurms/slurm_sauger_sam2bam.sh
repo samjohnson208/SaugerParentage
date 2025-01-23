@@ -1,8 +1,8 @@
 #!/bin/bash
 
-## slurm_sucker_sam2bam.sh by JPJ 7 vi 23
+## slurm_sauger_sam2bam.sh by JPJ and SPJ 012325
 ## PURPOSE: to use sam2bamV1.3.pl
-## USAGE: sbatch slurm_sucker_sam2bam.sh
+## USAGE: sbatch slurm_sauger_sam2bam.sh
 
 #SBATCH --job-name=sam2bam
 #SBATCH --nodes=1
@@ -11,10 +11,10 @@
 #SBATCH --account=ysctrout
 #SBATCH --time=0-10:00:00
 #SBATCH --mem=5G
-#SBATCH -o /project/ysctrout/jjahner/suckers/slurms/std/stdout_sam2bam
-#SBATCH -e /project/ysctrout/jjahner/suckers/slurms/std/stderr_sam2bam
+#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_sam2bam
+#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_sam2bam
 
-module load arcc/1.0 gcc/12.2.0 samtools/1.16.1
+module load arcc/1.0 gcc/14.2.0 samtools/1.20
 
-cd /project/ysctrout/jjahner/suckers/sam_sai/
-perl /home/jjahner/perl_scripts/sam2bamV1.3.pl *.sam
+cd /project/ysctrout/hatchsauger/sam_sai/
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/sam2bamV1.3.pl *.sam
