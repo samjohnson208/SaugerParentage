@@ -178,10 +178,17 @@ ls *.sorted.bam > bam_list.txt
 ```
 
 ### Call variants
+This script relies on samtools, bcftools, and paths to both the reference genome and to your sam_sai directory (which should also house your bam_list.txt from above).
 ```{bash}
 sbatch slurm_sauger_variants.sh
 ```
+Outputs a .vcf, aligned reads and variants for each scaffold.
 
+To see how many variants were called, run: 
+```{bash}
+grep -c "^scaff" variants_rawfiltered_012325.vcf
+79,272 variants called
+```
 
 
 
