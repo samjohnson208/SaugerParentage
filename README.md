@@ -190,7 +190,30 @@ grep -c "^scaff" variants_rawfiltered_012325.vcf
 79,272 variants called
 ```
 
+## Filtering
 
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+```
 
+### making id file for reheadering:
+At this stage, all of the reads are assigned to names aln_Sample_ID.sorted.bam.txt. This command takes those names, cuts off the "aln_" and "sorted.bam", and stores new names in sauger_ids_col.txt that are just the Sample_ID (SAR_YY_XXXX).
+```{bash}
+sed -s "s/aln_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
+```
+
+### reheader
+This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_012325.vcf to those names.
+```{bash}
+module load arcc/1.0 gcc/14.2.0 bcftools/1.20 vcftools/0.1.16
+
+bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_012325.vcf -o rehead_variants_rawfiltered_012325.vcf
+```
+
+### first filter investigation
+
+```{bash}
+perl run_first_filter.pl rehead_variants_rawfiltered_012325.vcf
+```
 
 
