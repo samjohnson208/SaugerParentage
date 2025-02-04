@@ -1,6 +1,6 @@
 #!/usr/bin/perl
-## run_first_filter.pl by JPJ 20 i 22
-## PURPOSE: go through first filtering steps
+## run_first_filter.pl by SPJ and MPR 020425
+# PURPOSE: go through first filtering steps
 ## USAGE: perl run_first_filter.pl [rehead.VCF]
 
 
@@ -21,7 +21,7 @@ if (@ARGV < 1) {
 ## teton specifications to hard code
 ##########################################################
 
-my $vcf_path = "/project/ysctrout/jjahner/suckers/sam_sai/";     ## directory containing raw vcf
+my $vcf_path = "/project/ysctrout/hatchsauger/sam_sai/";     ## directory containing raw vcf
 my $account = "ysctrout";     ## partition
 my $time = "0-00:30:00";     ## max time allowed for analysis
 my $mem = "5G";             ## memory
