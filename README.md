@@ -205,7 +205,7 @@ sed -s "s/aln_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
 ### reheader
 This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_012325.vcf to those names.
 ```{bash}
-module load arcc/1.0 gcc/14.2.0 bcftools/1.20 vcftools/0.1.16
+module load arcc/1.0 gcc/14.2.0 bcftools/1.20
 
 bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_012325.vcf -o rehead_variants_rawfiltered_012325.vcf
 ```
