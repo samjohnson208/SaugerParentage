@@ -18,6 +18,6 @@ module load arcc/1.0
 module load gcc/12.2.0
 module load bwa/0.7.17
 
-cd /project/ysctrout/reference_genomes/Perca_flavescens/
-bwa index -p yellowperch -a bwtsw yellowperch_genome.fna
+cd /project/ysctrout/reference_genomes/Sander_vitreus/
+bwa index -p walleye -a bwtsw walleye_genome.fna
 
