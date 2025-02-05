@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-## run_first_filter.pl by SPJ and MPR 020425
+## run_first_filter_MPR.pl by SPJ and MPR 020425
 # PURPOSE: go through first filtering steps
 ## USAGE: perl run_first_filter_MPR.pl [rehead.VCF]
 
@@ -54,7 +54,7 @@ foreach my $maf (@mafs){
     push @slurmdirectives, "#SBATCH -o "."$vcf_path"."first_filter_out/stdout_maf"."$maf"."_miss"."$miss";
     push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
     push @slurmdirectives, "cd $vcf_path";
-    push @slurmdirectives, "/project/ysctrout/software/vcftools/bin/vcftools --vcf $file --out variants_maf"."$maf"."_miss"."$miss"." --remove-filtered-all --maf 0.0"."$maf"." --max-missing 0."."$miss"." --recode --thin 100";
+    push @slurmdirectives, "/project/ysctrout/software/vcftools/bin/vcftools --vcf $file --out variants_maf"."$maf"."_miss"."$miss"." --remove-filtered-all --maf 0.0"."$maf"." --max-missing 0."."$miss"." --recode";
 
     my $slurm = join "\n", @slurmdirectives;
     runserialjob($slurm);
