@@ -14,9 +14,7 @@
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_bwa_index
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_bwa_index
 
-module load arcc/1.0
-module load gcc/12.2.0
-module load bwa/0.7.17
+module load arcc/1.0 gcc/14.2.0 bwa/0.7.17
 
 cd /project/ysctrout/reference_genomes/Sander_vitreus/
 bwa index -p walleye -a bwtsw walleye_genome.fna
