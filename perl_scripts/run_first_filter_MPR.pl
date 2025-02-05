@@ -53,7 +53,7 @@ foreach my $maf (@mafs){
     push @slurmdirectives, "#SBATCH --mem=$mem";
     push @slurmdirectives, "#SBATCH -o "."$vcf_path"."first_filter_out/stdout_maf"."$maf"."_miss"."$miss";
 
-    push @slurmdirectives, "module load arcc/1.0 gcc/12.2.0";
+    push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
     push @slurmdirectives, "cd $vcf_path";
     push @slurmdirectives, "/project/ysctrout/software/vcftools/bin/vcftools --vcf $file --out variants_maf"."$maf"."_miss"."$miss"." --remove-filtered-all --maf 0.0"."$maf"." --max-missing 0."."$miss"." --recode --thin 100";
 
