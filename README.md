@@ -7,6 +7,10 @@ sjohn208@uwyo.edu
 
 Below is the code and notes for the Wind River Sauger Parentage Analysis bioinformatics workflow. This began on 10/25/24 with file transfers and establishment of the Sauger Parentage github repository, followed by unzipping files (10/29/24) and parsing (11/01/24).
 
+Trial 1: Alignment to the Yellow Perch genome (Perca flavescens) produced very few loci after initial filtering. 
+
+Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
+
 ## Workflow Outline
 
 * Demultiplex
@@ -21,9 +25,17 @@ Below is the code and notes for the Wind River Sauger Parentage Analysis bioinfo
 
 * Split .fastq
 
-* Alignment
+* Alignment (P. flavescens and S. vitreus, Trials 1 and 2)
 
-* Variant Calling
+   * Remove 60 line endings
+
+   * Change Reference names
+
+   * Indexing
+
+   * Run bwa
+
+* Variant Calling (P. flavescens and S. vitreus, Trials 1 and 2)
 
 * Filtering
 
@@ -136,12 +148,16 @@ Keep in mind, this slurm script is running an embedded perl script, splitFastq_u
 
 ## Alignment
 
-### Yellow Perch Reference
+### Yellow Perch Reference (Trial 1)
+
+#### Remove 60 line endings
 First step is to remove the line endings after 60 characters, using remove60_fasta.pl
 ```{bash}
 ## remove 60 line endings
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/remove60_fasta.pl Perca_flavescens.fasta
 ```
+
+#### Change Reference Names
 Second step is to rename the reference names into something a bit more meaningful/reasonable.
 ```{bash}
 ## change reference names to something shorter
@@ -150,12 +166,49 @@ perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/rename_scaff.pl 
 
 mv renamed_no60_Perca_flavescens.fasta.txt yellowperch_genome.fna
 ```
+#### Indexing
 Third step is to make an index for the reference genome bwa (Burrow Wheeler Align).
 ```{bash}
 sbatch slurm_sauger_bwa_index.sh
 ```
 
+#### Run bwa
+Now you're ready to run Burrow Wheeler Align on /project/ysctrout/hatchsauger/1Saug/rawfastqs/*.fastq
 
+Generates for you a sam_sai directory that houses the output from this step, aligned reads with assoc. alignment scores. For each individual's split .fastq, you get a .sam and .sai file (standard alignment map, index, respectively). Can less into .sam but not .sai
+```{bash}
+sbatch slurm_sauger_runbwa.sh
+```
+
+### Walleye Reference (Trial 2)
+Download Walleye Reference Genome to new directory in ysc/reference_genomes/ called Sander_vitreus and unzip.
+```{bash}
+rsync --copy-links --recursive --times --verbose rsync://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/031/162/955/GCA_031162955.1_sanVit1/*.fna.gz .
+gunzip GCA_031162955.1_sanVit1/*.fna.gz
+```
+#### Remove 60 line endings
+First step is to remove the line endings after 60 characters, using remove60_fasta.pl
+```{bash}
+## remove 60 line endings
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/remove60_fasta.pl GCA_031162955.1_sanVit1_genomic.fna 
+```
+#### Change Reference Names
+Second step is to rename the reference names into something a bit more meaningful/reasonable.
+```{bash}
+## change reference names to something shorter
+
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/rename_scaff.pl no60_GCA_031162955.1_sanVit1_genomic.fna
+
+mv renamed_no60_GCA_031162955.1_sanVit1_genomic.fna.txt walleye_genome.fna
+```
+
+#### Indexing
+Third step is to make an index for the reference genome bwa (Burrow Wheeler Align).
+```{bash}
+sbatch slurm_sauger_bwa_index.sh
+```
+
+#### Run bwa
 Run Burrow Wheeler Align on /project/ysctrout/hatchsauger/1Saug/rawfastqs/*.fastq
 
 Generates for you a sam_sai directory that houses the output from this step, aligned reads with assoc. alignment scores. For each individual's split .fastq, you get a .sam and .sai file (standard alignment map, index, respectively). Can less into .sam but not .sai
@@ -163,21 +216,21 @@ Generates for you a sam_sai directory that houses the output from this step, ali
 sbatch slurm_sauger_runbwa.sh
 ```
 
-## Variant Calling
+## Variant Calling (Yellow Perch)
 
-### .sam to .bam
+### .sam to .bam (Yellow Perch)
 ```{bash}
 sbatch slurm_sauger_sam2bam.sh
 ```
 Note: Delete .sam's and .sai's after converting to .bam's and .bai's to save space. Navigate to directory and rm *.sam/.sai
 
-### Make bam list
+### Make bam list (Yellow Perch)
 Variants slurm script requires a text file with all of the sorted.bam file names. This generates that file.
 ```{bash}
 ls *.sorted.bam > bam_list.txt
 ```
 
-### Call variants
+### Call variants (Yellow Perch)
 This script relies on samtools, bcftools, and paths to both the reference genome and to your sam_sai directory (which should also house your bam_list.txt from above).
 ```{bash}
 sbatch slurm_sauger_variants.sh
@@ -190,7 +243,7 @@ grep -c "^scaff" variants_rawfiltered_012325.vcf
 79,272 variants called
 ```
 
-## Filtering
+## Filtering (Yellow Perch)
 
 ```{bash}
 salloc --account=ysctrout --time=3:00:00
@@ -219,4 +272,54 @@ Because you're running this from the sam_sai directory, you need to provide the 
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_012325.vcf
 ```
 Now we have (in our sam_sai) a series of standard output files for maf(1,2,3,4,5) and miss(6,7,8,9). 
+
+```{bash}
+grep "Sites" first_filter_out/*
+
+first_filter_out/stdout_maf1_miss6:After filtering, kept 218 out of a possible 79272 Sites
+first_filter_out/stdout_maf1_miss7:After filtering, kept 195 out of a possible 79272 Sites
+first_filter_out/stdout_maf1_miss8:After filtering, kept 169 out of a possible 79272 Sites
+first_filter_out/stdout_maf1_miss9:After filtering, kept 144 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss6:After filtering, kept 185 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss7:After filtering, kept 167 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss8:After filtering, kept 144 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss9:After filtering, kept 125 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss6:After filtering, kept 161 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss7:After filtering, kept 150 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss8:After filtering, kept 128 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss9:After filtering, kept 112 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss6:After filtering, kept 143 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss7:After filtering, kept 133 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss8:After filtering, kept 113 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss9:After filtering, kept 99 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss6:After filtering, kept 135 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss7:After filtering, kept 125 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss8:After filtering, kept 108 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss9:After filtering, kept 94 out of a possible 79272 Sites
+```
+Went back into run_first_filter_MPR.pl and killed the flag in the vcftools line (57) that tells it to remove sites that are within 100 bp of one another. Slight improvement, but minimal.
+```{bash}
+grep "Sites" first_filter_out/*
+first_filter_out/stdout_maf1_miss6:After filtering, kept 300 out of a possible 79272 Sites
+first_filter_out/stdout_maf1_miss7:After filtering, kept 258 out of a possible 79272 Sites
+first_filter_out/stdout_maf1_miss8:After filtering, kept 199 out of a possible 79272 Sites
+first_filter_out/stdout_maf1_miss9:After filtering, kept 166 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss6:After filtering, kept 254 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss7:After filtering, kept 220 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss8:After filtering, kept 167 out of a possible 79272 Sites
+first_filter_out/stdout_maf2_miss9:After filtering, kept 142 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss6:After filtering, kept 228 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss7:After filtering, kept 202 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss8:After filtering, kept 151 out of a possible 79272 Sites
+first_filter_out/stdout_maf3_miss9:After filtering, kept 129 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss6:After filtering, kept 208 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss7:After filtering, kept 183 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss8:After filtering, kept 135 out of a possible 79272 Sites
+first_filter_out/stdout_maf4_miss9:After filtering, kept 115 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss6:After filtering, kept 198 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss7:After filtering, kept 174 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss8:After filtering, kept 129 out of a possible 79272 Sites
+first_filter_out/stdout_maf5_miss9:After filtering, kept 109 out of a possible 79272 Sites
+```
+
 
