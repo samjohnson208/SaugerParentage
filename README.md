@@ -196,13 +196,13 @@ grep -c "^scaff" variants_rawfiltered_012325.vcf
 salloc --account=ysctrout --time=3:00:00
 ```
 
-### making id file for reheadering:
+### Making ID file for reheadering:
 At this stage, all of the reads are assigned to names aln_Sample_ID.sorted.bam.txt. This command takes those names, cuts off the "aln_" and "sorted.bam", and stores new names in sauger_ids_col.txt that are just the Sample_ID (SAR_YY_XXXX).
 ```{bash}
 sed -s "s/aln_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
 ```
 
-### reheader
+### Reheader
 This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_012325.vcf to those names.
 ```{bash}
 module load arcc/1.0 gcc/14.2.0 bcftools/1.20
@@ -210,10 +210,13 @@ module load arcc/1.0 gcc/14.2.0 bcftools/1.20
 bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_012325.vcf -o rehead_variants_rawfiltered_012325.vcf
 ```
 
-### first filter investigation
+### First filter investigation
+Worked with Maria for a while to get the run_first_filter.pl script to run on rehead_variants_rawfiltered_012325.vcf.
+
+Because you're running this from the sam_sai directory, you need to provide the whole path to the perl script.
 
 ```{bash}
-perl run_first_filter.pl rehead_variants_rawfiltered_012325.vcf
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_012325.vcf
 ```
-
+Now we have (in our sam_sai) a series of standard output files for maf(1,2,3,4,5) and miss(6,7,8,9). 
 
