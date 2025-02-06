@@ -271,11 +271,10 @@ Because you're running this from the sam_sai_pflav directory, you need to provid
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_012325.vcf
 ```
-Now we have (in sam_sai_pflav) a series of standard output files for maf(1,2,3,4,5) and miss(6,7,8,9). 
+Now we have (in sam_sai_pflav/first_filter_out) a series of standard output files for maf(1,2,3,4,5) and miss(6,7,8,9). 
 
 ```{bash}
 grep "Sites" first_filter_out/*
-
 first_filter_out/stdout_maf1_miss6:After filtering, kept 218 out of a possible 79272 Sites
 first_filter_out/stdout_maf1_miss7:After filtering, kept 195 out of a possible 79272 Sites
 first_filter_out/stdout_maf1_miss8:After filtering, kept 169 out of a possible 79272 Sites
@@ -333,7 +332,7 @@ We'll then load this .txt into R and generate a histogram. (see nrawreads.R)
 ### First filter investigation (no maf, missing data up to 60%)
 Solo work on 02/05/25 to develop run_first_filter_noMAF.pl script to run on rehead_variants_rawfiltered_012325.vcf.
 
-Should have no MAF filter, and run for the following missing data values 
+Should have no MAF filter, and run for the following missing data values. 
 
 ```{bash}
 my @misses = ('9', '8', '7', '6', '5', '4');
@@ -344,3 +343,16 @@ Because you're running this from the sam_sai_pflav directory, you need to provid
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_noMAF.pl rehead_variants_rawfiltered_012325.vcf
 ```
+
+Now we have (in sam_sai_pflav/first_filter_out_noMAF) a series of standard output files for miss(4,5,6,7,8,9). 
+
+```{bash}
+grep "Sites" first_filter_out_noMAF/*
+first_filter_out_noMAF/stdout_miss4:After filtering, kept 5461 out of a possible 79272 Sites
+first_filter_out_noMAF/stdout_miss5:After filtering, kept 4772 out of a possible 79272 Sites
+first_filter_out_noMAF/stdout_miss6:After filtering, kept 4388 out of a possible 79272 Sites
+first_filter_out_noMAF/stdout_miss7:After filtering, kept 4058 out of a possible 79272 Sites
+first_filter_out_noMAF/stdout_miss8:After filtering, kept 3685 out of a possible 79272 Sites
+first_filter_out_noMAF/stdout_miss9:After filtering, kept 3318 out of a possible 79272 Sites
+```
+
