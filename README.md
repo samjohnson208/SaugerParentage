@@ -266,12 +266,12 @@ bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_012325.vcf -o rehea
 ### First filter investigation
 Worked with Maria for a while to get the run_first_filter.pl script to run on rehead_variants_rawfiltered_012325.vcf.
 
-Because you're running this from the sam_sai directory, you need to provide the whole path to the perl script.
+Because you're running this from the sam_sai_pflav directory, you need to provide the whole path to the perl script.
 
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_012325.vcf
 ```
-Now we have (in our sam_sai) a series of standard output files for maf(1,2,3,4,5) and miss(6,7,8,9). 
+Now we have (in sam_sai_pflav) a series of standard output files for maf(1,2,3,4,5) and miss(6,7,8,9). 
 
 ```{bash}
 grep "Sites" first_filter_out/*
@@ -321,5 +321,26 @@ first_filter_out/stdout_maf5_miss7:After filtering, kept 174 out of a possible 7
 first_filter_out/stdout_maf5_miss8:After filtering, kept 129 out of a possible 79272 Sites
 first_filter_out/stdout_maf5_miss9:After filtering, kept 109 out of a possible 79272 Sites
 ```
+We're concerned about this lack of sites, and whether or not its a structural problem with the data.
+Katie's asked to see a histogram of nreads per individual.
 
+To get the number of raw reads per individual (from the raw .fastq files), and store them in a .txt file, we'll use this code:
+```{bash}
+grep -c "^@" *.fastq > nreads_per_ind.txt
+```
+We'll then load this .txt into R and generate a histogram. (see nrawreads.R)
 
+### First filter investigation (no maf, missing data up to 60%)
+Solo work on 02/05/25 to develop run_first_filter_noMAF.pl script to run on rehead_variants_rawfiltered_012325.vcf.
+
+Should have no MAF filter, and run for the following missing data values 
+
+```{bash}
+my @misses = ('9', '8', '7', '6', '5', '4');
+# 10 to 60% missing data
+```
+Because you're running this from the sam_sai_pflav directory, you need to provide the whole path to the perl script.
+
+```{bash}
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_noMAF.pl rehead_variants_rawfiltered_012325.vcf
+```
