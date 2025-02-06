@@ -6,7 +6,7 @@
 #SBATCH --time=10:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem=0
+#SBATCH --mem=5G
 #SBATCH --mail-type=END
 
 module load swset
