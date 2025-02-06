@@ -16,5 +16,5 @@
 
 module load arcc/1.0 gcc/14.2.0 samtools/1.20
 
-cd /project/ysctrout/hatchsauger/sam_sai/
+cd /project/ysctrout/hatchsauger/sam_sai_svit/
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/sam2bamV1.3.pl *.sam
