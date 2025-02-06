@@ -51,7 +51,7 @@ my $file = shift @ARGV;
     push @slurmdirectives, "#SBATCH --account=$account";
     push @slurmdirectives, "#SBATCH --time=$time";
     push @slurmdirectives, "#SBATCH --mem=$mem";
-    push @slurmdirectives, "#SBATCH -o "."$vcf_path"."first_filter_out/stdout_miss"."$miss";
+    push @slurmdirectives, "#SBATCH -o "."$vcf_path"."first_filter_out_noMAF/stdout_miss"."$miss";
     push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
     push @slurmdirectives, "cd $vcf_path";
     push @slurmdirectives, "/project/ysctrout/software/vcftools/bin/vcftools --vcf $file --out variants__miss"."$miss"." --remove-filtered-all --max-missing 0."."$miss"." --recode";
