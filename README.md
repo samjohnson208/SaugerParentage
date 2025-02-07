@@ -222,7 +222,7 @@ sbatch slurm_sauger_runbwa.sh
 ```{bash}
 sbatch slurm_sauger_sam2bam.sh
 ```
-Note: Delete .sam's and .sai's after converting to .bam's and .bai's to save space. Navigate to directory and rm *.sam/.sai
+Note: Delete .sam's and .sai's after converting to .bam's and .bai's to save space. Navigate to directory, rm *.sam, rm *.sai
 
 ### Make bam list (Yellow Perch)
 Variants slurm script requires a text file with all of the sorted.bam file names. This generates that file.
@@ -231,7 +231,7 @@ ls *.sorted.bam > bam_list.txt
 ```
 
 ### Call variants (Yellow Perch)
-This script relies on samtools, bcftools, and paths to both the reference genome and to your sam_sai directory (which should also house your bam_list.txt from above).
+This script relies on samtools, bcftools, and paths to both the reference genome and to your sam_sai_pflav directory (which should also house your bam_list.txt from above).
 ```{bash}
 sbatch slurm_sauger_variants.sh
 ```
@@ -244,6 +244,7 @@ grep -c "^scaff" variants_rawfiltered_012325.vcf
 ```
 
 ## Filtering (Yellow Perch)
+All taking place inside sam_sai_pflav.
 
 ```{bash}
 salloc --account=ysctrout --time=3:00:00
@@ -255,7 +256,7 @@ At this stage, all of the reads are assigned to names aln_Sample_ID.sorted.bam.t
 sed -s "s/aln_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
 ```
 
-### Reheader
+### Reheader 
 This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_012325.vcf to those names.
 ```{bash}
 module load arcc/1.0 gcc/14.2.0 bcftools/1.20
@@ -263,7 +264,7 @@ module load arcc/1.0 gcc/14.2.0 bcftools/1.20
 bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_012325.vcf -o rehead_variants_rawfiltered_012325.vcf
 ```
 
-### First filter investigation
+### First filter investigation 
 Worked with Maria for a while to get the run_first_filter.pl script to run on rehead_variants_rawfiltered_012325.vcf.
 
 Because you're running this from the sam_sai_pflav directory, you need to provide the whole path to the perl script.
@@ -355,4 +356,34 @@ first_filter_out_noMAF/stdout_miss7:After filtering, kept 4058 out of a possible
 first_filter_out_noMAF/stdout_miss8:After filtering, kept 3685 out of a possible 79272 Sites
 first_filter_out_noMAF/stdout_miss9:After filtering, kept 3318 out of a possible 79272 Sites
 ```
+
+## Variant Calling (Walleye)
+All taking place inside sam_sai_svit.
+
+### .sam to .bam (Walleye)
+
+```{bash}
+sbatch slurm_sauger_sam2bam.sh
+```
+Note: Delete .sam's and .sai's after converting to .bam's and .bai's to save space. Navigate to directory, rm *.sam, rm *.sai
+
+### Make bam list ((Walleye))
+Variants slurm script requires a text file with all of the sorted.bam file names. This generates that file.
+```{bash}
+ls *.sorted.bam > bam_list.txt
+```
+
+### Call variants ((Walleye))
+This script relies on samtools, bcftools, and paths to both the reference genome and to your sam_sai directory (which should also house your bam_list.txt from above).
+```{bash}
+sbatch slurm_sauger_variants.sh
+```
+Outputs a .vcf, aligned reads and variants for each scaffold.
+
+To see how many variants were called, run: 
+```{bash}
+grep -c "^scaff" variants_rawfiltered_svit_020625.vcf
+```
+
+
 
