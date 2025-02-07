@@ -339,6 +339,7 @@ Should have no MAF filter, and run for the following missing data values.
 my @misses = ('9', '8', '7', '6', '5', '4');
 # 10 to 60% missing data
 ```
+
 Because you're running this from the sam_sai_pflav directory, you need to provide the whole path to the perl script.
 
 ```{bash}
@@ -356,6 +357,11 @@ first_filter_out_noMAF/stdout_miss7:After filtering, kept 4058 out of a possible
 first_filter_out_noMAF/stdout_miss8:After filtering, kept 3685 out of a possible 79272 Sites
 first_filter_out_noMAF/stdout_miss9:After filtering, kept 3318 out of a possible 79272 Sites
 ```
+
+
+
+
+
 
 ## Variant Calling (Walleye)
 All taking place inside sam_sai_svit.
@@ -383,7 +389,51 @@ Outputs a .vcf, aligned reads and variants for each scaffold.
 To see how many variants were called, run: 
 ```{bash}
 grep -c "^scaff" variants_rawfiltered_svit_020625.vcf
+# 366,797 variants called
 ```
+
+## Filtering (Walleye)
+All taking place inside sam_sai_svit.
+
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+```
+
+### Making ID file for reheadering:
+At this stage, all of the reads are assigned to names aln_Sample_ID.sorted.bam.txt. This command takes those names, cuts off the "aln_" and "sorted.bam", and stores new names in sauger_ids_col.txt that are just the Sample_ID (SAR_YY_XXXX).
+```{bash}
+sed -s "s/aln_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
+```
+### Reheader 
+This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_svit_020625.vcf to those names.
+```{bash}
+module load arcc/1.0 gcc/14.2.0 bcftools/1.20
+
+bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_svit_020625.vcf -o rehead_variants_rawfiltered_svit_020625.vcf
+```
+
+### First filter investigation (no maf, missing data up to 60%)
+Solo work on 02/07/25 to use run_first_filter_noMAF.pl script on rehead_variants_rawfiltered_svit_020625.vcf.
+
+Should have no MAF filter, and run for the following missing data values. 
+
+```{bash}
+my @misses = ('9', '8', '7', '6', '5', '4');
+# 10 to 60% missing data
+```
+
+Because you're running this from the sam_sai_svit directory, you need to provide the whole path to the perl script.
+
+```{bash}
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_noMAF.pl rehead_variants_rawfiltered_svit_020625.vcf
+```
+
+Now we have (in sam_sai_svit/first_filter_out_noMAF) a series of standard output files for miss(4,5,6,7,8,9). 
+
+```{bash}
+grep "Sites" first_filter_out_noMAF/*
+```
+
 
 
 
