@@ -10,9 +10,9 @@
 #SBATCH --mem=5G
 #SBATCH --mail-type=END
 
-module load swset
-module load gcc/7.3.0
-module load samtools/1.8
+
+module load gcc/14.2.0
+module load samtools/1.20
 echo "ind raw assembled" > assembled_per_ind.txt
 
 for file in aln_*.sorted.bam
