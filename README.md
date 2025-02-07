@@ -359,10 +359,6 @@ first_filter_out_noMAF/stdout_miss9:After filtering, kept 3318 out of a possible
 ```
 
 
-
-
-
-
 ## Variant Calling (Walleye)
 All taking place inside sam_sai_svit.
 
@@ -404,12 +400,57 @@ At this stage, all of the reads are assigned to names aln_Sample_ID.sorted.bam.t
 ```{bash}
 sed -s "s/aln_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
 ```
+
 ### Reheader 
 This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_svit_020625.vcf to those names.
 ```{bash}
 module load arcc/1.0 gcc/14.2.0 bcftools/1.20
 
 bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_svit_020625.vcf -o rehead_variants_rawfiltered_svit_020625.vcf
+```
+
+### First filter investigation 
+Solo work on 02/07/25 to use run_first_filter_MPR.pl script on rehead_variants_rawfiltered_svit_020625.vcf.
+
+Because you're running this from the sam_sai_pflav directory, you need to provide the whole path to the perl script.
+
+```{bash}
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_svit_020625.vcf
+```
+Now we have (in sam_sai_svit/first_filter_out) a series of standard output files for maf(1,2,3,4,5) and miss(4,5,6,7,8,9).
+
+```{bash}
+grep "Sites" first_filter_out/*
+first_filter_out/stdout_maf1_miss4:After filtering, kept 10491 out of a possible 366797 Sites
+first_filter_out/stdout_maf1_miss5:After filtering, kept 9151 out of a possible 366797 Sites
+first_filter_out/stdout_maf1_miss6:After filtering, kept 8396 out of a possible 366797 Sites
+first_filter_out/stdout_maf1_miss7:After filtering, kept 7775 out of a possible 366797 Sites
+first_filter_out/stdout_maf1_miss8:After filtering, kept 7225 out of a possible 366797 Sites
+first_filter_out/stdout_maf1_miss9:After filtering, kept 6488 out of a possible 366797 Sites
+first_filter_out/stdout_maf2_miss4:After filtering, kept 8772 out of a possible 366797 Sites
+first_filter_out/stdout_maf2_miss5:After filtering, kept 7753 out of a possible 366797 Sites
+first_filter_out/stdout_maf2_miss6:After filtering, kept 7222 out of a possible 366797 Sites
+first_filter_out/stdout_maf2_miss7:After filtering, kept 6750 out of a possible 366797 Sites
+first_filter_out/stdout_maf2_miss8:After filtering, kept 6331 out of a possible 366797 Sites
+first_filter_out/stdout_maf2_miss9:After filtering, kept 5736 out of a possible 366797 Sites
+first_filter_out/stdout_maf3_miss4:After filtering, kept 7881 out of a possible 366797 Sites
+first_filter_out/stdout_maf3_miss5:After filtering, kept 6984 out of a possible 366797 Sites
+first_filter_out/stdout_maf3_miss6:After filtering, kept 6519 out of a possible 366797 Sites
+first_filter_out/stdout_maf3_miss7:After filtering, kept 6113 out of a possible 366797 Sites
+first_filter_out/stdout_maf3_miss8:After filtering, kept 5757 out of a possible 366797 Sites
+first_filter_out/stdout_maf3_miss9:After filtering, kept 5228 out of a possible 366797 Sites
+first_filter_out/stdout_maf4_miss4:After filtering, kept 7204 out of a possible 366797 Sites
+first_filter_out/stdout_maf4_miss5:After filtering, kept 6396 out of a possible 366797 Sites
+first_filter_out/stdout_maf4_miss6:After filtering, kept 5988 out of a possible 366797 Sites
+first_filter_out/stdout_maf4_miss7:After filtering, kept 5625 out of a possible 366797 Sites
+first_filter_out/stdout_maf4_miss8:After filtering, kept 5310 out of a possible 366797 Sites
+first_filter_out/stdout_maf4_miss9:After filtering, kept 4849 out of a possible 366797 Sites
+first_filter_out/stdout_maf5_miss4:After filtering, kept 6702 out of a possible 366797 Sites
+first_filter_out/stdout_maf5_miss5:After filtering, kept 5956 out of a possible 366797 Sites
+first_filter_out/stdout_maf5_miss6:After filtering, kept 5597 out of a possible 366797 Sites
+first_filter_out/stdout_maf5_miss7:After filtering, kept 5268 out of a possible 366797 Sites
+first_filter_out/stdout_maf5_miss8:After filtering, kept 4978 out of a possible 366797 Sites
+first_filter_out/stdout_maf5_miss9:After filtering, kept 4554 out of a possible 366797 Sites
 ```
 
 ### First filter investigation (no maf, missing data up to 60%)
@@ -432,7 +473,15 @@ Now we have (in sam_sai_svit/first_filter_out_noMAF) a series of standard output
 
 ```{bash}
 grep "Sites" first_filter_out_noMAF/*
+first_filter_out_noMAF/stdout_miss4:After filtering, kept 87350 out of a possible 366797 Sites
+first_filter_out_noMAF/stdout_miss5:After filtering, kept 78726 out of a possible 366797 Sites
+first_filter_out_noMAF/stdout_miss6:After filtering, kept 74268 out of a possible 366797 Sites
+first_filter_out_noMAF/stdout_miss7:After filtering, kept 70270 out of a possible 366797 Sites
+first_filter_out_noMAF/stdout_miss8:After filtering, kept 66084 out of a possible 366797 Sites
+first_filter_out_noMAF/stdout_miss9:After filtering, kept 59169 out of a possible 366797 Sites
 ```
+
+
 
 
 
