@@ -21,13 +21,13 @@ if (@ARGV < 1) {
 ## teton specifications to hard code
 ##########################################################
 
-my $vcf_path = "/project/ysctrout/hatchsauger/sam_sai/";     ## directory containing raw vcf
+my $vcf_path = "/project/ysctrout/hatchsauger/sam_sai_svit/";     ## directory containing raw vcf
 my $account = "ysctrout";     ## partition
 my $time = "0-00:30:00";     ## max time allowed for analysis
 my $mem = "5G";             ## memory
 
 my @mafs = ('5', '4', '3', '2', '1');
-my @misses = ('9', '8', '7', '6');
+my @misses = ('9', '8', '7', '6', '5', '4');
 
 
 ##########################################################
