@@ -19,11 +19,11 @@ module load vcftools/0.1.17
 
 cd /project/ysctrout/hatchsauger/sam_sai_pflav
 
-vcftools --vcf rehead_variants_rawfiltered_pflav_012325.vcf --missing-site --out per_md_per_site_pflav.missing
+vcftools --vcf rehead_variants_rawfiltered_pflav_012325.vcf --missing-site --out per_md_per_site_pflav
 
 cd /project/ysctrout/hatchsauger/sam_sai_svit
 
-vcftools --vcf rehead_variants_rawfiltered_svit_020625.vcf --missing-site --out per_md_per_site_svit.missing
+vcftools --vcf rehead_variants_rawfiltered_svit_020625.vcf --missing-site --out per_md_per_site_svit
 
 
 

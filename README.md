@@ -60,7 +60,7 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * First Filter investigation (Both References)
 
-   * % Missing Data Per Locus Investigation
+   * Percent Missing Data Per Locus Investigation (Both References)
 
 * Entropy
 
@@ -552,9 +552,14 @@ first_filter_out_noMAF/stdout_miss8:After filtering, kept 66084 out of a possibl
 first_filter_out_noMAF/stdout_miss9:After filtering, kept 59169 out of a possible 366797 Sites
 ```
 
+### Percent Missing Data Per Locus Investigation
 
+(From slurm scrips directory)
 
+This script generates a summary table for each site on each scaffold that describes, among other things, the percent missing data for that site. You need to give it the .vcf of interest and the path to that .vcf.
 
-
+```{bash}
+sbatch slurm_sauger_permd.sh
+```
 
 
