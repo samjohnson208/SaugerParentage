@@ -11,17 +11,19 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=10G
 #SBATCH --mail-type=END
+#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_permd
+#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_permd
 
 module load arcc/1.0
 module load vcftools/0.1.17
 
 cd /project/ysctrout/hatchsauger/sam_sai_pflav
 
-vcftools --vcf rehead_variants_rawfiltered_pflav_012325.vcf --out per_md_per_site_pflav
+vcftools --vcf rehead_variants_rawfiltered_pflav_012325.vcf --missing-site --out per_md_per_site_pflav.missing
 
 cd /project/ysctrout/hatchsauger/sam_sai_svit
 
-vcftools --vcf rehead_variants_rawfiltered_svit_020625.vcf --out per_md_per_site_svit
+vcftools --vcf rehead_variants_rawfiltered_svit_020625.vcf --missing-site --out per_md_per_site_svit.missing
 
 
 
