@@ -14,8 +14,11 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 ## Workflow Outline
 
 * Demultiplex
+   * Unzip Raw .fastq's
 
    * Count Raw Reads
+
+   * Fastqc Analysis
 
    * Splitting Raw Files
 
@@ -24,6 +27,10 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
    * Debugging perl on Medbow
 
 * Split .fastq
+
+   * Split to 1184 fastq files
+
+   * Count Raw Reads Per Individual
 
 * Alignment (P. flavescens and S. vitreus, Trials 1 and 2)
 
@@ -35,9 +42,25 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * Run bwa
 
+   * Count Aligned Reads per Individual
+
 * Variant Calling (P. flavescens and S. vitreus, Trials 1 and 2)
 
+   * .sam to .bam
+
+   * Make bam list
+
+   * Call Variants
+
 * Filtering
+
+   * Make ID File for reheadering
+
+   * Reheader
+
+   * First Filter investigation (Both References)
+
+   * % Missing Data Per Locus Investigation
 
 * Entropy
 
@@ -62,6 +85,35 @@ grep -c "^@" 1SaugEvens.fastq
 grep -c "^@" 1SaugOdds.fastq
    # 1,156,307,046
 ```
+
+### Fastqc Analysis
+
+Fastqc runs various analyses on your raw data to get you a cursory look before you expand to other analyses.
+
+Start by running fastqc on your raw data files (the large ones from each libarary) using this slurm script . In this case, those are 1SaugEvens.fastq and 1SaugOdds.fastq.
+
+```{bash}
+sbatch slurm_fastqc.sh
+```
+
+Outputs will be returned as zipped directories. Unzip them using: 
+
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+unzip 1SaugEvens_fastqc.zip
+unzip 1SaugOdds_fastqc.zip
+```
+
+Notice that these are not .gz files, so we do not use gunzip.
+We'll then need to go into these output directories and scp the .htmls to our local machine to open in Chrome.
+```{bash}
+# (Run locally, from /Users/samjohnson/Documents/Sauger_102824/Fastqc_Output)
+
+scp -r sjohn208@medicinebow.arcc.uwyo.edu:/project/ysctrout/hatchsauger/1Saug/rawreads/out_fastqc/1SaugEvens_fastqc .
+
+scp -r sjohn208@medicinebow.arcc.uwyo.edu:/project/ysctrout/hatchsauger/1Saug/rawreads/out_fastqc/1SaugOdds_fastqc .
+```
+
 
 ### Splitting Raw Files
 Since it would take incrdibly long to parse the 1SaugEvens/Odds.fastqs, we need to make them smaller to parallelize the parsing process. In this case, we're splitting the big files into smaller ones that are each 55 million lines long.
@@ -128,7 +180,7 @@ After the transition, perl parsing script no longer worked. Required this comman
 No longer required to run the perl module at the beginning of this script. Reason unknown. 
 
 ## Split .fastq
-
+### Splitting to 1184 .fastq files
 Make ID's file and check nrow using...
 
 ```{bash}
@@ -145,6 +197,19 @@ First, the script makes empty files in your rawreads directory (SAR_YY_XXXX.fast
 sbatch slurm_sauger_split.sh
 ```
 Keep in mind, this slurm script is running an embedded perl script, splitFastq_universal_regex.pl. In the last few lines of that slurm script. You're setting the working directory to the raw reads, then providing the file path to the perl script, then the id's text file, and the all_parsed.fastq. 
+
+### Count Raw Reads Per Individual
+We're concerned about this lack of sites, and whether or not its a structural problem with the data. Katie's asked to see a histogram of nreads per individual.
+
+To get the number of raw reads per individual (from the raw .fastq files), and store them in a .txt file, we'll use this code (run from the rawfastqs directory).
+```{bash}
+grep -c "^@" *.fastq > nreads_per_ind.txt
+
+# That .txt file is located in this directory
+/Users/samjohnson/Documents/Sauger_102824/Scripts_Plots/CountingReads/n_rawreads_per_indiv/
+```
+
+We'll then load this .txt into R and generate a histogram. (see nrawreads.R)
 
 ## Alignment
 
@@ -178,6 +243,13 @@ Now you're ready to run Burrow Wheeler Align on /project/ysctrout/hatchsauger/1S
 Generates for you a sam_sai directory that houses the output from this step, aligned reads with assoc. alignment scores. For each individual's split .fastq, you get a .sam and .sai file (standard alignment map, index, respectively). Can less into .sam but not .sai
 ```{bash}
 sbatch slurm_sauger_runbwa.sh
+```
+
+#### Count Aligned/Assembled Reads
+Run this slurm script from your sam_sai_pflav directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the yellow perch aligned reads. (See nalignedreads.R)
+
+```{bash}
+sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled.sh
 ```
 
 ### Walleye Reference (Trial 2)
@@ -214,6 +286,13 @@ Run Burrow Wheeler Align on /project/ysctrout/hatchsauger/1Saug/rawfastqs/*.fast
 Generates for you a sam_sai directory that houses the output from this step, aligned reads with assoc. alignment scores. For each individual's split .fastq, you get a .sam and .sai file (standard alignment map, index, respectively). Can less into .sam but not .sai
 ```{bash}
 sbatch slurm_sauger_runbwa.sh
+```
+
+#### Count Aligned/Assembled Reads Per Individual
+Run this slurm script from your sam_sai_svit directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the yellow perch aligned reads (See nalignedreads.R).
+
+```{bash}
+sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled.sh
 ```
 
 ## Variant Calling (Yellow Perch)
@@ -321,14 +400,6 @@ first_filter_out/stdout_maf5_miss7:After filtering, kept 174 out of a possible 7
 first_filter_out/stdout_maf5_miss8:After filtering, kept 129 out of a possible 79272 Sites
 first_filter_out/stdout_maf5_miss9:After filtering, kept 109 out of a possible 79272 Sites
 ```
-We're concerned about this lack of sites, and whether or not its a structural problem with the data.
-Katie's asked to see a histogram of nreads per individual.
-
-To get the number of raw reads per individual (from the raw .fastq files), and store them in a .txt file, we'll use this code:
-```{bash}
-grep -c "^@" *.fastq > nreads_per_ind.txt
-```
-We'll then load this .txt into R and generate a histogram. (see nrawreads.R)
 
 ### First filter investigation (no maf, missing data up to 60%)
 Solo work on 02/05/25 to develop run_first_filter_noMAF.pl script to run on rehead_variants_rawfiltered_012325.vcf.
@@ -480,6 +551,7 @@ first_filter_out_noMAF/stdout_miss7:After filtering, kept 70270 out of a possibl
 first_filter_out_noMAF/stdout_miss8:After filtering, kept 66084 out of a possible 366797 Sites
 first_filter_out_noMAF/stdout_miss9:After filtering, kept 59169 out of a possible 366797 Sites
 ```
+
 
 
 
