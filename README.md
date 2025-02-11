@@ -64,6 +64,8 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
 * Entropy
 
+* Generating Input for Sequoia
+
 ## Demultiplex
 
 ### Unzip raw .fastq's
@@ -561,5 +563,18 @@ This script generates a summary table for each site on each scaffold that descri
 ```{bash}
 sbatch slurm_sauger_permd.sh
 ```
+
+## Generating Input for Sequoia
+We're going to use a command in vcftools (--012) to generate a file that lists the genotypes, for each individual, for each locus in terms of 0,1,2 (copies of the reference/nonreference allele), and -1 for missing. Sequoia takes missing data as -9, so we'll need to find and replace every instance of -1 with -9.
+
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
+vcftools --vcf variants_maf1_miss9.recode.vcf --012 --out variants_maf1_miss9
+sed "s/-1/-9/g" variants_maf1_miss9.012 > variants_maf1_miss9.012_conv
+# conv = converted to missing data = "-9"
+```
+
+
 
 
