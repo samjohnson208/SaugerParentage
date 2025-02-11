@@ -18,11 +18,10 @@ module load vcftools/0.1.17
 cd /project/ysctrout/hatchsauger/sam_sai_pflav
 
 vcftools --vcf rehead_variants_rawfiltered_pflav_012325.vcf --out per_md_per_site_pflav
-awk '{print $1 "," $2 "," $3 "," $4}' per_md_per_site_pflav.missing > per_md_per_site_pflav.csv
 
 cd /project/ysctrout/hatchsauger/sam_sai_svit
 
 vcftools --vcf rehead_variants_rawfiltered_svit_020625.vcf --out per_md_per_site_svit
-awk '{print $1 "," $2 "," $3 "," $4}' per_md_per_site_svit.missing > per_md_per_site_svit.csv
+
 
 
