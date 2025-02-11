@@ -11,7 +11,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=15G
 #SBATCH --mail-type=END
-
+#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_fastqc
+#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_fastqc
 
 module load arcc/1.0
 module load fastqc/0.12.1
