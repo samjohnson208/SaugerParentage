@@ -16,12 +16,12 @@
 
 ## load modules, activate and install conda environment, pull in git repo, and change 
 module load arcc/1.0 
-module load gcc/13.2.0 
-module load py-numpy/1.26.1
+module load gcc/14.2.0 
+## module load py-numpy/1.26.1
 module load miniconda3/24.3.0
 
 conda activate easySFS
-conda install -c conda-forge numpy pandas scipy -y
+## conda install -c conda-forge numpy pandas scipy -y
 
 # navigate to easySFS directory and change script permissions
 cd /project/ysctrout/hatchsauger/easySFS
