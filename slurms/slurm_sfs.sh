@@ -16,7 +16,6 @@
 
 ## load modules, activate and install conda environment, pull in git repo, and change 
 module load arcc/1.0 miniconda3/24.3.0
-conda create -n easySFS
 conda activate easySFS
 
 # navigate to easySFS directory and change script permissions
