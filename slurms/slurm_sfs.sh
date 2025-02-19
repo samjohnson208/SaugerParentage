@@ -15,7 +15,11 @@
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_easysfs
 
 ## load modules, activate and install conda environment, pull in git repo, and change 
-module load arcc/1.0 miniconda3/24.3.0
+module load arcc/1.0 
+module load gcc/13.2.0 
+module load py-numpy/1.26.1
+module load miniconda3/24.3.0
+
 conda activate easySFS
 conda install -c conda-forge numpy pandas scipy -y
 
