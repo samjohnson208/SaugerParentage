@@ -575,6 +575,18 @@ sed "s/-1/-9/g" variants_maf1_miss9.012 > variants_maf1_miss9.012_conv
 # conv = converted to missing data = "-9"
 ```
 
-
+# Generating Site Frequency Spectra (easySFS)
+This comes directly from the easySFS readme, though see the additional code in slurm_sfs.sh. That script was created for this process of generating an sfs for each aligned dataset.
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+module load arcc/1.0 miniconda3/24.3.0
+conda create -n easySFS
+conda activate easySFS
+conda install -c conda-forge numpy pandas scipy -y
+git clone https://github.com/isaacovercast/easySFS.git
+cd easySFS
+chmod 777 easySFS.py
+./easySFS.py
+```
 
 
