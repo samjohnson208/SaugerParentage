@@ -16,7 +16,8 @@
 
 # calculates the number of reads, number of loci, mean sequencing depth and number of loci with min 10 reads and their mean depth  
 
-cd /project/ysctrout/hatchsauger/sam_sai_svit
+cd /project/ysctrout/hatchsauger/sam_sai_svit/sorted.bams
+module load arcc/1.0  gcc/14.2.0 samtools/1.20
 
 # create the report.txt file with a line for each individual (each bam file) with read counts
 echo -e "sample\tsampleLib\tmappedReads" > report.txt
