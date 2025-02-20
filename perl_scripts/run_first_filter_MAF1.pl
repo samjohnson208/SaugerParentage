@@ -34,7 +34,7 @@ my @mafs = ('1');
 
 ## directory for write output files
 unless(-e 'first_filter_out_MAF1'){
-  mkdir 'irst_filter_out_MAF1', 0755 or die "Failed to make first_filter_out_MAF1 directory\n";
+  mkdir 'first_filter_out_MAF1', 0755 or die "Failed to make first_filter_out_MAF1 directory\n";
 }
 
 my $file = shift @ARGV;
