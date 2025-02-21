@@ -247,8 +247,8 @@ Generates for you a sam_sai directory that houses the output from this step, ali
 sbatch slurm_sauger_runbwa.sh
 ```
 
-#### Count Aligned/Assembled Reads
-Run this slurm script from your sam_sai_pflav directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the yellow perch aligned reads. (See nalignedreads.R)
+#### Count Aligned/Assembled Reads (Yellow Perch)
+Run this slurm script from your sam_sai_pflav directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the walleye aligned reads. (See nalignedreads.R)
 
 ```{bash}
 sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled.sh
@@ -290,7 +290,7 @@ Generates for you a sam_sai directory that houses the output from this step, ali
 sbatch slurm_sauger_runbwa.sh
 ```
 
-#### Count Aligned/Assembled Reads Per Individual
+#### Count Aligned/Assembled Reads Per Individual (Walleye)
 Run this slurm script from your sam_sai_svit directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the yellow perch aligned reads (See nalignedreads.R).
 
 ```{bash}
@@ -575,4 +575,24 @@ vcftools --vcf variants_maf1_miss9.recode.vcf --012 --out variants_maf1_miss9
 sed "s/-1/-9/g" variants_maf1_miss9.012 > variants_maf1_miss9.012_conv
 # conv = converted to missing data = "-9"
 ```
+
+## RadMap Report Generation
+
+I modifited the script by Joana Meier at this link to create slurm_radmapreport.sh: https://speciationgenomics.github.io/allelicBalance/
+
+This script generates a summary table with (for each indiv) the number of reads, number of loci, mean sequencing depth and number of loci with min 10 reads and their mean depth. Run the script on your directory of .sorted.bam files (See line 19).
+
+e.g., /project/ysctrout/hatchsauger/sam_sai_svit/sorted.bams
+
+```{bash}
+slurm_radmapreport.sh
+```
+
+We then must rename the output .txt files to describe species using mv. I then scp'd these files to my local machine to read into R.
+
+
+
+
+
+
 

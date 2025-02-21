@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## created by SPJ 021725
+## created by SPJ 022125
 ## PURPOSE: generate summary table with the number of reads, number of loci, mean sequencing depth and number of loci with min 10 reads and their mean depth  
 ## USAGE: sbatch slurm_radmapreport.sh
 
@@ -63,7 +63,7 @@ do
 	    if($2==16){
 	     b=0
              cigar=$6
-	     gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/\d*.I/,"",cigar);sub(/$/,"0",cigar)
+	     gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/[0-9]*.I/,"",cigar);sub(/$/,"0",cigar)
              split(cigar,indexx,"+");for (i in indexx) b+=indexx[i]
 	     locus=$4+b-4
 	    }
@@ -88,7 +88,7 @@ do
 	    if($2==16){
              b=0
              cigar=$6
-             gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/\d*.I/,"",cigar);sub(/$/,"0",cigar)
+             gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/[0-9]*.I/,"",cigar);sub(/$/,"0",cigar)
              split(cigar,indexx,"+");for (i in indexx) b+=indexx[i]
              locus=$4+b-4
             }
@@ -112,7 +112,7 @@ do
              if($2==16){
               b=0
               cigar=$6
-              gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/\d*.I/,"",cigar);sub(/$/,"0",cigar)
+              gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/[0-9]*.I/,"",cigar);sub(/$/,"0",cigar)
               split(cigar,indexx,"+");for (i in indexx) b+=indexx[i]
               locus=$4+b-4
              }
@@ -132,7 +132,7 @@ do
 	    if($2==16){
              b=0
              cigar=$6
-             gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/\d*.I/,"",cigar);sub(/$/,"0",cigar)
+             gsub(/M/,"+",cigar);gsub(/D/,"+",cigar);gsub(/[0-9]*.I/,"",cigar);sub(/$/,"0",cigar)
              split(cigar,indexx,"+");for (i in indexx) b+=indexx[i]
              locus=$4+b-4
             }
