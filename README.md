@@ -554,7 +554,7 @@ first_filter_out_noMAF/stdout_miss8:After filtering, kept 66084 out of a possibl
 first_filter_out_noMAF/stdout_miss9:After filtering, kept 59169 out of a possible 366797 Sites
 ```
 
-### Percent Missing Data Per Locus Investigation
+## Percent Missing Data Per Locus Investigation
 
 (From slurm scrips directory)
 
