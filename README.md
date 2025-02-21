@@ -585,7 +585,7 @@ This script generates a summary table with (for each indiv) the number of reads,
 e.g., /project/ysctrout/hatchsauger/sam_sai_svit/sorted.bams
 
 ```{bash}
-slurm_radmapreport.sh
+slurm_radmapreport_fix.sh
 ```
 
 We then must rename the output .txt files to describe species using mv. I then scp'd these files to my local machine to read into R.
