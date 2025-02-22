@@ -590,7 +590,19 @@ slurm_radmapreport_fix.sh
 
 We then must rename the output .txt files to describe species using mv. I then scp'd these files to my local machine to read into R.
 
+See instructions in this R Script to transform output from slurm_radmapreport_fix.sh to usable radmapreports, or see reports themselves. 
 
+(From Local)
+```{bash}
+cd /Documents/Sauger_102824/GeneticData/RadMapReport
+open RadMapReport.R
+```
+OR
+```{bash}
+cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_svit
+cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pflav
+```
+to see complete reports as they are intended to be used in plotting.
 
 
 
