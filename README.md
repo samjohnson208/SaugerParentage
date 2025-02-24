@@ -7,8 +7,8 @@ sjohn208@uwyo.edu
 
 Below is the code and notes for the Wind River Sauger Parentage Analysis bioinformatics workflow. This began on 10/25/24 with file transfers and establishment of the Sauger Parentage github repository, followed by unzipping files (10/29/24) and parsing (11/01/24).
 
+Problems arose in the alignment phase, where vastly different datasets were produced by aligning to either the yellow perch or walleye reference genome. Information regarding these alignments are deonted by: 
 Trial 1: Alignment to the Yellow Perch genome (Perca flavescens) produced very few loci after initial filtering. 
-
 Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
 ## Workflow Outline
@@ -32,7 +32,7 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * Count Raw Reads Per Individual
 
-* Alignment (P. flavescens and S. vitreus, Trials 1 and 2)
+* Alignment (Yellow Perch and Walleye, Trials 1 and 2, respectively)
 
    * Remove 60 line endings
 
@@ -44,7 +44,7 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * Count Aligned Reads per Individual
 
-* Variant Calling (P. flavescens and S. vitreus, Trials 1 and 2)
+* Variant Calling (Yellow Perch and Walleye, Trials 1 and 2, respectively)
 
    * .sam to .bam
 
@@ -60,11 +60,15 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * First Filter investigation (Both References)
 
+* Data Quality Investigations
+   
    * Percent Missing Data Per Locus Investigation (Both References)
 
-* Entropy
+   * Generate RadMapReport (Both References)
 
-* Generating Input for Sequoia
+* Generating Input for Sequoia (Walleye Reference)
+
+* Entropy
 
 ## Demultiplex
 
@@ -145,6 +149,7 @@ Count the number of good mids within each parsed report. To do this, you'll need
 
 grep "Good mids" parsereport_* | cut -f 4 -d " " > good_mids_count.txt
    #for all of these parsed report files, take the fourth column of the line that has "Good mids"
+
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
 R
 
@@ -208,7 +213,7 @@ To get the number of raw reads per individual (from the raw .fastq files), and s
 grep -c "^@" *.fastq > nreads_per_ind.txt
 
 # That .txt file is located in this directory
-/Users/samjohnson/Documents/Sauger_102824/Scripts_Plots/CountingReads/n_rawreads_per_indiv/
+/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_rawreads_per_indiv
 ```
 
 We'll then load this .txt into R and generate a histogram. (see nrawreads.R)
@@ -248,7 +253,7 @@ sbatch slurm_sauger_runbwa.sh
 ```
 
 #### Count Aligned/Assembled Reads (Yellow Perch)
-Run this slurm script from your sam_sai_pflav directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the walleye aligned reads. (See nalignedreads.R)
+Run this slurm script from your sam_sai_pflav directory. It will output a .txt file that you can load into R and use to plot a histogram of the number of aligned reads per individual and compare it to that of the walleye aligned reads. (See /project/ysctrout/hatchsauger/SaugerParentage/r_scripts/assembledreads/nalignedreads.R)
 
 ```{bash}
 sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled.sh
@@ -442,13 +447,13 @@ sbatch slurm_sauger_sam2bam.sh
 ```
 Note: Delete .sam's and .sai's after converting to .bam's and .bai's to save space. Navigate to directory, rm *.sam, rm *.sai
 
-### Make bam list ((Walleye))
-Variants slurm script requires a text file with all of the sorted.bam file names. This generates that file.
+### Make bam list (Walleye)
+The variant calling slurm script requires a text file with all of the sorted.bam file names. This generates that file.
 ```{bash}
 ls *.sorted.bam > bam_list.txt
 ```
 
-### Call variants ((Walleye))
+### Call variants (Walleye)
 This script relies on samtools, bcftools, and paths to both the reference genome and to your sam_sai directory (which should also house your bam_list.txt from above).
 ```{bash}
 sbatch slurm_sauger_variants.sh
@@ -485,7 +490,7 @@ bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_svit_020625.vcf -o 
 ### First filter investigation 
 Solo work on 02/07/25 to use run_first_filter_MPR.pl script on rehead_variants_rawfiltered_svit_020625.vcf.
 
-Because you're running this from the sam_sai_pflav directory, you need to provide the whole path to the perl script.
+Because you're running this from the sam_sai_svit directory, you need to provide the whole path to the perl script.
 
 ```{bash}
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_svit_020625.vcf
@@ -556,7 +561,9 @@ first_filter_out_noMAF/stdout_miss9:After filtering, kept 59169 out of a possibl
 
 ## Percent Missing Data Per Locus Investigation
 
-(From slurm scrips directory)
+We are concerned about the low number of reads that were retained for the yellow perch allignment. Is it possible that there's a lot of missing data for each site? This script investigates that.
+
+(From slurm scripts directory)
 
 This script generates a summary table for each site on each scaffold that describes, among other things, the percent missing data for that site. You need to give it the .vcf of interest and the path to that .vcf.
 
@@ -564,7 +571,40 @@ This script generates a summary table for each site on each scaffold that descri
 sbatch slurm_sauger_permd.sh
 ```
 
+This script outputs a .missing.lmiss tab delimited file that we can read into R and use to plot histograms of the percent missing data per site.
+
+## RadMap Report Generation
+
+Generating a RadMapReport is another way that we can investigate the quality of our data. This report gives you information (for each individual) on the number of raw reads, aligned reads, number of loci, mean coverage, number of loci with 10x coverage or greater, and how many loci have that good coverage. This information can be plotted in a variety of ways.
+
+I modifited the script by Joana Meier at this link to create slurm_radmapreport.sh: https://speciationgenomics.github.io/allelicBalance/
+
+ Run the script on your directory of .sorted.bam files (See line 19). (e.g., /project/ysctrout/hatchsauger/sam_sai_svit/sorted.bams)
+
+```{bash}
+sbatch slurm_radmapreport_fix.sh
+```
+
+We then must rename the output .txt files to describe species using mv. I then scp'd these files to my local machine to read into R.
+
+See instructions in this R Script to transform output from slurm_radmapreport_fix.sh to usable radmapreports, or see reports themselves. 
+
+(From this Repository)
+```{bash}
+cd /project/ysctrout/hatchsauger/SaugerParentage/r_scripts
+open RadMapReport.R
+```
+OR from local
+```{bash}
+cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_svit
+cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pflav
+```
+to see complete reports as they are intended to be used in plotting.
+
+
 ## Generating Input for Sequoia
+It appears that the alignment to the walleye reference generated a much higher quality dataset. Now we are ready to filter start with a standard filter of MAF ≥ 1 and Missing Data < 10% per site.
+
 We're going to use a command in vcftools (--012) to generate a file that lists the genotypes, for each individual, for each locus in terms of 0,1,2 (copies of the reference/nonreference allele), and -1 for missing. Sequoia takes missing data as -9, so we'll need to find and replace every instance of -1 with -9.
 
 ```{bash}
@@ -575,36 +615,5 @@ vcftools --vcf variants_maf1_miss9.recode.vcf --012 --out variants_maf1_miss9
 sed "s/-1/-9/g" variants_maf1_miss9.012 > variants_maf1_miss9.012_conv
 # conv = converted to missing data = "-9"
 ```
-
-## RadMap Report Generation
-
-I modifited the script by Joana Meier at this link to create slurm_radmapreport.sh: https://speciationgenomics.github.io/allelicBalance/
-
-This script generates a summary table with (for each indiv) the number of reads, number of loci, mean sequencing depth and number of loci with min 10 reads and their mean depth. Run the script on your directory of .sorted.bam files (See line 19).
-
-e.g., /project/ysctrout/hatchsauger/sam_sai_svit/sorted.bams
-
-```{bash}
-slurm_radmapreport_fix.sh
-```
-
-We then must rename the output .txt files to describe species using mv. I then scp'd these files to my local machine to read into R.
-
-See instructions in this R Script to transform output from slurm_radmapreport_fix.sh to usable radmapreports, or see reports themselves. 
-
-(From Local)
-```{bash}
-cd /Documents/Sauger_102824/GeneticData/RadMapReport
-open RadMapReport.R
-```
-OR
-```{bash}
-cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_svit
-cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pflav
-```
-to see complete reports as they are intended to be used in plotting.
-
-
-
 
 
