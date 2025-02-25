@@ -20,6 +20,7 @@ setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/RadMapReport/RadMap
 
 # /Users/samjohnson/Documents/Sauger_102824/GeneticData/RadMapReport
 
+##### ---------- Walleye Alignment ---------- #####
 
 library(dplyr)
 
@@ -60,7 +61,7 @@ legend("bottomright", legend = c("Library1", "Library2"),
        pch = 1)
 
 
-##### ---------- Yellow Perch Allignment ---------- #####
+##### ---------- Yellow Perch Alignment ---------- #####
 getwd()
 setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pflav/") 
 
@@ -103,7 +104,7 @@ legend("bottomright", legend = c("Library1", "Library2"),
        col = c("black", "red"), 
        pch = 1)
 
-# plot both alignments together: 
+##### ---------- Plot Both Alignments Together  ---------- #####
 #assign colors to libraries for each sp alignment
 svit_col <- c("1" = "dodgerblue4", "2" = "deepskyblue1")
 pflav_col <- c("1" = "tomato4", "2" = "salmon")
