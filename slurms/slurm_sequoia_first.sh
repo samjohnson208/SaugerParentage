@@ -21,9 +21,6 @@ cd /project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
 R --no-save
 
-# setwd within R
-setwd("/cluster/medbow/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
-
 # start generating console output file
 sink("Sequoia_Console_Output_022525.txt")
 
@@ -31,6 +28,9 @@ sink("Sequoia_Console_Output_022525.txt")
 install.packages("sequoia")
 65
 library(sequoia)
+
+install.packages("dplyr")
+65
 qlibrary(dplyr)
 
 # read in genotype matrix
@@ -62,9 +62,8 @@ outfull <- sequoia(GenoM = gmmat, Module = 'ped', MaxSibIter = 42, StrictGenoChe
 # run GetMaybeRel() on the sequoia output
 gmr <- GetMaybeRel(outfull, GenoM = gmmat)
 
-# save each to the correct working directory 
-setwd("/cluster/medbow/project/ysctrout/hatchsauger/first_sequoia")
 
+# save output to current wd 
 save(outfull, file = "Sequoia_OutFull_022525.RData")
 save(gmr, file = "Sequoia_GetMayRel_022525.RData")
 
@@ -72,7 +71,7 @@ save(gmr, file = "Sequoia_GetMayRel_022525.RData")
 sink()
 
 #exit R
-quit()
+q()
 
 
 
