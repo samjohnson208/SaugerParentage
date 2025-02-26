@@ -1,7 +1,7 @@
 install.packages("sequoia")
 library(sequoia)
 library(dplyr)
-?sequoia()
+
 
 getwd()
 setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/Sequoia_Inp")
@@ -76,10 +76,6 @@ GetMaybeRel(sequoia_red, GenoM = gmmat_red)
 # Important to note: we've got a hundred loci here, so the OH across only a hundred loci
 # is going to create a lot more potential relationships I think than are feasible. Yet
 # another reason why I want to see this on the whole dataset.
-
-
-
-
 
 
 
