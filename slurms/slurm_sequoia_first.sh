@@ -19,7 +19,7 @@ cd /project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp
 
 # load modules
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
-R --vanilla < sequoia_first.R
+R --no-save
 
 # setwd within R
 setwd("/cluster/medbow/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
@@ -73,7 +73,7 @@ sink()
 
 #exit R
 quit()
-n
+
 
 
 
