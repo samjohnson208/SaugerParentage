@@ -19,10 +19,7 @@ cd /project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp
 
 # load modules
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
-R --no-save
-
-# start generating console output file
-sink("Sequoia_Console_Output_022525.txt")
+R --save < sequoia_cluster_out.R
 
 # unsure if this will work first try. worth a shot.
 install.packages("sequoia")
@@ -67,8 +64,6 @@ gmr <- GetMaybeRel(outfull, GenoM = gmmat)
 save(outfull, file = "Sequoia_OutFull_022525.RData")
 save(gmr, file = "Sequoia_GetMayRel_022525.RData")
 
-# stop output of console to Sequoia_Console_Output_022525.txt
-sink()
 
 #exit R
 q()
