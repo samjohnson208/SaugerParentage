@@ -19,7 +19,7 @@ cd /project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp
 
 # load modules
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
-R --save < sequoia_cluster_out.R
+R --save << EOF
 
 # unsure if this will work first try. worth a shot.
 install.packages("sequoia")
@@ -29,6 +29,8 @@ library(sequoia)
 install.packages("dplyr")
 65
 qlibrary(dplyr)
+
+sink("sequoia_cluster_out.R")
 
 # read in genotype matrix
 mat <- read.table(file = "variants_maf1_miss9.012_conv", header = FALSE, sep = "\t", 
@@ -64,6 +66,11 @@ gmr <- GetMaybeRel(outfull, GenoM = gmmat)
 save(outfull, file = "Sequoia_OutFull_022525.RData")
 save(gmr, file = "Sequoia_GetMayRel_022525.RData")
 
+
+sink()
+
+
+EOF
 
 #exit R
 q()
