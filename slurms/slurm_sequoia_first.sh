@@ -19,18 +19,19 @@ cd /project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp
 
 # load modules
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
-R
+R --vanilla < sequoia_first.R
 
 # setwd within R
-setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
+setwd("/cluster/medbow/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
 
 # start generating console output file
 sink("Sequoia_Console_Output_022525.txt")
 
 # unsure if this will work first try. worth a shot.
 install.packages("sequoia")
+65
 library(sequoia)
-library(dplyr)
+qlibrary(dplyr)
 
 # read in genotype matrix
 mat <- read.table(file = "variants_maf1_miss9.012_conv", header = FALSE, sep = "\t", 
@@ -62,7 +63,7 @@ outfull <- sequoia(GenoM = gmmat, Module = 'ped', MaxSibIter = 42, StrictGenoChe
 gmr <- GetMaybeRel(outfull, GenoM = gmmat)
 
 # save each to the correct working directory 
-setwd("/project/ysctrout/hatchsauger/first_sequoia")
+setwd("/cluster/medbow/project/ysctrout/hatchsauger/first_sequoia")
 
 save(outfull, file = "Sequoia_OutFull_022525.RData")
 save(gmr, file = "Sequoia_GetMayRel_022525.RData")
@@ -72,5 +73,8 @@ sink()
 
 #exit R
 quit()
+n
+
+
 
 
