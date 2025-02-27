@@ -1,11 +1,12 @@
 # unsure if this will work first try. worth a shot.
-install.packages("sequoia")
-65
-library(sequoia)
 
-install.packages("dplyr")
-65
-qlibrary(dplyr)
+# install.packages("sequoia")
+# 65
+# library(sequoia)
+
+# install.packages("dplyr")
+# 65
+# qlibrary(dplyr)
 
 setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
 
@@ -39,11 +40,11 @@ dev.off()
 outfull <- sequoia(GenoM = gmmat, Module = 'ped', MaxSibIter = 42, StrictGenoCheck = TRUE, CalcLLR = TRUE)
 
 # run GetMaybeRel() on the sequoia output
-gmr <- GetMaybeRel(outfull, GenoM = gmmat)
-
+# gmr <- GetMaybeRel(outfull, GenoM = gmmat)
+gmr <- GetMaybeRel(GenoM = gmmat)
 
 # save output to current wd 
-save(outfull, file = "Sequoia_OutFull_022525.RData")
-save(gmr, file = "Sequoia_GetMayRel_022525.RData")
+save(outfull, file = "Sequoia_OutFull_022725.RData")
+save(gmr, file = "Sequoia_GetMayRel_022725.RData")
 
 
