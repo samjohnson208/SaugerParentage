@@ -2,11 +2,11 @@
 
 # install.packages("sequoia")
 # 65
-# library(sequoia)
+library(sequoia)
 
 # install.packages("dplyr")
 # 65
-# qlibrary(dplyr)
+library(dplyr)
 
 setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
 
@@ -48,3 +48,4 @@ save(outfull, file = "Sequoia_OutFull_022725.RData")
 save(gmr, file = "Sequoia_GetMayRel_022725.RData")
 
 
+?rename()
