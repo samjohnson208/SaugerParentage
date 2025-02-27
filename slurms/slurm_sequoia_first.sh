@@ -20,7 +20,7 @@ cd /project/ysctrout/hatchsauger/SaugerParentage/r_scripts
 # load modules
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
 
-# start the R session, everything after the EOF will be R commands run inline in this bash script
+# run the R script!
 Rscript Sequoia_Full.R
 
 
