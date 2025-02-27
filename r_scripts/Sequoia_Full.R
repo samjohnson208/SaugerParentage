@@ -7,6 +7,8 @@ install.packages("dplyr")
 65
 qlibrary(dplyr)
 
+setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
+
 # read in genotype matrix
 mat <- read.table(file = "variants_maf1_miss9.012_conv", header = FALSE, sep = "\t", 
                   na.strings = c("NA", "-1"))
@@ -26,8 +28,11 @@ check <- CheckGeno(gmmat, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict =
 # In addition, there are 6 individuals scored for <20% of SNPs,it is advised to treat their assignments with caution
 # After exclusion, There are  1182  individuals and  6468  SNPs.
 
-# generate snp stats and plots for the genotype matrix
+# generate snp stats and plots for the genotype matrix and output to pdf
+pdf("plots.pdf")
 stats <- SnpStats(gmmat, Pedigree = NULL, Duplicates = NULL, Plot = TRUE, quiet = FALSE)
+dev.off()
+
 # Not conditioning on any pedigree
 
 # run sequoia on the genotype matrix
