@@ -46,3 +46,4 @@ gmr <- GetMaybeRel(outfull, GenoM = gmmat)
 save(outfull, file = "Sequoia_OutFull_022525.RData")
 save(gmr, file = "Sequoia_GetMayRel_022525.RData")
 
+
