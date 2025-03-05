@@ -47,5 +47,15 @@ gmr <- GetMaybeRel(GenoM = gmmat)
 save(outfull, file = "Sequoia_OutFull_022725.RData")
 save(gmr, file = "Sequoia_GetMayRel_022725.RData")
 
+### Exploring Output ### 
+setwd("/Users/samjohnson/Desktop")
+load("Sequoia_GetMayRel_022725.RData")
+load("Sequoia_OutFull_022725.RData")
 
-?rename()
+library(sequoia)
+SummarySeq(outfull)
+SummarySeq(outfull)
+
+SnpStats()
+
+# hm... don't get it. will have to come back.
