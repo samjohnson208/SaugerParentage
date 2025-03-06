@@ -16,6 +16,6 @@
 
 module load arcc/1.0 gcc/14.2.0 samtools/1.20
 
-cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem/
+cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem
 perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/sam2bamV1.3.pl *.sam
 
