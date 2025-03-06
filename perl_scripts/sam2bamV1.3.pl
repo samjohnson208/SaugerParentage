@@ -17,7 +17,7 @@ if(@ARGV){
     @files = @ARGV;
 }
 else{
-    die "Usage: sam2bam.pl sam_sai_pfluv/*sam";
+    die "Usage: sam2bam.pl sam_sai_pflav_mem/*sam";
 }
 
 my $ncpu = 4;

@@ -13,12 +13,12 @@
 
 module load gcc/14.2.0
 module load samtools/1.20
-echo "ind raw assembled" > assembled_per_ind_pfluv.txt
+echo "ind raw assembled" > assembled_per_ind_pflav_mem.txt
 
 for file in aln_*.sorted.bam
 do
 indname=`echo $file | sed 's/aln_//g' | sed 's/\.sorted\.bam//g'`
 raw=`samtools stats $file | grep "raw total sequences:" | sed 's/SN\t.*:\t//g'`
 assembled=`samtools stats $file | grep "reads mapped:" | sed 's/SN\t.*:\t//g'`
-echo "$indname $raw $assembled" >> assembled_per_ind_pfluv.txt
+echo "$indname $raw $assembled" >> assembled_per_ind_pflav_mem.txt
 done
