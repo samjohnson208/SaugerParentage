@@ -21,6 +21,7 @@ foreach $fastq (@ARGV){
     $fastq =~ m/([A-Z]+[0-9]+_[0-9]+)\.fastq/;
     #print $fastq;
     my $id = $1;
+    print $id\n;
     my $sam = "aln_"."$id"."\.sam";
     my $bam = "aln_"."$id"."\.bam";
     my $sorted = "aln_"."$id"."\.sorted\.bam";
