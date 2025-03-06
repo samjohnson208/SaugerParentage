@@ -11,6 +11,7 @@ unless(@ARGV){
 
 unless(-e 'sam_sai_pflav_mem'){
     mkdir 'sam_sai_pflav_mem', 0755 or die "Failed to make sam_sai_pflav_mem directory";
+}
 
 foreach $fastq (@ARGV){
         $fastq =~ m/([-\w\.]+)\.fastq$/; ## fragile regexp to catch base name of individuals
