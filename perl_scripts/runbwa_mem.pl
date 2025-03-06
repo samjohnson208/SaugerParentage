@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # run bwa mem on fastq files passed from the command line
-## USAGE: perl runbwa.pl /fullpath/to/files/*fastq
+## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /fullpath/to/files/*fastq
 
 use warnings;
 
@@ -21,7 +21,6 @@ foreach $fastq (@ARGV){
     $fastq =~ m/([A-Z]+_[0-9]+_[0-9]+)\.fastq/;
     #print $fastq;
     my $id = $1;
-    print "$id"."\n";
     my $sam = "aln_"."$id"."\.sam";
     my $bam = "aln_"."$id"."\.bam";
     my $sorted = "aln_"."$id"."\.sorted\.bam";
