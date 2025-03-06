@@ -21,3 +21,5 @@ foreach $fastq (@ARGV){
 	## tells you the number of processors on a system
 	system "bwa samse -n 1 -r \'\@RG\\tID:LOC_"."$id"."\' -f sam_sai_pfluv/aln_"."$id".".sam /project/ysctrout/reference_genomes/Perca_fluviatilis/europerch sam_sai_pfluv/aln_"."$id".".sai $fastq\n";
 }
+
+
