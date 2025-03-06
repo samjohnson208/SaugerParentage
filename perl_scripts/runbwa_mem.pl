@@ -52,10 +52,10 @@ push @jobarray, "bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavesc
 }
 
 my $slurm = join "\n", @jobarray;
-print $slurm\n;
+# print $slurm\n;
 
 ## final job
-# runserialjob($slurm);
+runserialjob($slurm);
 
 #### -------------------------------------------------------------------
 sub runserialjob{
