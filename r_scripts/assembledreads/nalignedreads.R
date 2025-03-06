@@ -70,3 +70,34 @@ summary(alnype$per_aln)
 
 
 
+
+#checking out WR pflav
+
+getwd()
+setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
+
+## WR YPE Reference Genome ##
+wrype <- read.table("assembled_per_ind_pflav_WR.txt", header = TRUE, sep = " ")
+head(wrype)
+
+#create a column for thousands of aligned reads
+wrype <- data.frame(wrype, thou_aln_reads = NA)
+for(i in 1:nrow(wrype)){
+  n <- wrype$assembled[i]
+  wrype$thou_aln_reads[i] <- n/1000
+}
+
+# now for % aligned
+wrype <- data.frame(wrype, per_aln = NA)
+
+for(i in 1:nrow(wrype)){
+  nassem <- wrype$assembled[i]
+  nraw <- wrype$raw[i]
+  wrype$per_aln[i] <- nassem/nraw*100
+}
+
+
+hist(wrype$per_aln, main = "percent raw reads aligned to the reference by individual (n = 1184)", 
+     xlab = "%rawreadsaligned/individual", col = "salmon", breaks = 15)
+hist(alnype$per_aln, col = "skyblue", add = TRUE, breaks = 15)
+legend("topleft", legend=c("WR - YPE", "SJ - YPE"), fill=c("salmon", "skyblue"))
