@@ -5,6 +5,8 @@
 
 use warnings;
 
+my @jobarray = ();
+
 unless(@ARGV){
     die "runbwa.pl /fullpath/to/files/*fastq";
 }
@@ -28,6 +30,14 @@ foreach $fastq (@ARGV){
     }else{
     print "Mapping reads for $id\n";
 
+push @jobarray, "#SBATCH --account=ysctrout";
+push @jobarray, "#SBATCH --job-name=bwa_mem";
+push @jobarray, "#SBATCH --time=2:00:00"; 
+push @jobarray, "#SBATCH --nodes=1";
+push @jobarray, "#SBATCH --ntasks-per-node=16"; # one core per node
+push @jobarray, "#SBATCH --mem=64000"; 
+push @jobarray, "module load arcc/1.0 gcc/14.2.0 bwa/0.7.17"; 
+
 push @jobarray, "bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavescens/Perca_flavescens.fasta $fastq >  aln_$id.sam \n 
 
 	echo \"Converting sam to bam for $id\n\" \n
@@ -40,5 +50,29 @@ push @jobarray, "bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavesc
  \n";
     }
 }
+
+my $slurm = join "\n", @jobarray;
+print $slurm\n;
+
+## final job
+# runserialjob($slurm);
+
+#### -------------------------------------------------------------------
+sub runserialjob{
+    my $j = $_[0];
+    my $slurmjob = '';
+    $slurmjob .= $pbsconf;
+    $slurmjob .= $prolog;
+    $slurmjob .= $jobarray[$j];
+    $slurmjob .= $epilog;
+    $slurmjob .= "exit\n";
+    open SBATCH, "| sbatch 1>/dev/null" or die "Failed to fork for sbatch; $!";
+    print SBATCH "$slurmjob";
+    close(SBATCH) or die "Couldn't close SBATCH";
+}
+
+
+
+
 
 
