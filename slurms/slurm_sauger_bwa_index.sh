@@ -16,6 +16,6 @@
 
 module load arcc/1.0 gcc/14.2.0 bwa/0.7.17
 
-cd /project/ysctrout/reference_genomes/Perca_fluviatilis/
-bwa index -p europerch -a europerch_genome.fna
+cd /project/ysctrout/reference_genomes/Perca_fluviatilis
+bwa index -p europerch -a bwtsw europerch_genome.fna
 
