@@ -18,7 +18,7 @@ unless(-e 'sam_sai_pflav_mem'){
 my $fastq;
 foreach $fastq (@ARGV){
 
-    $fastq =~ m/([A-Z]+[0-9]+_[0-9]+)\.fastq/;
+    $fastq =~ m/([A-Z]+_[0-9]+_[0-9]+)\.fastq/;
     #print $fastq;
     my $id = $1;
     print "$id"."\n";
