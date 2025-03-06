@@ -20,5 +20,5 @@ do
 indname=`echo $file | sed 's/aln_//g' | sed 's/\.sorted\.bam//g'`
 raw=`samtools stats $file | grep "raw total sequences:" | sed 's/SN\t.*:\t//g'`
 assembled=`samtools stats $file | grep "reads mapped:" | sed 's/SN\t.*:\t//g'`
-echo "$indname $raw $assembled" >> assembled_per_ind.txt
+echo "$indname $raw $assembled" >> assembled_per_ind_pfluv.txt
 done
