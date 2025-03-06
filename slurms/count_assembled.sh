@@ -13,7 +13,7 @@
 
 module load gcc/14.2.0
 module load samtools/1.20
-echo "ind raw assembled" > assembled_per_ind.txt
+echo "ind raw assembled" > assembled_per_ind_pfluv.txt
 
 for file in aln_*.sorted.bam
 do
