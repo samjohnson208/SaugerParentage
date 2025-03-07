@@ -38,16 +38,18 @@ push @jobarray, "#SBATCH --ntasks-per-node=16"; # one core per node
 push @jobarray, "#SBATCH --mem=64000"; 
 push @jobarray, 'module load arcc/1.0 gcc/14.2.0 bwa/0.7.17'; 
 
-push @jobarray, "bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavescens/Perca_flavescens.fasta $fastq >  aln_"."$id".".sam \n 
+push @jobarray, "bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavescens/Perca_flavescens.fasta $fastq >  aln_"."$id".".sam"; 
 
-	echo \"Converting sam to bam for "."$id"."\n\" \n
+push @jobarray, "echo \"Converting sam to bam for "."$id"."\n\"";
 
-	samtools view -b -S -o $bam $sam \n
+push @jobarray, "samtools view -b -S -o $bam $sam";
 
-	echo \"Sorting and indexing bam files for "."$id"."\n\" \n
-	samtools sort $bam -o $sorted \n
-	samtools index $sorted
- \n";
+push @jobarray, "echo \"Sorting and indexing bam files for "."$id"."\n\"";
+	
+push @jobarray, "samtools sort $bam -o $sorted";
+	
+push @jobarray, "samtools index $sorted";
+
     }
 }
 
