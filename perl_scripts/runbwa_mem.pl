@@ -2,6 +2,7 @@
 
 # run bwa mem on fastq files passed from the command line
 ## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/*fastq
+## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/SAR_16_6550.fastq
 
 use warnings;
 
