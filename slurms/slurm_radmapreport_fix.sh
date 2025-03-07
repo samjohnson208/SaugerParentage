@@ -11,13 +11,13 @@
 #SBATCH --account=ysctrout
 #SBATCH --time=12:00:00
 #SBATCH --mem=10G
-#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_radmap_svit
-#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_radmap_svit
+#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_radmap_pfluv
+#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_radmap_pfluv
 
 # calculates the number of reads, number of loci, mean sequencing depth and number of loci with min 10 reads and their mean depth  
 
 cd /project/ysctrout/hatchsauger/sam_sai_pfluv/sorted.bams
-module load arcc/1.0  gcc/14.2.0 samtools/1.20
+module load arcc/1.0 gcc/14.2.0 samtools/1.20
 
 # create the report.txt file with a line for each individual (each bam file) with read counts
 echo -e "sample\tsampleLib\tmappedReads" > report.txt

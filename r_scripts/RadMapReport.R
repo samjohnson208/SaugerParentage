@@ -11,7 +11,7 @@ setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/RadMapReport/RadMap
 # /Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv
 
 # made sure that sample id columns matched, and pasted those raw reads and assembled reads into empty columns of
-# the radmap report. That generated mappingreport_svit_reads.txt. However, we still need to add the library
+# the radmap report. (excel) That generated mappingreport_svit_reads.txt. However, we still need to add the library
 # for each sample to test for library effects in the analysis of nreads and read depth...
 
 # There exists a .txt file that was extracted from the GTL form called sample_sampleLib.txt.
