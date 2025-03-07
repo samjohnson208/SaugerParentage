@@ -104,20 +104,70 @@ legend("bottomright", legend = c("Library1", "Library2"),
        col = c("black", "red"), 
        pch = 1)
 
-##### ---------- Plot Both Alignments Together  ---------- #####
+
+
+
+
+##### ---------- European Perch Alignment ---------- #####
+getwd()
+setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pfluv/") 
+
+pfluv <- read.table(file = "mappingreport_pfluv_reads.txt", header = TRUE, sep = "\t", na.strings = "")
+samp <- read.table(file = "sample_sampleLib.txt", header = TRUE, sep = "\t")
+
+# merge by sample id, conserve all rows
+radmap_pfluv <- merge(samp, pfluv, by = "sample", all = TRUE)
+
+# the sampleLib column from samp contains both the plate and library info.
+radmap_pfluv <- radmap_pfluv %>% 
+  rename(plate = sampleLib)
+
+# create a new column to JUST store the library, so that we can color by lib in downstream plots
+radmap_pfluv <- data.frame(radmap_pfluv, lib = NA)
+
+# rearrange columns so that plate and library info are at the left of the df
+radmap_pfluv <- radmap_pfluv[, c("sample", "plate", "lib", "rawreads", "assembledreads", "lociN", "meanDepth", "lociNmin10reads", "meanDepthMin10reads")]
+
+
+# for every row in the df, if the plate is from lib 1, put 1 in the lib column, else 2 for lib 2.
+for(i in 1:nrow(radmap_pfluv)) {
+  if(grepl("Lib1", radmap_pfluv$plate[i])) {
+    radmap_pfluv$lib[i] <- 1
+  } else {
+    radmap_pfluv$lib[i] <- 2
+  }
+}
+
+
+# Now the full dataframe has been established as we wish it to be.
+setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pfluv/CompleteReportPFluv/")
+write.table(radmap_pfluv, file = "mappingreport_pfluv_reads_lib.txt")
+
+plot(radmap_pfluv$lociNmin10reads ~ radmap_pfluv$assembledreads, col = radmap_pfluv$lib,
+     main = "Loci with 10+ Reads ~ Assembled Reads (Euro Aln.)", xlab = "Assembled Reads", 
+     ylab = "n loci with 10x depth or higher", pch = 1)
+legend("bottomright", legend = c("Library1", "Library2"),
+       col = c("black", "red"), 
+       pch = 1)
+
+
+##### ---------- Plot All Alignments Together  ---------- #####
 #assign colors to libraries for each sp alignment
 svit_col <- c("1" = "dodgerblue4", "2" = "deepskyblue1")
 pflav_col <- c("1" = "tomato4", "2" = "salmon")
+pfluv_col <- c("1" = "darkgreen", "2" = "seagreen2")
 
 # create a color vector based on the 'lib' column for each sp alignment
 svit_colors <- svit_col[radmap_svit$lib]
 pflav_colors <- pflav_col[radmap_pflav$lib]
+pfluv_colors <- pfluv_col[radmap_pfluv$lib]
 
 #now we'll use plot and points...
 plot(radmap_svit$lociNmin10reads ~ radmap_svit$assembledreads, col = svit_colors,
-     main = "Loci with 10+ Reads ~ Assembled Reads (by alignment)", xlab = "Assembled Reads", 
+     main = "Loci with 10x Coverage ~ Assembled Reads (by alignment)", xlab = "Assembled Reads", 
      ylab = "n loci with 10x depth or higher", pch = 19)
-points(radmap_pflav$lociNmin10reads ~ radmap_pflav$assembledreads, col = radmap_pflav$lib, pch = 19)
-legend("bottomright", legend = c("WAE_Lib1", "WAE_Lib2", "YPE_Lib1", "YPE_Lib2"),
-       col = c("dodgerblue4", "deepskyblue1", "tomato4", "salmon"), 
+points(radmap_pflav$lociNmin10reads ~ radmap_pflav$assembledreads, col = pflav_colors, pch = 19)
+points(radmap_pfluv$lociNmin10reads ~ radmap_pfluv$assembledreads, col = pfluv_colors, pch = 19)
+legend("bottomright", legend = c("WAE_Lib1", "WAE_Lib2", "YPE_Lib1", "YPE_Lib2", "EURO_Lib1", "EURO_Lib2"),
+       col = c("dodgerblue4", "deepskyblue1", "tomato4", "salmon", "darkgreen", "seagreen2"), 
        pch = 19)
