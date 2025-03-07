@@ -20,8 +20,6 @@ for(i in 1:nrow(alnwall)){
 hist(alnwall$thou_aln_reads, main = "number of aligned reads per individual (Walleye Reference)", xlab = "nreads per indiv (thousands)")
 
 
-
-
 ## Yellow Perch Reference Genome ##
 alnype <- read.table("assembled_per_ind_pflav.txt", header = TRUE, sep = " ")
 head(alnype)
@@ -68,10 +66,44 @@ legend("topright", legend=c("Walleye", "Yellow Perch"), fill=c("darkgreen", "ora
 
 summary(alnype$per_aln)
 
+# now to add european perch (pfluv)
+
+getwd()
+setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
+
+euro <- read.table("assembled_per_ind_pfluv.txt", header = TRUE, sep = " ")
+
+hist(euro$assembled, main = "number of aligned reads per individual (Euro Perch Reference)", xlab = "nreads/indiv")
+
+euro <- data.frame(euro, thou_aln_reads = NA)
+for(i in 1:nrow(euro)){
+  n <- euro$assembled[i]
+  euro$thou_aln_reads[i] <- n/1000
+}
+
+hist(euro$thou_aln_reads, main = "number of aligned reads per individual (Walleye Reference)", xlab = "nreads per indiv (thousands)")
+
+hist(alnwall$thou_aln_reads, main = "number of aligned reads per individual by reference genome", 
+     xlab = "nreads per indiv (thousands)", col = "darkgreen", breaks = 15, ylim = c(0,350))
+hist(alnype$thou_aln_reads, col = "orange", add = TRUE, breaks = 15)
+hist(euro$thou_aln_reads, col = "skyblue", add = TRUE, breaks = 15)
+legend("topright", legend=c("Walleye", "Yellow Perch", "European Perch"), fill=c("darkgreen", "orange", "skyblue"))
+
+euro <- data.frame(euro, per_aln = NA)
+for(i in 1:nrow(euro)){
+  nassem <- euro$assembled[i]
+  nraw <- euro$raw[i]
+  euro$per_aln[i] <- nassem/nraw*100
+}
+
+hist(alnwall$per_aln, main = "percent raw reads aligned per individual by reference genome (n = 1184)", 
+     xlab = "%rawreadsaligned/individual", col = "darkgreen", breaks = 15, ylim = c(0,800), xlim = c(0,60))
+hist(alnype$per_aln, col = "orange", add = TRUE, breaks = 15)
+hist(euro$per_aln, col = "skyblue", add = TRUE, breaks = 15)
+legend("topleft", legend=c("Walleye", "Yellow Perch", "European Perch"), fill=c("darkgreen", "orange", "skyblue"))
 
 
-
-#checking out WR pflav
+# checking out WR pflav
 
 getwd()
 setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
@@ -101,3 +133,5 @@ hist(wrype$per_aln, main = "percent raw reads aligned to the reference by indivi
      xlab = "%rawreadsaligned/individual", col = "salmon", breaks = 15)
 hist(alnype$per_aln, col = "skyblue", add = TRUE, breaks = 15)
 legend("topleft", legend=c("WR - YPE", "SJ - YPE"), fill=c("salmon", "skyblue"))
+
+

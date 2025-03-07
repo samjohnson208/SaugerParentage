@@ -2,7 +2,7 @@
 
 ## created by SPJ 022125
 ## PURPOSE: generate summary table with the number of reads, number of loci, mean sequencing depth and number of loci with min 10 reads and their mean depth  
-## USAGE: sbatch slurm_radmapreport.sh
+## USAGE: sbatch slurm_radmapreport_fix.sh
 
 #SBATCH --job-name=radmapreport
 #SBATCH --nodes=1
