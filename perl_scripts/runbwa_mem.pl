@@ -29,7 +29,7 @@ foreach $fastq (@ARGV){
 
 push @jobarray, "#SBATCH --account=ysctrout";
 push @jobarray, "#SBATCH --job-name=bwa_mem";
-push @jobarray, "#SBATCH --time= 00:30:00"; 
+push @jobarray, "#SBATCH --time=00:30:00"; 
 push @jobarray, "#SBATCH --nodes=1";
 push @jobarray, "#SBATCH --ntasks-per-node=16"; # one core per node
 push @jobarray, "#SBATCH --mem=64000"; 
