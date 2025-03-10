@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 # run bwa mem on fastq files passed from the command line
-## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/*fastq
-## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/SAR_16_6550.fastq
+## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/*fastq
+## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/SAR_16_6550.fastq
 
 use warnings;
 
@@ -39,7 +39,7 @@ push @jobarray, "#SBATCH --ntasks-per-node=16"; # one core per node
 push @jobarray, "#SBATCH --mem=64000"; 
 push @jobarray, 'module load arcc/1.0 gcc/14.2.0 bwa/0.7.17'; 
 
-push @jobarray, "bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavescens/yellowperch $fastq >  aln_"."$id".".sam"; 
+push @jobarray, 'bwa mem -t 16 /project/ysctrout/reference_genomes/Perca_flavescens/yellowperch $fastq >  aln_"."$id".".sam'; 
 
 push @jobarray, "echo \"Converting sam to bam for "."$id"."\n\"";
 
