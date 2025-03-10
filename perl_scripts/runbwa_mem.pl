@@ -22,20 +22,16 @@ foreach $fastq (@ARGV){
     my $bam = "aln_"."$id"."\.bam";
     my $sorted = "aln_"."$id"."\.sorted\.bam";
 
-    if(-e "/project/ysctrout/hatchsauger/sam_sai_pflav_mem/$sorted"){
-	print "$sorted already exists\n";
-    }else{
-    print "Mapping reads for $id\n";
 
 push @jobarray, "#SBATCH --account=ysctrout";
 push @jobarray, "#SBATCH --job-name=bwa_mem";
-push @jobarray, "#SBATCH --time=6-00:00:00"; 
+push @jobarray, "#SBATCH --time=7-00:00:00"; 
 push @jobarray, "#SBATCH --nodes=1";
 push @jobarray, "#SBATCH --ntasks-per-node=32"; # one core per node
 push @jobarray, "#SBATCH --mem=64000"; 
 push @jobarray, 'module load arcc/1.0 gcc/14.2.0 bwa/0.7.17 samtools/1.20'; 
 
-push @jobarray, "bwa mem -t 32 /project/ysctrout/reference_genomes/Perca_flavescens/yellowperch $fastq >  aln_"."$id".".sam"; 
+push @jobarray, "bwa mem -t 32 /project/ysctrout/reference_genomes/Sander_vitreus/walleye $fastq >  aln_"."$id".".sam"; 
 
 push @jobarray, "echo \"Converting sam to bam for "."$id"."\n\"";
 
