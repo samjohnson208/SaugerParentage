@@ -6,7 +6,7 @@
 
 use warnings;
 
-my @jobarray = ();
+my @jobarray = "#!/bin/bash";
 
 unless(@ARGV){
     die "runbwa.pl /fullpath/to/files/*fastq";
