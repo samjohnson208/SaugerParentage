@@ -12,10 +12,6 @@ unless(@ARGV){
     die "runbwa.pl /fullpath/to/files/*fastq";
 }
 
-unless(-e 'sam_sai_pflav_mem'){
-    mkdir 'sam_sai_pflav_mem', 0755 or die "Failed to make sam_sai_pflav_mem directory";
-}
-
 my $fastq;
 foreach $fastq (@ARGV){
 
