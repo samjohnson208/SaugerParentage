@@ -62,19 +62,12 @@ runserialjob($slurm);
 
 #### -------------------------------------------------------------------
 sub runserialjob{
-    my $j = $_[0];
-    my $slurmjob = '';
-    $slurmjob .= $pbsconf;
-    $slurmjob .= $prolog;
-    $slurmjob .= $jobarray[$j];
-    $slurmjob .= $epilog;
-    $slurmjob .= "exit\n";
-    open SBATCH, "| sbatch 1>/dev/null" or die "Failed to fork for sbatch; $!";
+    my $slurmjob = $_[0];
+    $slurmjob .= "\nexit\n";
+    open SBATCH, "| sbatch 1>/dev/null" or die "Failed to fork for sbatch; $!\n";
     print SBATCH "$slurmjob";
-    close(SBATCH) or die "Couldn't close SBATCH";
+    close(SBATCH) or die "Couldn't close SBATCH\n";
 }
-
-
 
 
 
