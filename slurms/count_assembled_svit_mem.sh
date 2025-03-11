@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## Run this on medbow inside assem directory (the one that contains bamfiles) to count number of reads assembled and number of raw reads per individuals with samtools
-## USAGE: sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled.sh
+## USAGE: sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled_svit_mem.sh
 
 #SBATCH --account=ysctrout
 #SBATCH --time=10:00:00
