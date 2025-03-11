@@ -44,7 +44,7 @@ push @jobarray, "samtools sort $bam -o $sorted";
 push @jobarray, "samtools index $sorted";
 
     }
-}
+
 
 my $slurm = join "\n", @jobarray;
 # print $slurm\n;
