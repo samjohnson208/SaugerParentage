@@ -616,4 +616,18 @@ sed "s/-1/-9/g" variants_maf1_miss9.012 > variants_maf1_miss9.012_conv
 # conv = converted to missing data = "-9"
 ```
 
+## BWA MEM investigation
+
+We found out that Will's data were aligned using BWA MEM rather that BWA ALN and SAMSE. Josh and I have generated runbwa_mem.pl and have run it on the walleye and yellow perch reference genomes.
+
+The outputs are stored in /project/ysctrout/hatchsauger/sam_sai_pflav_mem and /project/ysctrout/hatchsauger/sam_sai_svit_mem. These sorted bams were then used to count the number and percentage of aligned reads for each using count_assembled_pflav_mem.sh and count_assembled_svit_mem.sh.
+
+RadMap reports were also generated for each using slurm_radmapreport_fix.sh.
+
+
+
+
+
+
+
 
