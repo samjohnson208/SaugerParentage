@@ -624,10 +624,12 @@ The outputs are stored in /project/ysctrout/hatchsauger/sam_sai_pflav_mem and /p
 
 RadMap reports were also generated for each using slurm_radmapreport_fix.sh.
 
+Upon looking at the number of assembled reads for each species, they were the same for both bwa_mem outputs. I will go try them again for both species and double check the reference genome indices.
+I have rerun bwa mem for each species from empty directories, and I will revisit the results tomorrow. I anticipate that this flaw was due to a failure to git push/pull before running the perl script for the other reference genome.
 
+The r script to plot the histograms of percent aligned reads (nalignedreads.R) was updated and pushed. 
 
-
-
+That concludes work 3/12/25. BWA MEM's are currently running, script is ready for when they're done.
 
 
 
