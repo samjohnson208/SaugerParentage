@@ -3,8 +3,9 @@
 ## Run this on medbow inside assem directory (the one that contains bamfiles) to count number of reads assembled and number of raw reads per individuals with samtools
 ## USAGE: sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled_pflav_mem.sh
 
+#SBATCH --job-name=count_pflav_mem
 #SBATCH --account=ysctrout
-#SBATCH --time=10:00:00
+#SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=10G
