@@ -8,47 +8,51 @@ library(sequoia)
 # 65
 library(dplyr)
 
-setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp")
+setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp/maf3_miss9")
+#setwd("/Users/samjohnson/Desktop/")
 
 # read in genotype matrix
-mat <- read.table(file = "variants_maf1_miss9.012_conv", header = FALSE, sep = "\t", 
+mat <- read.table(file = "variants_maf3_miss9.012_conv", header = FALSE, sep = "\t", 
                   na.strings = c("NA", "-1"))
 
 # correct row names as sample id's
 mat<- mat[, -1]
 gmmat <- as.matrix(mat)
-ind <- read.table(file = "variants_maf1_miss9.012.indv", header = FALSE)
+ind <- read.table(file = "variants_maf3_miss9.012.indv", header = FALSE)
 str(ind)
 ind <- ind %>% 
   rename(sample = V1)
 rownames(gmmat) <- ind$sample
 
 # read in parent offspring (F0 and Test F1 sample id's)
+testsamp <- read.csv(file = "posampleids.csv", header = TRUE) # 210 samples, 114 Parents, 96 Test F1's
 
+#create genotype matrix parent-offspring by filtering rownames of gmmat to include only those in testsamp$sample
+gmmat_po <- gmmat[rownames(gmmat) %in% testsamp$sample, , drop = FALSE]
+nrow(gmmat_po) # lost one
+unmatched_samples <- testsamp$sample[!testsamp$sample %in% rownames(gmmat)] # SAR_15_6757 wasn't sequenced. (bad dna concentration)
 
 # check genotype matrix for samples/loci to be excluded
-check <- CheckGeno(gmmat, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
-# There are 2 individuals scored for <5% of SNPs, these WILL BE IGNORED
-# In addition, there are 6 individuals scored for <20% of SNPs,it is advised to treat their assignments with caution
-# After exclusion, There are  1182  individuals and  6468  SNPs.
+gmmat_po_check <- CheckGeno(gmmat_po, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
+# 95 Test F1's, 114 Parents going into this ^
 
-# generate snp stats and plots for the genotype matrix and output to pdf
+# generate snp stats and plots for the checked genotype matrix and output to pdf
 pdf("plots.pdf")
-stats <- SnpStats(gmmat, Pedigree = NULL, Duplicates = NULL, Plot = TRUE, quiet = FALSE)
+stats <- SnpStats(gmmat_po_check, Pedigree = NULL, Duplicates = NULL, Plot = TRUE, quiet = FALSE)
 dev.off()
 
-# Not conditioning on any pedigree
+# Not conditioning on any pedigree^
 
-# run sequoia on the genotype matrix
-outfull <- sequoia(GenoM = gmmat, Module = 'ped', MaxSibIter = 42, StrictGenoCheck = TRUE, CalcLLR = TRUE)
+# run sequoia on the checked genotype matrix
+outfull <- sequoia(GenoM = gmmat_po_check, Module = 'ped', StrictGenoCheck = TRUE, CalcLLR = TRUE)
 
 # run GetMaybeRel() on the sequoia output
 # gmr <- GetMaybeRel(outfull, GenoM = gmmat)
-gmr <- GetMaybeRel(GenoM = gmmat)
+gmr <- GetMaybeRel(GenoM = gmmat_po_check)
 
 # save output to current wd 
-save(outfull, file = "Sequoia_OutFull_022725.RData")
-save(gmr, file = "Sequoia_GetMayRel_022725.RData")
+save(outfull, file = "Sequoia_OutFull_031325.RData")
+save(gmr, file = "Sequoia_GetMayRel_031325.RData")
 
 ### Exploring Output ### 
 # setwd("/Users/samjohnson/Desktop")
@@ -59,4 +63,8 @@ save(gmr, file = "Sequoia_GetMayRel_022725.RData")
 # SummarySeq(outfull)
 # SummarySeq(outfull)
 
-# hm... don't get it. will have to come back.
+# See example code in ?GetMaybeRel()
+
+
+
+
