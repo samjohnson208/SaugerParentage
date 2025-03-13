@@ -192,6 +192,3 @@ legend("topleft", legend=c("WAE - aln/samse", "WAE - mem",
 
 
 
-
-
-
