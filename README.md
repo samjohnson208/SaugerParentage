@@ -631,5 +631,43 @@ The r script to plot the histograms of percent aligned reads (nalignedreads.R) w
 
 That concludes work 3/12/25. BWA MEM's are currently running, script is ready for when they're done.
 
+03/12/25
+
+BWA MEM's are finishing, and I am starting count_assembled_svit_mem.sh and count_assembled_pflav_mem.sh.
+
+I am also starting...
+
+## Sequoia F0/Test F1 Analysis (BWA ALN to Walleye Reference)
+
+Sequoia recommends more than 90% genotype call rate, and a MAF of 30% or higher. I have already filtered the rawfiltered vcf,  rehead_variants_rawfiltered_svit_020625.vcf, using: 
+
+```{bash}
+perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/run_first_filter_MPR.pl rehead_variants_rawfiltered_svit_020625.vcf
+```
+
+So today, I will start with: 
+
+```{bash}
+/project/ysctrout/hatchsauger/sam_sai_svit/first_filter_out/variants_maf3_miss9.recode.vcf
+```
+
+...which has 5228 out of a possible 366797 Sites.
+
+I will now generate the genotype matrix for this filtered .vcf using: 
+
+We're going to use a command in vcftools (--012) to generate a file that lists the genotypes, for each individual, for each locus in terms of 0,1,2 (copies of the reference/nonreference allele), and -1 for missing. Sequoia takes missing data as -9, so we'll need to find and replace every instance of -1 with -9.
+
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
+cd /project/ysctrout/hatchsauger/sam_sai_svit/first_filter_out/
+vcftools --vcf variants_maf3_miss9.recode.vcf --012 --out variants_maf3_miss9
+sed "s/-1/-9/g" variants_maf3_miss9.012 > variants_maf3_miss9.012_conv
+# conv = converted to missing data = "-9"
+```
+ 
+ Here's the plan: First, let's review the sequoia scripts we have written so far and understand what's going on. Then, take this genotype matrix and load it into R. Take your sauger_ids_col.txt and load it in, along with the big SAR_Data table with all of the individuals. Make a vector from SAR_Data that has only the names of the test F1's and the F0's. Then, filter the genotype matrix to include rows whose sample id is in the vector of individuals that's Test F1's and F0's, then edit the Sequoia_Full.R script and run it using slurm_sequoia_first.sh. 
+
+ 
 
 
