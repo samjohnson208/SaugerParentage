@@ -23,6 +23,9 @@ ind <- ind %>%
   rename(sample = V1)
 rownames(gmmat) <- ind$sample
 
+# read in parent offspring (F0 and Test F1 sample id's)
+
+
 # check genotype matrix for samples/loci to be excluded
 check <- CheckGeno(gmmat, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
 # There are 2 individuals scored for <5% of SNPs, these WILL BE IGNORED
@@ -48,14 +51,12 @@ save(outfull, file = "Sequoia_OutFull_022725.RData")
 save(gmr, file = "Sequoia_GetMayRel_022725.RData")
 
 ### Exploring Output ### 
-setwd("/Users/samjohnson/Desktop")
-load("Sequoia_GetMayRel_022725.RData")
-load("Sequoia_OutFull_022725.RData")
-
-library(sequoia)
-SummarySeq(outfull)
-SummarySeq(outfull)
-
-SnpStats()
+# setwd("/Users/samjohnson/Desktop")
+# load("Sequoia_GetMayRel_022725.RData")
+# load("Sequoia_OutFull_022725.RData")
+# 
+# library(sequoia)
+# SummarySeq(outfull)
+# SummarySeq(outfull)
 
 # hm... don't get it. will have to come back.
