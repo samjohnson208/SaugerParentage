@@ -65,6 +65,8 @@ save(gmr, file = "Sequoia_GetMayRel_031325.RData")
 
 # See example code in ?GetMaybeRel()
 
-
+# setwd("/Users/samjohnson/Desktop/")
+# load("Sequoia_GetMayRel_031325.RData")
+# load("Sequoia_OutFull_031325.RData")
 
 
