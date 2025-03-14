@@ -631,11 +631,13 @@ The r script to plot the histograms of percent aligned reads (nalignedreads.R) w
 
 That concludes work 3/12/25. BWA MEM's are currently running, script is ready for when they're done.
 
-03/12/25
-
 BWA MEM's are finishing, and I am starting count_assembled_svit_mem.sh and count_assembled_pflav_mem.sh.
 
-I am also starting...
+Count_assembled analyses have finished on the bwa mem aligned reads vs the bwa aln samse aligned reads (for both walleye and yellow perch) and the results are shocking. See local directory /GeneticData/AssembledReads/n_aln_per_indiv for plots and /SaugerParentage/r_scripts/assembledreads for the R script.
+
+Because BWA MEM generates .bam, .sorted.bam, and .sorted.bam.bai, I have bypassed using slurm_sauger_sam2bam.sh and have moved to slurm_sauger_variants.sh for both sam_sai_svit_mem and sam_sai_pflav_mem. Variant calling for each of those sets was initiated at 11:30pm on 03/13/25.
+
+
 
 ## Sequoia F0/Test F1 Analysis (BWA ALN to Walleye Reference)
 
@@ -666,8 +668,8 @@ sed "s/-1/-9/g" variants_maf3_miss9.012 > variants_maf3_miss9.012_conv
 # conv = converted to missing data = "-9"
 ```
  
- Here's the plan: First, let's review the sequoia scripts we have written so far and understand what's going on. Then, take this genotype matrix and load it into R. Take your sauger_ids_col.txt and load it in, along with the big SAR_Data table with all of the individuals. Make a vector from SAR_Data that has only the names of the test F1's and the F0's. Then, filter the genotype matrix to include rows whose sample id is in the vector of individuals that's Test F1's and F0's, then edit the Sequoia_Full.R script and run it using slurm_sequoia_first.sh. 
+ Here's the plan: First, let's review the sequoia scripts we have written so far and take a minute to understand what's going on. Then, take this genotype matrix and load it into R. Take your sauger_ids_col.txt and load it in, along with a .csv of JUST the sample id's of the 2015 F0 fish and their Test F1 progeny. Then, filter the genotype matrix to include rows whose sample id is in the vector of individuals that's Test F1's and 2015 F0's, then edit the Sequoia_Full.R script and run it using slurm_sequoia_first.sh. 
 
- 
+ This was done in the afternoon on 3/13 and finished in the evening. Tomorrow, 3/14 I will scp the data to my local machine and investigate relationships.
 
 
