@@ -601,6 +601,103 @@ cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pflav
 ```
 to see complete reports as they are intended to be used in plotting.
 
+## BWA MEM investigation
+
+We found out that Will's data were aligned using BWA MEM rather that BWA ALN and SAMSE. Josh and I have generated runbwa_mem.pl and have run it on the walleye and yellow perch reference genomes.
+
+The outputs are stored in /project/ysctrout/hatchsauger/sam_sai_pflav_mem and /project/ysctrout/hatchsauger/sam_sai_svit_mem. These sorted bams were then used to count the number and percentage of aligned reads for each using count_assembled_pflav_mem.sh and count_assembled_svit_mem.sh.
+
+RadMap reports were also generated for each using slurm_radmapreport_fix.sh.
+
+Upon looking at the number of assembled reads for each species, they were the same for both bwa_mem outputs. I will go try them again for both species and double check the reference genome indices.
+
+I have rerun bwa mem for each species from empty directories, and I will revisit the results tomorrow. I anticipate that this flaw was due to a failure to git push/pull before running the perl script for the other reference genome.
+
+The r script to plot the histograms of percent aligned reads (nalignedreads.R) was updated and pushed. 
+
+That concludes work 3/12/25. BWA MEM's are currently running, script is ready for when they're done.
+
+BWA MEM's are finishing, and I am starting count_assembled_svit_mem.sh and count_assembled_pflav_mem.sh.
+
+Count_assembled analyses have finished on the bwa mem aligned reads vs the bwa aln samse aligned reads (for both walleye and yellow perch) and the results are shocking. See local directory /GeneticData/AssembledReads/n_aln_per_indiv for plots and /SaugerParentage/r_scripts/assembledreads for the R script.
+
+## Variant Calling (BWA MEM) and SFS Analysis for BWA MEM (Each step was done for svit_mem and pflav_mem)
+Because BWA MEM generates .bam, .sorted.bam, and .sorted.bam.bai, I have bypassed using slurm_sauger_sam2bam.sh and have moved to slurm_sauger_variants.sh for both sam_sai_svit_mem and sam_sai_pflav_mem. Variant calling for each of those sets was initiated at 11:30pm on 03/13/25.
+
+03/14/25 - All four directories aln/mem pflav/svit now have rawfiltered vcfs in them. 
+
+I want to take each of those vcfs and filter them for MAF 0.01 and Miss 0.9. Then, turn those into genotype  matrices, and plot an SFS for each that I can send to them in a 2x2 panel.
+
+First step is to create reheadered vcfs for both mem directories:
+
+### Making ID file for reheadering (both directories):
+At this stage, all of the reads are assigned to names mem_Sample_ID.sorted.bam in bam_list.txt. This command takes those names, cuts off the "mem" and "sorted.bam", and stores new names in sauger_ids_col.txt that are just the Sample_ID (SAR_YY_XXXX).
+
+```{bash}
+sed -s "s/mem_//" bam_list.txt | sed -s "s/.sorted.bam//" > sauger_ids_col.txt
+```
+
+### Reheader 
+This "reheader"ing step now takes those polished names and assigns the reads in variants_rawfiltered_svit_mem_031325.vcf to those names.
+
+```{bash}
+module load arcc/1.0 gcc/14.2.0 bcftools/1.20
+
+bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_svit_mem_031325.vcf -o rehead_variants_rawfiltered_svit_mem_031325.vcf
+bcftools reheader -s sauger_ids_col.txt variants_rawfiltered_pflav_mem_031325.vcf -o rehead_variants_rawfiltered_pflav_mem_031325.vcf
+```
+
+Josh showed me this amazing line to filter vcfs without dealing with the script.
+
+```{bash}
+/project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_svit_mem_031325.vcf --out variants_maf1_miss9 --remove-filtered-all --maf 0.01 --max-missing 0.9 --recode
+/project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_pflav_mem_031325.vcf --out variants_maf1_miss9 --remove-filtered-all --maf 0.01 --max-missing 0.9 --recode
+```
+
+Filtering output (svit_mem): 
+```{bash}
+After filtering, kept 1184 out of 1184 Individuals
+After filtering, kept 7390 out of a possible 404644 Sites
+```
+
+Filtering output (pflav_mem): 
+```{bash}
+After filtering, kept 1184 out of 1184 Individuals
+After filtering, kept 204 out of a possible 136652 Sites
+```
+
+Just to be sure, I'm also going to do this same filtering with this line in the aln directories, sam_sai_svit and sam_sai_pflav
+
+```{bash}
+/project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_svit_020625.vcf --out variants_maf1_miss9 --remove-filtered-all --maf 0.01 --max-missing 0.9 --recode
+/project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_pflav_012325.vcf --out variants_maf1_miss9 --remove-filtered-all --maf 0.01 --max-missing 0.9 --recode
+```
+
+Filtering output (svit): 
+```{bash}
+After filtering, kept 1184 out of 1184 Individuals
+After filtering, kept 6488 out of a possible 366797 Sites
+```
+
+Filtering output (pflav): 
+```{bash}
+After filtering, kept 1184 out of 1184 Individuals
+After filtering, kept 166 out of a possible 79272 Sites
+```
+
+Now that we have filtered vcfs to MAF 0.01 and Miss 0.90 for all four combinations, let's convert them to genotype matrices and prepare for SFS. I'm also going to convert all of them for Sequoia, since I imagine I'll put them in there at some point. Here's the example for pflav_mem
+
+```{bash}
+salloc --account=ysctrout --time=3:00:00
+module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
+cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem/
+vcftools --vcf variants_maf1_miss9.recode.vcf --012 --out variants_maf1_miss9_mem_pflav
+sed "s/-1/-9/g" variants_maf1_miss9_mem_pflav.012 > variants_maf1_miss9_mem_pflav.012_conv
+# conv = converted to missing data = "-9"
+```
+
+SFS generated in SaugerParentage/r_scripts/sfs_all.R on 03/14/25
+
 
 ## Generating Input for Sequoia
 It appears that the alignment to the walleye reference generated a much higher quality dataset. Now we are ready to filter start with a standard filter of MAF ≥ 1 and Missing Data < 10% per site.
@@ -615,29 +712,6 @@ vcftools --vcf variants_maf1_miss9.recode.vcf --012 --out variants_maf1_miss9
 sed "s/-1/-9/g" variants_maf1_miss9.012 > variants_maf1_miss9.012_conv
 # conv = converted to missing data = "-9"
 ```
-
-## BWA MEM investigation
-
-We found out that Will's data were aligned using BWA MEM rather that BWA ALN and SAMSE. Josh and I have generated runbwa_mem.pl and have run it on the walleye and yellow perch reference genomes.
-
-The outputs are stored in /project/ysctrout/hatchsauger/sam_sai_pflav_mem and /project/ysctrout/hatchsauger/sam_sai_svit_mem. These sorted bams were then used to count the number and percentage of aligned reads for each using count_assembled_pflav_mem.sh and count_assembled_svit_mem.sh.
-
-RadMap reports were also generated for each using slurm_radmapreport_fix.sh.
-
-Upon looking at the number of assembled reads for each species, they were the same for both bwa_mem outputs. I will go try them again for both species and double check the reference genome indices.
-I have rerun bwa mem for each species from empty directories, and I will revisit the results tomorrow. I anticipate that this flaw was due to a failure to git push/pull before running the perl script for the other reference genome.
-
-The r script to plot the histograms of percent aligned reads (nalignedreads.R) was updated and pushed. 
-
-That concludes work 3/12/25. BWA MEM's are currently running, script is ready for when they're done.
-
-BWA MEM's are finishing, and I am starting count_assembled_svit_mem.sh and count_assembled_pflav_mem.sh.
-
-Count_assembled analyses have finished on the bwa mem aligned reads vs the bwa aln samse aligned reads (for both walleye and yellow perch) and the results are shocking. See local directory /GeneticData/AssembledReads/n_aln_per_indiv for plots and /SaugerParentage/r_scripts/assembledreads for the R script.
-
-Because BWA MEM generates .bam, .sorted.bam, and .sorted.bam.bai, I have bypassed using slurm_sauger_sam2bam.sh and have moved to slurm_sauger_variants.sh for both sam_sai_svit_mem and sam_sai_pflav_mem. Variant calling for each of those sets was initiated at 11:30pm on 03/13/25.
-
-
 
 ## Sequoia F0/Test F1 Analysis (BWA ALN to Walleye Reference)
 
@@ -671,5 +745,13 @@ sed "s/-1/-9/g" variants_maf3_miss9.012 > variants_maf3_miss9.012_conv
  Here's the plan: First, let's review the sequoia scripts we have written so far and take a minute to understand what's going on. Then, take this genotype matrix and load it into R. Take your sauger_ids_col.txt and load it in, along with a .csv of JUST the sample id's of the 2015 F0 fish and their Test F1 progeny. Then, filter the genotype matrix to include rows whose sample id is in the vector of individuals that's Test F1's and 2015 F0's, then edit the Sequoia_Full.R script and run it using slurm_sequoia_first.sh. 
 
  This was done in the afternoon on 3/13 and finished in the evening. Tomorrow, 3/14 I will scp the data to my local machine and investigate relationships.
+
+No relationships found on that data, perhaps because we filtered with maf of 0.03 above instead of 0.3. Ugh. Resume after break and try again. The filtered vcf is already there in sam_sai_svit.
+
+## A Note on Nomenclature
+
+3/14 - Changed all of the .bam, .sorted.bam, and .sorted.bam.bai in both mem directories to start with the prefix "mem_" rather than "aln_". The runbwa_mem.pl script was also updated to reflect this change, should we have to run that alignment again. Keep that in mind for any discrepancies in documentation you may come across down the line.
+
+
 
 
