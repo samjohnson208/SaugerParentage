@@ -748,6 +748,8 @@ sed "s/-1/-9/g" variants_maf3_miss9.012 > variants_maf3_miss9.012_conv
 
 No relationships found on that data, perhaps because we filtered with maf of 0.03 above instead of 0.3. Ugh. Resume after break and try again. The filtered vcf is already there in sam_sai_svit.
 
+03/24/25 Work: Took the maf30_miss9 vcf and turned it into the genotype matrix. prepared Sequoia_Full.R for a run on that. There are still 1400 sites. May be too many still. We shall see.
+
 ## A Note on Nomenclature
 
 3/14 - Changed all of the .bam, .sorted.bam, and .sorted.bam.bai in both mem directories to start with the prefix "mem_" rather than "aln_". The runbwa_mem.pl script was also updated to reflect this change, should we have to run that alignment again. Keep that in mind for any discrepancies in documentation you may come across down the line.
