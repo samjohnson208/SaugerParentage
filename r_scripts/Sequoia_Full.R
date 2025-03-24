@@ -8,17 +8,17 @@ library(sequoia)
 # 65
 library(dplyr)
 
-setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp/maf3_miss9")
+setwd("/project/ysctrout/hatchsauger/sam_sai_svit/Sequoia_Inp/maf30_miss9")
 #setwd("/Users/samjohnson/Desktop/")
 
 # read in genotype matrix
-mat <- read.table(file = "variants_maf3_miss9.012_conv", header = FALSE, sep = "\t", 
+mat <- read.table(file = "variants_maf30_miss9.012_conv", header = FALSE, sep = "\t", 
                   na.strings = c("NA", "-1"))
 
 # correct row names as sample id's
 mat<- mat[, -1]
 gmmat <- as.matrix(mat)
-ind <- read.table(file = "variants_maf3_miss9.012.indv", header = FALSE)
+ind <- read.table(file = "variants_maf30_miss9.012.indv", header = FALSE)
 str(ind)
 ind <- ind %>% 
   rename(sample = V1)
@@ -51,8 +51,8 @@ outfull <- sequoia(GenoM = gmmat_po_check, Module = 'ped', StrictGenoCheck = TRU
 gmr <- GetMaybeRel(GenoM = gmmat_po_check)
 
 # save output to current wd 
-save(outfull, file = "Sequoia_OutFull_031325.RData")
-save(gmr, file = "Sequoia_GetMayRel_031325.RData")
+save(outfull, file = "Sequoia_OutFull_032425.RData")
+save(gmr, file = "Sequoia_GetMayRel_032425.RData")
 
 ### Exploring Output ### 
 # setwd("/Users/samjohnson/Desktop")
