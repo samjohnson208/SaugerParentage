@@ -70,3 +70,8 @@ save(gmr, file = "Sequoia_GetMayRel_032425.RData")
 # load("Sequoia_OutFull_031325.RData")
 
 
+setwd("/Users/samjohnson/Desktop/")
+load("Sequoia_GetMayRel_032425.RData")
+load("Sequoia_OutFull_032425.RData")
+
+
