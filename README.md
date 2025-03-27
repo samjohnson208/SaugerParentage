@@ -652,19 +652,29 @@ Josh showed me this amazing line to filter vcfs without dealing with the script.
 ```{bash}
 /project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_svit_mem_031325.vcf --out variants_maf1_miss9 --remove-filtered-all --maf 0.01 --max-missing 0.9 --recode
 /project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_pflav_mem_031325.vcf --out variants_maf1_miss9 --remove-filtered-all --maf 0.01 --max-missing 0.9 --recode
+
+/project/ysctrout/software/vcftools/bin/vcftools --vcf rehead_variants_rawfiltered_svit_mem_031325.vcf --out variants_maf30_miss9 --remove-filtered-all --maf 0.3 --max-missing 0.9 --recode
 ```
 
-Filtering output (svit_mem): 
+Filtering output (svit_mem): MAF 0.01 Miss 0.9
 ```{bash}
 After filtering, kept 1184 out of 1184 Individuals
 After filtering, kept 7390 out of a possible 404644 Sites
 ```
 
-Filtering output (pflav_mem): 
+Filtering output (svit_mem): MAF 0.30 Miss 0.9
+```{bash}
+After filtering, kept 1184 out of 1184 Individuals
+After filtering, kept 1540 out of a possible 404644 Sites
+```
+
+Filtering output (pflav_mem): MAF 0.01 Miss 0.9
 ```{bash}
 After filtering, kept 1184 out of 1184 Individuals
 After filtering, kept 204 out of a possible 136652 Sites
 ```
+
+
 
 Just to be sure, I'm also going to do this same filtering with this line in the aln directories, sam_sai_svit and sam_sai_pflav
 
@@ -749,6 +759,12 @@ sed "s/-1/-9/g" variants_maf3_miss9.012 > variants_maf3_miss9.012_conv
 No relationships found on that data, perhaps because we filtered with maf of 0.03 above instead of 0.3. Ugh. Resume after break and try again. The filtered vcf is already there in sam_sai_svit.
 
 03/24/25 Work: Took the maf30_miss9 vcf and turned it into the genotype matrix. prepared Sequoia_Full.R for a run on that. There are still 1400 sites. May be too many still. We shall see.
+
+Results: Only one parent offspring duo was produced by this run.
+
+03/26/25 Work: Trying maf30_misss9 on svit_mem. Prepared and ran Sequoia_Full.R on that converted matrix. 1540 sites. This should let us know if the number of sites is the problem, or if it's an alignment issue.
+
+Results:
 
 ## A Note on Nomenclature
 
