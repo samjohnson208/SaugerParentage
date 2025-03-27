@@ -57,7 +57,7 @@ save(gmr, file = "Sequoia_GetMayRel_032625.RData")
 # setwd("/Users/samjohnson/Desktop")
 # load("Sequoia_GetMayRel_022725.RData")
 # load("Sequoia_OutFull_022725.RData")
-# 
+
 # library(sequoia)
 # SummarySeq(outfull)
 # SummarySeq(outfull)
@@ -68,9 +68,14 @@ save(gmr, file = "Sequoia_GetMayRel_032625.RData")
 # load("Sequoia_GetMayRel_031325.RData")
 # load("Sequoia_OutFull_031325.RData")
 
-
 # setwd("/Users/samjohnson/Desktop/")
 # load("Sequoia_GetMayRel_032425.RData")
 # load("Sequoia_OutFull_032425.RData")
+
+# setwd("/Users/samjohnson/Desktop/")
+# load("Sequoia_GetMayRel_032625.RData")
+# load("Sequoia_OutFull_032625.RData")
+
+
 
 
