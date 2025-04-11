@@ -25,6 +25,5 @@ FILE_B=/project/ysctrout/hatchsauger/bedtools/svit_alnsamse.bed
 # define output file
 OUTPUT=/project/ysctrout/hatchsauger/bedtools/intersect_output_1.bed
 
-# run intersect with count option
-bedtools intersect -a "$FILE_A" -b "$FILE_B" > "$OUTPUT"
-bedtools intersect -a file_a.bed -b file_b.bed -wa -wb > "$OUTPUT"
+# run intersect with overlap information for each file
+bedtools intersect -a "$FILE_A" -b "$FILE_B" -wa -wb > "$OUTPUT"
