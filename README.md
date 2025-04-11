@@ -796,11 +796,18 @@ wc -l svit_mem.bed
 cd /project/ysctrout/hatchsauger/sam_sai_svit_mem
 bcftools query -f '%CHROM\t%POS0\t%POS\t%ID\n' rehead_variants_rawfiltered_svit_mem_031325.vcf > svit_mem.bed
 mv svit_mem.bed ../bedtools/
-wc -l svit_mem.bed
+wc -l svit_alnsamse.bed
 # 366797 svit_alnsamse.bed
 ```
 
 Alright. Information is being stored effectively in those .bed files. I'll now try an updated slurm_bedtools_int.sh.
+
+```{bash}
+wc -l intersect_output_1.bed 
+# 333134 intersect_output_1.bed
+```
+
+I suppose I can interpret that as: mem is retaining most of the aln/samse snps since the number of snps in the output is pretty close to the number of snps from the aln/samse input, but mem is just grabbing a bunch more snps that aln/samse was not catching.
 
 
 
