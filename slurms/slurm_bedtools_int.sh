@@ -19,11 +19,11 @@ module load arcc/1.0 gcc/14.2.0 samtools/1.20 bcftools/1.20
 export PATH=/project/ysctrout/software/bedtools2/bin:$PATH
 
 # define input files
-FILE_A=/project/ysctrout/hatchsauger/bedtools_out/svit_mem.bed
-FILE_B=/project/ysctrout/hatchsauger/bedtools_out/svit_alnsamse.bed
+FILE_A=/project/ysctrout/hatchsauger/bedtools/svit_mem.bed
+FILE_B=/project/ysctrout/hatchsauger/bedtools/svit_alnsamse.bed
 
 # define output file
-OUTPUT=/project/ysctrout/hatchsauger/bedtools_out/intersect_output_1.bed
+OUTPUT=/project/ysctrout/hatchsauger/bedtools/intersect_output_1.bed
 
 # run intersect with count option
 bedtools intersect -a "$FILE_A" -b "$FILE_B" > "$OUTPUT"
