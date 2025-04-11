@@ -2,14 +2,13 @@
 
 ## slurm_bedtools_int.sh by SPJ 041125
 ## PURPOSE: to check the overlap in loci among two files
-#3 USAGE: sbatch slurm_bedtools_int.sh
+## USAGE: sbatch slurm_bedtools_int.sh
 
 #SBATCH --job-name=bedtools_intersect
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
-#SBATCH --mem=1G
 #SBATCH --time=06:00:00
 #SBATCH --mem=16G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_bedtools_int
