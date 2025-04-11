@@ -11,8 +11,8 @@
 #SBATCH --account=ysctrout
 #SBATCH --time=06:00:00
 #SBATCH --mem=16G
-#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_bedtools_int%j.out
-#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_bedtools_int%j.err
+#SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_bedtools_int
+#SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_bedtools_int
 
 module load arcc/1.0 gcc/14.2.0 samtools/1.20 bcftools/1.20
 
