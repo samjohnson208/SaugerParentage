@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
 #SBATCH --mem=1G
-#SBATCH --time=01:00:00
+#SBATCH --time=06:00:00
 #SBATCH --mem=4G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_bedtools_int
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_bedtools_int
