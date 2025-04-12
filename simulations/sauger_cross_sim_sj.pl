@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-## sauger_cross_sim.pl by JPJ 18 iv 24
+## sauger_cross_sim_sj.pl by JPJ 18 iv 24
 ## PURPOSE: to launch new sauger cross sims
 
 use strict;
@@ -17,7 +17,7 @@ my $time = '04:00:00';
 my $mem = '16G';
 
 ## trial name
-my $trial = 'wrap_test1';
+my $trial = 'wrap_test2_md';
 
 ## create directory for trial output
 unless(-e '${trial}'){
