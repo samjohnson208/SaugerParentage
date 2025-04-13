@@ -17,13 +17,14 @@ my $time = '04:00:00';
 my $mem = '16G';
 
 ## trial name
-my $trial = 'wrap_test2_md';
+#my $trial = 'wrap_test2_md';
 
 ## create directory for trial output
-unless(-e '${trial}'){
-  mkdir "${trial}", 0755 or die "Failed to make $trial directory\n";
-}
+#unless(-e '${trial}'){
+#  mkdir "${trial}", 0755 or die "Failed to make $trial directory\n";
+#}
 
+cd /project/ysctrout/hatchsauger/SaugerParentage/simulations/wrap_test2_md
 
 ################################################
 ## defining parameters to iterate across

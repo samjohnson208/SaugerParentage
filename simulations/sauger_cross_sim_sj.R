@@ -143,6 +143,7 @@ if (wild_samp!=1) {
 	final_parents <- all_parents_full
 }
 
+## remove a sample of x% from each site where x = md
 for (u in 1:ncol(final_inds)) {
   n <- nrow(final_inds)
   sample_indices <- sample(n, size = floor(miss * n), replace = FALSE)
