@@ -14,7 +14,6 @@ nloci <- as.numeric(args[1])          ## number of loci
 wild_samp <- as.numeric(args[2])      ## proportion of wild individuals (f0 non-hatchery parents, all f1s and f2s) sampled
 miss <- as.numeric(args[3])           ## % of data that is missing per site
 
-
 ## fixed parameters
 f0_inds <- 1000       ## total number of inds in F0 matrix
 f0_cross_prop <- 0.2  ## proportion of f0 inds used to make hatchery crosses
