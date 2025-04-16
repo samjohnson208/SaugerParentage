@@ -1,4 +1,4 @@
-# SaugerParentage
+cd # SaugerParentage
 Created by Sam Johnson, 10/25/24
 
 sjohn208@uwyo.edu
@@ -830,11 +830,35 @@ wc -l svit_alnsamse.bed
 Alright. Information is being stored effectively in those .bed files. I'll now try an updated slurm_bedtools_int.sh.
 
 ```{bash}
-wc -l intersect_output_1.bed 
-# 333134 intersect_output_1.bed
+wc -l intersect_output_unfiltered.bed 
+# 333134 intersect_output_unfiltered.bed
 ```
 
 I suppose I can interpret that as: mem is retaining most of the aln/samse snps since the number of snps in the output is pretty close to the number of snps from the aln/samse input, but mem is just grabbing a bunch more snps that aln/samse was not catching.
+
+Per Josh's recommendation, I am running intersect on two filtered (MAF 0.01 and Miss 0.9) vcfs (for aln/samse mem).
+Grabbed filtered vcfs from sam_sai_svit and sam_sai_svit_mem, copied them to the bedtools directory, and renamed them svit_alnsamse_variants_maf1_miss9.recode.vcf and  svit_mem_variants_maf1_miss9.recode.vcf. 
+
+```{bash}
+cd /project/ysctrout/hatchsauger/bedtools
+bcftools query -f '%CHROM\t%POS0\t%POS\t%ID\n' svit_mem_variants_maf1_miss9.recode.vcf > svit_mem_maf1_miss9.bed
+wc -l svit_mem_maf1_miss9.bed
+# 7390 svit_mem_maf1_miss9.bed
+
+cd /project/ysctrout/hatchsauger/bedtools
+bcftools query -f '%CHROM\t%POS0\t%POS\t%ID\n' svit_alnsamse_variants_maf1_miss9.recode.vcf > svit_alnsamse_maf1_miss9.bed
+wc -l svit_alnsamse_maf1_miss9.bed
+# 6488 svit_alnsamse_maf1_miss9.bed
+```
+
+Alright. Information is being stored effectively in those .bed files. I'll now try an updated slurm_bedtools_int.sh.
+
+```{bash}
+wc -l intersect_output_maf1_miss9.bed 
+# 6109 intersect_output_maf1_miss9.bed
+```
+Intersect shows overlap in ~94% of aln/samse sites. Looks like mem captures most of the same sites as aln/samse, but also picks up a bunch more.
+
 
 
 
