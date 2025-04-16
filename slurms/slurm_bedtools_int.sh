@@ -19,11 +19,11 @@ module load arcc/1.0 gcc/14.2.0 samtools/1.20 bcftools/1.20
 export PATH=/project/ysctrout/software/bedtools2/bin:$PATH
 
 # define input files
-FILE_A=/project/ysctrout/hatchsauger/bedtools/svit_mem.bed
-FILE_B=/project/ysctrout/hatchsauger/bedtools/svit_alnsamse.bed
+FILE_A=/project/ysctrout/hatchsauger/bedtools/svit_mem_maf1_miss9.bed
+FILE_B=/project/ysctrout/hatchsauger/bedtools/svit_alnsamse_maf1_miss9.bed
 
 # define output file
-OUTPUT=/project/ysctrout/hatchsauger/bedtools/intersect_output_1.bed
+OUTPUT=/project/ysctrout/hatchsauger/bedtools/intersect_output_maf1_miss9.bed
 
 # run intersect with overlap information for each file
 bedtools intersect -a "$FILE_A" -b "$FILE_B" -wa -wb > "$OUTPUT"
