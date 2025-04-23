@@ -5,6 +5,8 @@
 
 ## USAGE: Rscript sauger_cross_check_pars.R
 ## PURPOSE: to count proportion of correct parent-offspring relationships inferred by sequoia
+library(tidyverse)
+library(dplyr)
 
 nloci <- c(100, 500, 1000, 5000, 10000)
 wild_samp <- c(0.2, 0.4, 0.6, 0.8, 1.0)
