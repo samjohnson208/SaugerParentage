@@ -35,9 +35,9 @@ for (g in 1:length(nloci)) {
         true_file <- paste0("true_parents_", nl, "_", ws, "_", miss, ".txt")
         pars_file <- paste0("pars_", nl, "_", ws, "_", miss, ".txt")
         
-        # Check if both files exist and are non-empty
+        # Check if both files exist and are non-empty (not 1 byte)
         if (file.exists(true_file) && file.exists(pars_file) &&
-            file.info(true_file)$size > 0 && file.info(pars_file)$size > 0) {
+            file.info(true_file)$size > 1 && file.info(pars_file)$size > 1) {
           
           truth <- read.table(true_file, header = FALSE, sep = " ")
           pars <- read.table(pars_file, header = TRUE, sep = " ")
@@ -65,7 +65,18 @@ for (g in 1:length(nloci)) {
             }
           }
         } else {
+          # Skip empty or nearly empty files and set NA for results
           message(paste("Skipping due to missing or empty file:", true_file, "or", pars_file))
+          
+          row_index <- which(out_pars$nloci == nl &
+                               out_pars$wild_samp == ws &
+                               out_pars$md == miss &
+                               out_pars$gen_cat == gen)
+          
+          # Assign NA to TP, FP, and n_assignments for these combinations
+          out_pars$TP[row_index] <- NA
+          out_pars$FP[row_index] <- NA
+          out_pars$n_assignments[row_index] <- NA
         }
       }
     }
@@ -75,5 +86,3 @@ for (g in 1:length(nloci)) {
 # Rename columns for clarity and write output
 colnames(out_pars) <- c("nloci", "wild_samp", "missing_data", "generation", "TP", "FP", "n_assignments")
 write.csv(out_pars, file = "tpfp_pars_md_sj.txt", row.names = FALSE)
-
-
