@@ -16,7 +16,7 @@
 #SBATCH --mail-type=END
 
 # cd to directory with all of the pars files for each nloci, wild_samp, and md
-/project/ysctrout/hatchsauger/SaugerParentage/simulations
+cd /project/ysctrout/hatchsauger/SaugerParentage/simulations
 
 # load modules
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
