@@ -6,6 +6,8 @@
 ## USAGE: Rscript sauger_cross_check_pars.R
 ## PURPOSE: to count proportion of correct parent-offspring relationships inferred by sequoia
 
+setwd("/project/ysctrout/hatchsauger/SaugerParentage/simulations")
+
 nloci <- c(100, 500, 1000, 5000, 10000)
 wild_samp <- c(0.2, 0.4, 0.6, 0.8, 1.0)
 md <- c(0.01, 0.05, 0.1, 0.25, 0.5)
@@ -88,7 +90,7 @@ for (g in 1:length(nloci)) {
 
 # Save results
 colnames(out_pars) <- c("nloci", "wild_samp", "missing_data", "generation", "TP", "FP", "n_assignments")
-write.csv(out_pars, file = "tpfp_pars.csv", row.names = FALSE)
+write.csv(out_pars, file = "tpfp_pars_md_sj.txt", row.names = FALSE)
 
 
 # to do when we come back
