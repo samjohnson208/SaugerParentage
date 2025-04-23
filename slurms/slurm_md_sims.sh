@@ -22,7 +22,7 @@ cd /project/ysctrout/hatchsauger/SaugerParentage/simulations
 module load arcc/1.0 gcc/14.2.0 r/4.4.0
 
 # run the R script!
-Rscript sauger_cross_check_pars_sj.R
+Rscript sauger_cross_check_pars_sj_EFC.R
 
 
 
