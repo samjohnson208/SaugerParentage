@@ -1,5 +1,6 @@
 ##################################################
 ## sauger_cross_check_trios.R by JPJ 3 vii 24
+# modified by SPJ 042125
 ##################################################
 
 ## USAGE: Rscript sauger_cross_check_trios.R
@@ -7,6 +8,7 @@
 
 nloci <- c(100, 500, 1000, 5000, 10000)
 wild_samp <- c(0.2, 0.4, 0.6, 0.8, 1.0)
+md <- c(0.01, 0.05, 0.1, 0.25, 0.5)
 
 out_trios <- matrix(NA, length(nloci), length(wild_samp))
 rownames(out_trios) <- nloci
