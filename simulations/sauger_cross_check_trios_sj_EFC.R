@@ -61,7 +61,7 @@ for (i in seq_len(nrow(out_trios))) {
   }
 }
         
-write.csv(out_trios, file = "tftp_trios_md_sj.txt", sep = ",", row.names = FALSE)
+write.csv(out_trios, file = "tpfp_trios_md_sj.txt", sep = ",", row.names = FALSE)
         
 # note, I just found some instances where F0 fish have F1 parents! Based solely on % DNA shared. 
 # We need to try to specify generations I think...      
