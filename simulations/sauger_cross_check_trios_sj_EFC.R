@@ -65,7 +65,85 @@ write.csv(out_trios, file = "tpfp_trios_md_sj.txt", sep = ",", row.names = FALSE
         
 # note, I just found some instances where F0 fish have F1 parents! Based solely on % DNA shared. 
 # We need to try to specify generations I think...      
-      
-      
-      
-      
+
+
+### --- Investigate Output --- ###
+# NOTE: must comment out if we are to run the above portion again!!
+# (first scp the outputfile to a local directory)
+
+setwd("/Users/samjohnson/Desktop/")
+trios <- read.csv(file = "tpfp_trios_md_sj.txt", header = TRUE, sep = ",")
+trios <- data.frame(trios, truedivtot = NA, falsedivtot = NA, trueprop = NA, trueminusfalse = NA)
+for (i in 1:nrow(trios)) {
+  t <- trios$TP[i]
+  f <- trios$FP[i]
+  tot <- trios$n_trios[i]  # Was 'n_assignments' in your original code, but your file probably uses 'n_trios'
+  
+  if (!is.na(tot) && tot > 0) {
+    trios$truedivtot[i] <- t / tot
+    trios$falsedivtot[i] <- f / tot
+  } else {
+    trios$truedivtot[i] <- NA
+    trios$falsedivtot[i] <- NA
+  }
+  
+  trios$trueprop[i] <- if (!is.na(t)) t / 2000 else NA
+  trios$trueminusfalse[i] <- if (!is.na(t) && !is.na(f)) t - f else NA
+}
+
+wild_samp_vals <- sort(unique(trios$wild_samp))
+color_map <- c("purple", "blue", "forestgreen", "orange", "red")
+names(color_map) <- wild_samp_vals
+
+md_vals <- sort(unique(trios$md))
+shape_map <- c(21, 22, 23, 24, 25)
+names(shape_map) <- md_vals
+
+nloci_vals <- sort(unique(trios$nloci))
+color_map_loci <- c("firebrick4", "firebrick", "firebrick3", "firebrick2", "firebrick1")
+names(color_map_loci) <- nloci_vals
+
+trios$plot_col <- color_map[as.character(trios$wild_samp)]
+trios$plot_pch <- shape_map[as.character(trios$md)]
+trios$nloci_col <- color_map_loci[as.character(trios$nloci)]
+
+par(mfrow = c(2, 2))
+
+plot(trios$nloci, trios$truedivtot, col = trios$plot_col, pch = trios$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue/nassign",
+     main = "Prop. Assignments Made that are True",
+     cex = 1.5)
+
+plot(trios$nloci, trios$trueprop, col = trios$plot_col, pch = trios$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue/2000",
+     main = "Prop. of 2000 Possible True Assignments Made",
+     cex = 1.5)
+
+plot(trios$nloci, trios$trueminusfalse, col = trios$plot_col, pch = trios$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue - nfalse",
+     main = "n True Assignments - n False Assignments",
+     ylim = c(-4000, 3000),
+     cex = 1.5)
+abline(h = 2000, col = "black", lty = 2, lwd = 2)
+
+plot(trios$nloci, trios$trueminusfalse, col = trios$plot_col, pch = trios$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue - nfalse",
+     main = "n True Assignments - n False Assignments",
+     ylim = c(0, 2200),
+     cex = 1.5)
+abline(h = 2000, col = "black", lty = 2, lwd = 2)
+
+# REVISIT AT SOME POINT SOON TO MAKE PLOTS WITH WILD_SAMP AS X AXIS VAR
+plot(trios$wild_samp, trios$TP, col = trios$nloci_col)
+
+
+
+
+
+
+
+
+
+
+
+
