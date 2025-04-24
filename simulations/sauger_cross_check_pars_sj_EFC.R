@@ -1,6 +1,7 @@
 ##################################################
 ## sauger_cross_check_pars.R by JPJ 15 vii 24
-# modified by SPJ 042125
+# modified by SPJ 042125 to sauger_cross_check_pars_sj_EFC.R 
+# where EFC stands for empty file check!
 ##################################################
 
 ## USAGE: Rscript sauger_cross_check_pars.R
@@ -85,4 +86,66 @@ for (g in 1:length(nloci)) {
 
 # Rename columns for clarity and write output
 colnames(out_pars) <- c("nloci", "wild_samp", "missing_data", "generation", "TP", "FP", "n_assignments")
-write.csv(out_pars, file = "tpfp_pars_md_sj.txt", row.names = FALSE)
+write.csv(out_pars, file = "tpfp_pars_md_sj.csv", row.names = FALSE)
+
+
+### --- Investigate Output --- ###
+# NOTE: must comment out if we are to run the above portion again!!
+# (first scp the outputfile to a local directory)
+setwd("/Users/samjohnson/Desktop/")
+pars <- read.csv(file = "tpfp_pars_md_sj.txt", header = TRUE, sep = ",")
+pars <- data.frame(pars, truedivtot = NA, falsedivtot = NA, trueprop = NA, trueminusfalse = NA)
+for(i in 1:nrow(pars)){
+  t <- pars$TP[i]
+  f <- pars$FP[i]
+  tot <- pars$n_assignments[i]
+  pars$truedivtot[i] <- t/tot
+  pars$falsedivtot[i] <- f/tot
+  pars$trueprop[i] <- t/4000
+  pars$trueminusfalse[i] <- t-f
+}
+
+wild_samp_vals <- sort(unique(pars$wild_samp))
+color_map <- c("purple", "blue", "forestgreen", "orange", "red")
+names(color_map) <- wild_samp_vals
+
+md_vals <- sort(unique(pars$missing_data))
+shape_map <- c(21, 22, 23, 24, 25)
+names(shape_map) <- md_vals
+
+nloci_vals <- sort(unique(pars$nloci))
+color_map_loci <- c("firebrick4", "firebrick", "firebrick3", "firebrick2", "firebrick1")
+names(color_map_loci) <- nloci_vals
+
+pars$plot_col <- color_map[as.character(pars$wild_samp)]
+pars$plot_pch <- shape_map[as.character(pars$missing_data)]
+pars$nloci_col <- color_map_loci[as.character(pars$nloci)]
+
+par(mfrow = c(2, 2))
+
+plot(pars$nloci, pars$truedivtot, col = pars$plot_col, pch = pars$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue/nassign",
+     main = "Prop. Assignments Made that are True",
+     cex = 1.5)
+
+plot(pars$nloci, pars$trueprop, col = pars$plot_col, pch = pars$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue/4000",
+     main = "Prop. of 4000 Possible True Assignments Made",
+     cex = 1.5)
+
+plot(pars$nloci, pars$trueminusfalse, col = pars$plot_col, pch = pars$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue - nfalse",
+     main = "n True Assignments - n False Assignments",
+     ylim = c(-20000, 5000),
+     cex = 1.5)
+abline(h = 4000, col = "black", lty = 2, lwd = 2)
+
+plot(pars$nloci, pars$trueminusfalse, col = pars$plot_col, pch = pars$plot_pch,
+     log = "x", xlab = "nloci", ylab = "ntrue - nfalse",
+     main = "n True Assignments - n False Assignments",
+     ylim = c(0, 5000),
+     cex = 1.5)
+abline(h = 4000, col = "black", lty = 2, lwd = 2)
+
+# REVISIT AT SOME POINT SOON TO MAKE PLOTS WITH WILD_SAMP AS X AXIS VAR
+plot(pars$wild_samp, pars$TP, col = pars$nloci_col)
