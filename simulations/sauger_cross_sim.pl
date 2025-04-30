@@ -12,7 +12,7 @@ use File::Path;
 ## beartooth specifications
 ################################################
 
-my $account = 'ysctrout';
+my $account = 'evolgen';
 my $time = '04:00:00';
 my $mem = '16G';
 
@@ -54,9 +54,9 @@ foreach my $loci (@nloci){
     push @slurmdirectives, "#SBATCH --mem=$mem";
     push @slurmdirectives, "#SBATCH -o "."$trial"."/stdout_"."$loci"."_"."$samp";
     push @slurmdirectives, "#SBATCH -e "."$trial"."/stderr_"."$loci"."_"."$samp";
-    push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0 r/4.4.0";
-    push @slurmdirectives, "cd /project/ysctrout/hatchsaug/SaugerParentage/simulations/"."$trial";
-    push @slurmdirectives, "Rscript sauger_cross_sim.R "."$loci"." "."$samp";
+    push @slurmdirectives, "module load arcc/1.0 gcc/12.2.0 r/4.4.0";
+    push @slurmdirectives, "cd /project/evolgen/jjahner/sauger_sims/r_sims/"."$trial";
+    push @slurmdirectives, "Rscript ../sauger_cross_sim.R "."$loci"." "."$samp";
     push @slurmdirectives, "\n";
     my $slurm = join "\n", @slurmdirectives;
     #print $slurm;
