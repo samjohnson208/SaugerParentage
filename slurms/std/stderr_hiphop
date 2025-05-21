@@ -1,0 +1,55 @@
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf rehead_variants_rawfiltered_svit_mem_031325.vcf
+	--max-alleles 2
+	--min-alleles 2
+	--out variants_bial
+	--recode
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Outputting VCF file...
+After filtering, kept 400450 out of a possible 404644 Sites
+Run Time = 589.00 seconds
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf variants_bial.recode.vcf
+	--out variants_bial_noindels
+	--recode
+	--remove-indels
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Outputting VCF file...
+After filtering, kept 400450 out of a possible 400450 Sites
+Run Time = 582.00 seconds
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf variants_bial_noindels.recode.vcf
+	--minQ 20
+	--out variants_bial_noindels_q20
+	--recode
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Outputting VCF file...
+After filtering, kept 216471 out of a possible 400450 Sites
+Run Time = 320.00 seconds

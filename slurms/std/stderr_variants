@@ -1,0 +1,4 @@
+Warning: -f, --format-fields will be deprecated, please use -a, --annotate instead.
+Note: none of --samples-file, --ploidy or --ploidy-file given, assuming all sites are diploid
+The file list "bam_list.txt" appears broken, could not locate: aln_SAR_00_2430.sorted.bam
+Failed to read from standard input: unknown file type

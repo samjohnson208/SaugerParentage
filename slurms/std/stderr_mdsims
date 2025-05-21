@@ -1,0 +1,56 @@
+During startup - Warning messages:
+1: Setting LC_CTYPE failed, using "C" 
+2: Setting LC_COLLATE failed, using "C" 
+3: Setting LC_TIME failed, using "C" 
+4: Setting LC_MESSAGES failed, using "C" 
+5: Setting LC_MONETARY failed, using "C" 
+6: Setting LC_PAPER failed, using "C" 
+7: Setting LC_MEASUREMENT failed, using "C" 
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+-- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+v forcats   1.0.0     v readr     2.1.5
+v ggplot2   3.5.1     v stringr   1.5.1
+v lubridate 1.9.4     v tibble    3.2.1
+v purrr     1.0.4     v tidyr     1.3.1
+-- Conflicts ------------------------------------------ tidyverse_conflicts() --
+x dplyr::filter() masks stats::filter()
+x dplyr::lag()    masks stats::lag()
+i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Skipping due to missing or empty file: trios_100_0.2_0.5.txt or true_parents_100_0.2_0.5.txt
+Skipping due to missing or empty file: trios_500_0.2_0.5.txt or true_parents_500_0.2_0.5.txt
+Skipping due to missing or empty file: trios_1000_0.2_0.5.txt or true_parents_1000_0.2_0.5.txt
+Skipping due to missing or empty file: trios_5000_0.2_0.5.txt or true_parents_5000_0.2_0.5.txt
+Skipping due to missing or empty file: trios_10000_0.2_0.5.txt or true_parents_10000_0.2_0.5.txt
+Skipping due to missing or empty file: trios_100_0.4_0.5.txt or true_parents_100_0.4_0.5.txt
+Skipping due to missing or empty file: trios_500_0.4_0.5.txt or true_parents_500_0.4_0.5.txt
+Skipping due to missing or empty file: trios_1000_0.4_0.5.txt or true_parents_1000_0.4_0.5.txt
+Skipping due to missing or empty file: trios_5000_0.4_0.5.txt or true_parents_5000_0.4_0.5.txt
+Skipping due to missing or empty file: trios_10000_0.4_0.5.txt or true_parents_10000_0.4_0.5.txt
+Skipping due to missing or empty file: trios_100_0.6_0.5.txt or true_parents_100_0.6_0.5.txt
+Skipping due to missing or empty file: trios_500_0.6_0.5.txt or true_parents_500_0.6_0.5.txt
+Skipping due to missing or empty file: trios_1000_0.6_0.5.txt or true_parents_1000_0.6_0.5.txt
+Skipping due to missing or empty file: trios_5000_0.6_0.5.txt or true_parents_5000_0.6_0.5.txt
+Skipping due to missing or empty file: trios_10000_0.6_0.5.txt or true_parents_10000_0.6_0.5.txt
+Skipping due to missing or empty file: trios_100_0.8_0.5.txt or true_parents_100_0.8_0.5.txt
+Skipping due to missing or empty file: trios_500_0.8_0.5.txt or true_parents_500_0.8_0.5.txt
+Skipping due to missing or empty file: trios_1000_0.8_0.5.txt or true_parents_1000_0.8_0.5.txt
+Skipping due to missing or empty file: trios_5000_0.8_0.5.txt or true_parents_5000_0.8_0.5.txt
+Skipping due to missing or empty file: trios_10000_0.8_0.5.txt or true_parents_10000_0.8_0.5.txt
+Skipping due to missing or empty file: trios_100_1_0.5.txt or true_parents_100_1_0.5.txt
+Skipping due to missing or empty file: trios_500_1_0.5.txt or true_parents_500_1_0.5.txt
+Skipping due to missing or empty file: trios_1000_1_0.5.txt or true_parents_1000_1_0.5.txt
+Skipping due to missing or empty file: trios_5000_1_0.5.txt or true_parents_5000_1_0.5.txt
+Skipping due to missing or empty file: trios_10000_1_0.5.txt or true_parents_10000_1_0.5.txt
+Warning message:
+In write.csv(out_trios, file = "tftp_trios_md_sj.txt", sep = ",",  :
+  attempt to set 'sep' ignored

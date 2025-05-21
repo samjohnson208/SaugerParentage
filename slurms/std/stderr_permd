@@ -1,0 +1,34 @@
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf rehead_variants_rawfiltered_pflav_012325.vcf
+	--out per_md_per_site_pflav.missing
+	--missing-site
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Outputting Site Missingness
+After filtering, kept 79272 out of a possible 79272 Sites
+Run Time = 5.00 seconds
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf rehead_variants_rawfiltered_svit_020625.vcf
+	--out per_md_per_site_svit.missing
+	--missing-site
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Outputting Site Missingness
+After filtering, kept 366797 out of a possible 366797 Sites
+Run Time = 25.00 seconds

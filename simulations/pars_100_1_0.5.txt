@@ -1,0 +1,2 @@
+ID1 ID2 TopRel LLR OH BirthYear1 BirthYear2 AgeDif Sex1 Sex2 SNPdBoth
+f0_816 f1w_68 PO 0.1 0 NA NA NA 3 3 39

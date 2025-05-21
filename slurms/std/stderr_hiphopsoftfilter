@@ -1,0 +1,36 @@
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf variants_bial_noindels_q20.recode.vcf
+	--maf 0.01
+	--max-missing 0.9
+	--out soft_variants_bial_noindels_q20_maf1_miss90
+	--recode
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Outputting VCF file...
+After filtering, kept 7366 out of a possible 216471 Sites
+Run Time = 37.00 seconds
+
+VCFtools - 0.1.17
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf soft_variants_bial_noindels_q20_maf1_miss90.recode.vcf
+	--012
+	--out soft_variants_bial_noindels_q20_maf1_miss90
+
+Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
+Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+After filtering, kept 1184 out of 1184 Individuals
+Writing 012 matrix files ... Done.
+After filtering, kept 7366 out of a possible 7366 Sites
+Run Time = 2.00 seconds
