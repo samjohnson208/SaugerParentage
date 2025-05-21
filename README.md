@@ -80,9 +80,15 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
    
    * Sequoia using F0's & Test F1's (aln/samse and mem)
 
+* Principal Component Analysis
+
 * Simulation Work
+   
+   * Adding Missing Data
 
 * Bedtools Intersect (aln/samse and mem overlap)
+
+* HipHop
 
 * Entropy
 
@@ -778,7 +784,17 @@ Results: Only one parent offspring duo was produced by this run.
 
 03/26/25 Work: Trying maf30_misss9 on svit_mem. Prepared and ran Sequoia_Full.R on that converted matrix. 1540 sites. This should let us know if the number of sites is the problem, or if it's an alignment issue.
 
-Results:
+Results: NO RELATIONSHIPS RETURNED. 
+
+## Principal Component Analysis
+
+Upon learning that sequoia returned 0 relationships between the Test F1's and the 2015 F0 Parents, we wanted to be sure that we didn't get the incorrect plate of test samples from Montana. We performed this validation by running a PCA. If we got the correct samples, they should stack on top of or very close to the rest of our samples. If not, they may be the wrong samples. 
+
+Results: They stack nicely. Few fish from Willie's Lab may be WAE, as well as a few of the F2's. That warrants furtuer investigation. See the results in the local GeneticData/hiphop or GeneticData/pca directories, and see the script for making the pca in: 
+
+```{bash}
+/project/ysctrout/hatchsauger/SaugerParentage/r_scripts/pca
+```
 
 ## A Note on Nomenclature
 
@@ -806,6 +822,13 @@ This was not completed successfully, however, until 04/13/25. Now, in
 
 many text files exist for all combinations. Next step will be to run sauger_cross_check_pars.R and sauger_cross_check_trios.R to understand the number of true and false assignments that were made in each situation. I think I'd like Josh's assistance with this.
 
+
+This was completed late April 2025 (around and on 4/24/25). See 
+ ```{bash}
+/project/ysctrout/hatchsauger/SaugerParentage/simulations/sims_with_md
+ ```
+
+for visualizations. Keep in mind that the simulations will need to be slightly altered for the correct PTPS scenario. At least for now, results indicate that missing data per site does not have a huge impact. Our ability to detect relationships depends mostly on the number of loci, and the PTPS.
 
 ## Bedtools Intersect
 
@@ -858,6 +881,35 @@ wc -l intersect_output_maf1_miss9.bed
 # 6109 intersect_output_maf1_miss9.bed
 ```
 Intersect shows overlap in ~94% of aln/samse sites. Looks like mem captures most of the same sites as aln/samse, but also picks up a bunch more.
+
+## HipHop Parentage Assignment
+
+In the few weeks before WDAFS 2025, I was becoming pretty nervous about the state of my results using Sequoia, and sought out to make parentage relationships using the r package hiphop. This is an exclusion method that relies on principals of Mendelian inheritance to give hothiphop (Homozygous Opposite Test, Homozygous Identical Parents, Heterozygous Offspring Precluded) scores to each pair of parents that get assigned to each offspring. 
+
+
+First, I ran hiphop on all of the test F1's and F0 parents and got some pretty good results. I took the parent pairs that were inferred by hiphop and cross checked them against the list of known crosses. When I did that, 85 of the 95 test F1 offspring got assigned to parent crosses that were actually made.
+
+Second, I wanted to see if I could improve that number with more intense filtering of the data. This is the second script. I got up to 92/95 with this "hard" filtering approach. See the filtering approaches in 
+
+```{bash}
+/project/ysctrout/hatchsauger/SaugerParentage/slurms/slurm_2softhiphopfilter.sh
+```
+and 
+
+```{bash}
+/project/ysctrout/hatchsauger/SaugerParentage/slurms/slurm_3hardhiphopfilter.sh
+```
+
+Third and fourth scripts are exploring the distributions of hothiphop scores when 75%, 50% and 25% of the true F0 parents are sampled. Breaks it down by PTPS, as well as if we have 0, 1, or 2 of the parents sampled for a given individual. Keep in mind that this is only one replication of these operations. We'll need to go back and rereun all of this assignment process with numerous replicates of sampling 75%, 50% and 25% of the true parents.
+
+But, I was in a rush for this conference, and I wanted to see what the scores looked like for all of the F1 generation when they were assigned to ALL of the F0's, both the 2015 and 2016 groups. This is the fifth script.
+
+All of that information was then plotted using
+```{bash}
+/Users/samjohnson/Documents/Sauger_042225/SaugerParentage/r_scripts/hiphop/sauger_hiphop_plot.R
+```
+
+
 
 
 
