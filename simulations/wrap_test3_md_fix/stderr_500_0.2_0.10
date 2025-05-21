@@ -1,0 +1,16 @@
+/var/spool/slurmd/job5145012/slurm_script: line 12: cd: /project/ysctrout/hatchsaug/SaugerParentage/simulations/wrap_test3_md_fix: No such file or directory
+During startup - Warning messages:
+1: Setting LC_CTYPE failed, using "C" 
+2: Setting LC_COLLATE failed, using "C" 
+3: Setting LC_TIME failed, using "C" 
+4: Setting LC_MESSAGES failed, using "C" 
+5: Setting LC_MONETARY failed, using "C" 
+6: Setting LC_PAPER failed, using "C" 
+7: Setting LC_MEASUREMENT failed, using "C" 
+i Searching for non-assigned parent-offspring pairs ... (Module = par)
+! There are 107 monomorphic (fixed) SNPs, these will be excluded
+i After exclusion, There are  760  individuals and  393  SNPs.
+i Not conditioning on any pedigree
+i Ageprior: Flat 0/1, overlapping generations, MaxAgeParent = 99,99
+v Found 321 likely parent-offspring pairs, and 0, other non-assigned pairs of possible relatives
+v Found 108 parent-parent-offspring trios
