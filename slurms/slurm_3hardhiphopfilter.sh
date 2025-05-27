@@ -1,6 +1,6 @@
 #!/bin/sh
 
-## slurm_3hardhiphopfilter.sh by SPJ 050525
+## slurm_3hardhiphopfilter.sh by SPJ 050525 | modified 052725 for use to troubleshoot sequoia
 ## PURPOSE: filter the output from slurm_1firsthiphopfilter.sh according to a hard set of criteria (min/max depth, maf, and miss)
 ## USAGE: sbatch slurm_3hardhiphopfilter.sh
 
@@ -17,13 +17,13 @@
 
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
-cd /project/ysctrout/hatchsauger/sam_sai_svit_mem/HipHop_Inp
+cd /project/ysctrout/hatchsauger/sam_sai_svit_mem/Sequoia_Inp/maf30_miss95
 
 # filter first output file (variants_bial_noindels_q20.recode.vcf) by min and max mean depth per site across all samples.
 vcftools --vcf variants_bial_noindels_q20.recode.vcf  --min-meanDP 8 --max-meanDP 75 --out hard_variants_bial_noindels_q20_mindep8_maxdep75 --recode
 
 # filter the vcf that now includes depth by maf and missing data per site.
-vcftools --vcf hard_variants_bial_noindels_q20_mindep8_maxdep75.recode.vcf  --maf 0.05 --max-missing 0.95 --out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf5_miss95 --recode
+vcftools --vcf hard_variants_bial_noindels_q20_mindep8_maxdep75.recode.vcf  --maf 0.30 --max-missing 0.95 --out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95 --recode
 
 # create genotype matrix
-vcftools --vcf hard_variants_bial_noindels_q20_mindep8_maxdep75_maf5_miss95.recode.vcf --012 --out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf5_miss95
+vcftools --vcf hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.vcf --012 --out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95
