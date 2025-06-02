@@ -16,16 +16,16 @@ Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,D
 After filtering, kept 1184 out of 1184 Individuals
 Outputting VCF file...
 After filtering, kept 35507 out of a possible 216471 Sites
-Run Time = 89.00 seconds
+Run Time = 90.00 seconds
 
 VCFtools - 0.1.17
 (C) Adam Auton and Anthony Marcketta 2009
 
 Parameters as interpreted:
 	--vcf hard_variants_bial_noindels_q20_mindep8_maxdep75.recode.vcf
-	--maf 0.05
+	--maf 0.3
 	--max-missing 0.95
-	--out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf5_miss95
+	--out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95
 	--recode
 
 Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
@@ -34,16 +34,16 @@ Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,D
 Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
 After filtering, kept 1184 out of 1184 Individuals
 Outputting VCF file...
-After filtering, kept 4196 out of a possible 35507 Sites
-Run Time = 12.00 seconds
+After filtering, kept 1298 out of a possible 35507 Sites
+Run Time = 6.00 seconds
 
 VCFtools - 0.1.17
 (C) Adam Auton and Anthony Marcketta 2009
 
 Parameters as interpreted:
-	--vcf hard_variants_bial_noindels_q20_mindep8_maxdep75_maf5_miss95.recode.vcf
+	--vcf hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.vcf
 	--012
-	--out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf5_miss95
+	--out hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95
 
 Warning: Expected at least 2 parts in INFO entry: ID=SGB,Number=1,Type=Float,Description="Segregation based metric, http://samtools.github.io/bcftools/rd-SegBias.pdf">
 Warning: Expected at least 2 parts in INFO entry: ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
@@ -51,5 +51,5 @@ Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,D
 Warning: Expected at least 2 parts in INFO entry: ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
 After filtering, kept 1184 out of 1184 Individuals
 Writing 012 matrix files ... Done.
-After filtering, kept 4196 out of a possible 4196 Sites
-Run Time = 1.00 seconds
+After filtering, kept 1298 out of a possible 1298 Sites
+Run Time = 0.00 seconds

@@ -1,0 +1,9 @@
+/var/spool/slurmd/job7428940/slurm_script: line 12: cd: /project/ysctrout/hatchsaug/SaugerParentage/sims_hiphop/wrap_test1_hiphop: No such file or directory
+During startup - Warning messages:
+1: Setting LC_CTYPE failed, using "C" 
+2: Setting LC_COLLATE failed, using "C" 
+3: Setting LC_TIME failed, using "C" 
+4: Setting LC_MESSAGES failed, using "C" 
+5: Setting LC_MONETARY failed, using "C" 
+6: Setting LC_PAPER failed, using "C" 
+7: Setting LC_MEASUREMENT failed, using "C" 
