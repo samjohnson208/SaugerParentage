@@ -56,7 +56,7 @@ foreach my $loci (@nloci){
     push @slurmdirectives, "#SBATCH -e "."$trial"."/stderr_"."$loci"."_"."$samp";
     push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0 r/4.4.0";
     push @slurmdirectives, "cd /project/ysctrout/hatchsaug/SaugerParentage/sims_hiphop/"."$trial";
-    push @slurmdirectives, "Rscript sauger_sim_matrix.R "."$loci"." "."$samp".";
+    push @slurmdirectives, "Rscript sauger_sim_matrix.R "."$loci"." "."$samp";
     push @slurmdirectives, "\n";
     my $slurm = join "\n", @slurmdirectives;
     #print $slurm;
