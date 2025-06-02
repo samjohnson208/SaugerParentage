@@ -43,7 +43,6 @@ my @wild_samp_prop = ('1');
 
 foreach my $loci (@nloci){
   foreach my $samp (@wild_samp_prop){
-  	foreach my $md (@miss){
     my @slurmdirectives = "#!/bin/bash";
     push @slurmdirectives, "#SBATCH --job-name=rsim";
     push @slurmdirectives, "#SBATCH --nodes=1";
@@ -63,7 +62,7 @@ foreach my $loci (@nloci){
     runserialjob($slurm); ## launch the slurm job (see subroutine below)
 }
 }
-}
+
 
 ################################################
 ## subroutine that launches the slurm job
