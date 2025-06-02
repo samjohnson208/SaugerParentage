@@ -30,7 +30,6 @@ testsamp <- read.csv(file = "posampleids.csv", header = TRUE) # 210 samples, 114
 gmmat_po <- gmmat[rownames(gmmat) %in% testsamp$sample, , drop = FALSE]
 nrow(gmmat_po) # lost one
 unmatched_samples <- testsamp$sample[!testsamp$sample %in% rownames(gmmat)] # SAR_15_6757 wasn't sequenced. (bad dna concentration)
-
 # check genotype matrix for samples/loci to be excluded
 gmmat_po_check <- CheckGeno(gmmat_po, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
 # 95 Test F1's, 114 Parents going into this ^
