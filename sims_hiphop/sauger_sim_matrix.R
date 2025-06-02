@@ -151,4 +151,4 @@ write.csv(all_inds, "all_inds_matrix.csv", row.names = TRUE)
 # ## write out files
 # write.table(output$MaybeTrio, file=paste0("trios_", nloci, "_", wild_samp, ".txt"), row.names=F, quote=F)
 # write.table(output$MaybePar, file=paste0("pars_", nloci, "_", wild_samp, ".txt"), row.names=F, quote=F)
-# write.table(final_parents, file=paste0("true_parents_", nloci, "_", wild_samp, ".txt"), row.names=F, col.names=F, quote=F)
+write.table(all_parents_full, file=paste0("true_parents_", nloci, "_", wild_samp, ".txt"), row.names=F, col.names=F, quote=F)
