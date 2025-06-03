@@ -32,6 +32,10 @@ f2f0geno <- genotypes %>%
 # then run hothiphop on both generations individually (f1 to f0
 # and f2 to f0) all going to be false.
 
+f0f1inspect <- inspect(ind = f1f0ind, gen = f1f0geno)
+f0f1combinations <- hothiphop(ind = f1f0ind, gen = f1f0geno)
+
+
 # then we'll need to plot all of those scores and color by valid cross
 # five categories (violins) to plot are going to be (f1 to f0, valid cross = T/F,
 # and f2 to f0 (all F), f2 to f1 valid cross = T/F)
