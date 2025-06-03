@@ -49,7 +49,8 @@ f2f0geno <- genotypes %>%
 # hey look. don't try to do too much. our questions are this:
 # 1. Does hiphop work on the simulated data? (run it and valid cross)
 # 2. What does our resolution look like when we have various ptps? (shoot josh a message tomorrow morning?)
-# 3. What happens when we try to assign F0's to f
+# 3. What happens when we try to assign F2's to F0's. Is that noticeably different
+# than trying to assign F1's to F0's? Should be...
 
 # DON'T FORGET TO PUSH
 
