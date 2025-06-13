@@ -166,3 +166,23 @@ gmr_custom_10 <- GetMaybeRel_Custom(
   MaxPairs = 7*nrow(filtered_gmmat_po_check)
 )
 # same w this one.
+# even including the custom functions!!!
+
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/Sequoia/Sequoia_Inp/")
+LH_Data <- read.csv(file = "testindivs_LH.csv", header = TRUE)
+# alright, what's going on here with the missing individual?
+missingind <- testsamp$sample[!testsamp$sample %in% LH_Data$ID]
+# first thing is to check the extractions, readme, and hiphop scripts.
+# i understand 6757 wasn't sequenced, but what's up with 6436. it's on the plate map!
+# 6436 wasn't spawned. 
+
+# here's what we need to do:
+# load in LH data
+# change the F's to 1 and M's to 2
+# filter the genotype matrix so that it only includes the ids from LH_Data$ID
+# run REGULAR SEQUOIA on that with the LH_Data specified.
+# LifeHistData = LH_Data (make sure it's a df)
+
+
+
+                       
