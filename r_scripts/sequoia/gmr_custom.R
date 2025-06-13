@@ -1,6 +1,10 @@
+## sequoia_custom.R by SPJ 061225
+## PURPOSE: to load a custom version of sequoia::GetMaybeRel() to alter assignment/mismatch thresholds
+## USAGE: Rscript sequoia_custom.R
+
 GetMaybeRel_Custom <- function (GenoM = NULL, SeqList = NULL, Pedigree = NULL, LifeHistData = NULL, 
                                 AgePrior = NULL, Module = "par", Complex = "full", Herm = "no", 
-                                Err = 1e-04, ErrFlavour = "version2.0", Tassign = 0.5, Tfilter = -2, 
+                                Err = 1e-04, ErrFlavour = "version2.0", Tassign = 0.01, Tfilter = -10, 
                                 MaxPairs = 7 * nrow(GenoM), quiet = FALSE, ParSib = NULL, 
                                 MaxMismatch = NA) 
 {
@@ -60,7 +64,7 @@ GetMaybeRel_Custom <- function (GenoM = NULL, SeqList = NULL, Pedigree = NULL, L
     PARAM <- sequoia:::namedlist(dimGeno = dim(GenoM), MaxPairs, Err, 
                                  ErrFlavour, Tfilter, Tassign, nAgeClasses = nrow(AgePrior), 
                                  MaxSibshipSize = max(table(Pedigree$dam), table(Pedigree$sire), 
-                                                      90, na.rm = TRUE) + 10, Module = as.character(Module), 
+                                 90, na.rm = TRUE) + 10, Module = as.character(Module), 
                                  Complex, Herm, quiet)
     PARAM$ErrM <- sequoia:::ErrToM(Err, flavour = ErrFlavour, Return = "matrix")
   }
@@ -68,7 +72,7 @@ GetMaybeRel_Custom <- function (GenoM = NULL, SeqList = NULL, Pedigree = NULL, L
     sts <- sequoia:::SnpStats(GenoM, Plot = FALSE)
     PARAM$MaxMismatchV <- setNames(sequoia:::CalcMaxMismatch(Err = PARAM$ErrM, 
                                                              MAF = sts[, "AF"], ErrFlavour = PARAM$ErrFlavour, 
-                                                             qntl = 0.9999^(1/nrow(GenoM))), c("DUP", "OH", "ME"))
+                                                             qntl = 0.1^(1/nrow(GenoM))), c("DUP", "OH", "ME"))
   }
   if (!is.na(MaxMismatch)) {
     PARAM$MaxMismatchV["OH"] <- MaxMismatch

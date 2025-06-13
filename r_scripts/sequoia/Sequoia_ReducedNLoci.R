@@ -14,7 +14,7 @@ library(sequoia)
 library(dplyr)
 
 # going to run it locally first. then cluster if run time is too long.
-setwd("/Users/samjohnson/Desktop/")
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/genotype_matrices/vcftools--012/")
 
 # read in genotype matrix
 mat <- read.table(file = "hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.012_conv", header = FALSE, sep = "\t", 
@@ -24,6 +24,7 @@ mat <- read.table(file = "hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30
 mat<- mat[, -1]
 gmmat <- as.matrix(mat)
 ind <- read.table(file = "hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.012.indv", header = FALSE)
+
 str(ind)
 ind <- ind %>% 
   rename(sample = V1)
@@ -41,8 +42,8 @@ gmmat_po_check <- CheckGeno(gmmat_po, quiet = FALSE, Plot = TRUE, Return = "Geno
 # 95 Test F1's, 114 Parents going into this ^
 
 # run sequoia on the checked genotype matrix
-outfull <- sequoia(GenoM = gmmat_po_check, Module = 'ped', StrictGenoCheck = TRUE, CalcLLR = TRUE)
-gmr <- GetMaybeRel(GenoM = gmmat_po_check)
+outfull <- sequoia_custom(GenoM = gmmat_po_check, Module = 'ped', StrictGenoCheck = TRUE, CalcLLR = TRUE)
+gmr <- GetMaybeRel_Custom(GenoM = gmmat_po_check)
 
 # 24 PO relationships recovered. i won't yet check them against the hiphop retrieved ones
 # since 24 is not even close to what we'd need. let's first try subsetting. retain 75% of the loci
@@ -135,7 +136,7 @@ filtered_gmmat_po_check_50 <- filtered_gmmat_po_check[, samp_loci]
 gmr_custom_50 <- GetMaybeRel_Custom(
   GenoM = filtered_gmmat_po_check_50,
   Module = "par",     
-  MaxMismatch = 100,   # <- RELAX threshold here
+  MaxMismatch = 648,   # <- RELAX threshold here
   quiet = FALSE,
   Tassign = 0, 
   Tfilter = -10,
@@ -147,9 +148,17 @@ gmr_custom_50 <- GetMaybeRel_Custom(
 #let's try 10%
 samp_loci <- sample(ncol(filtered_gmmat_po_check), 129)
 filtered_gmmat_po_check_10 <- filtered_gmmat_po_check[, samp_loci]
+outfull <- sequoia_custom(GenoM = filtered_gmmat_po_check_10, 
+                          Module = 'ped',
+                          MaxMismatch = 129,
+                          Tassign = 0.01,
+                          Tfilter = -100,
+                          StrictGenoCheck = TRUE, 
+                          CalcLLR = TRUE)
+
 gmr_custom_10 <- GetMaybeRel_Custom(
   GenoM = filtered_gmmat_po_check_10,
-  Module = "par",     
+  Module = "par",
   MaxMismatch = 129,   # <- RELAX threshold here
   quiet = FALSE,
   Tassign = 0.01, 
