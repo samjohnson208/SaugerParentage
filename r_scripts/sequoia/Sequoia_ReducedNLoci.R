@@ -179,10 +179,144 @@ missingind <- testsamp$sample[!testsamp$sample %in% LH_Data$ID]
 # here's what we need to do:
 # load in LH data
 # change the F's to 1 and M's to 2
+LH_Data$Sex[LH_Data$Sex == "M"] <- 2
+LH_Data$Sex[LH_Data$Sex == "F"] <- 1
+LH_Data$Sex <- as.numeric(LH_Data$Sex)
+str(LH_Data)
+
+LH_Data <- data.frame(LH_Data, BY.min = NA, BY.max = NA)
+LH_Data$BY.min[1:95] <- 2005
+LH_Data$BY.max[1:95] <- 2005
+LH_Data$BY.min[96:nrow(LH_Data)] <- 2000
+LH_Data$BY.max[96:nrow(LH_Data)] <- 2000
+
 # filter the genotype matrix so that it only includes the ids from LH_Data$ID
+filtered_gmmat_po_check <- filtered_gmmat_po_check[rownames(filtered_gmmat_po_check) %in% LH_Data$ID, , drop = FALSE]
+dim(filtered_gmmat_po_check) # 208 indivs, 1296 loci
+
 # run REGULAR SEQUOIA on that with the LH_Data specified.
 # LifeHistData = LH_Data (make sure it's a df)
+outfull <- sequoia(GenoM = filtered_gmmat_po_check_10, 
+                   Module = 'par',
+                   LifeHistData = LH_Data,
+                   MaxMismatch = 129,
+                   Tassign = 0.01,
+                   Tfilter = -100,
+                   StrictGenoCheck = TRUE, 
+                   CalcLLR = TRUE)
+
+gmr_reg_LHinc <- GetMaybeRel(GenoM = filtered_gmmat_po_check,
+                             Module = "par",
+                             MaxMismatch = 129,   # <- RELAX threshold here
+                             LifeHistData = LH_Data,
+                             quiet = FALSE,
+                             Tassign = 0.01, 
+                             Tfilter = -100,
+                             MaxPairs = 7*nrow(filtered_gmmat_po_check))
+
+# let's try with 75% loci
+samp_loci <- sample(ncol(filtered_gmmat_po_check), 972)
+filtered_gmmat_po_check_75 <- filtered_gmmat_po_check[ ,samp_loci]
+outfull_reg_75 <- sequoia(GenoM = filtered_gmmat_po_check_75, 
+                   Module = 'ped',
+                   LifeHistData = LH_Data,
+                   MaxMismatch = 129,
+                   Tassign = 0.01,
+                   Tfilter = -100,
+                   StrictGenoCheck = TRUE, 
+                   CalcLLR = TRUE)
+
+outfull_custom_75 <- sequoia_custom(GenoM = filtered_gmmat_po_check_75, 
+                                    Module = 'ped',
+                                    LifeHistData = LH_Data,
+                                    MaxMismatch = 129,
+                                    Tassign = 0.01,
+                                    Tfilter = -100,
+                                    StrictGenoCheck = TRUE, 
+                                    CalcLLR = TRUE)
+
+gmr_reg_LHinc <- GetMaybeRel(GenoM = filtered_gmmat_po_check_75,
+                             #SeqList = outfull_75,
+                             Module = "ped",
+                             MaxMismatch = 129,   # <- RELAX threshold here
+                             LifeHistData = LH_Data,
+                             quiet = FALSE,
+                             Tassign = 0.01, 
+                             Tfilter = -100,
+                             MaxPairs = 7*nrow(filtered_gmmat_po_check))
+
+gmr_custom_LHinc <- GetMaybeRel_Custom(GenoM = filtered_gmmat_po_check_75,
+                                       #SeqList = outfull_75,
+                                       Module = "ped",
+                                       MaxMismatch = 129,   # <- RELAX threshold here
+                                       LifeHistData = LH_Data,
+                                       quiet = FALSE,
+                                       Tassign = 0.01, 
+                                       Tfilter = -100,
+                                       MaxPairs = 7*nrow(filtered_gmmat_po_check))
+
+# let's try with 40% loci
+  # 75% was a reasonable test, but let's get into a good number of loci
+  # and start messing with combinations of ped/par, including/excluding pedigree for gmr,
+  # and reg/custom functions
+samp_loci <- sample(ncol(filtered_gmmat_po_check), 518)
+filtered_gmmat_po_check_40 <- filtered_gmmat_po_check[ ,samp_loci]
+outfull_reg_40 <- sequoia(GenoM = filtered_gmmat_po_check_40, 
+                          Module = 'par',
+                          LifeHistData = LH_Data,
+                          MaxMismatch = 129,
+                          Tassign = 0.01,
+                          Tfilter = -100,
+                          StrictGenoCheck = TRUE, 
+                          CalcLLR = TRUE)
+# PED: assigned 89 dams and 87 sires to 208 + 47 individuals (real + dummy)
+# PAR: assigned 25 dams and 22 sires to 208 individuals
+
+outfull_custom_40 <- sequoia_custom(GenoM = filtered_gmmat_po_check_40, 
+                                    Module = 'par',
+                                    LifeHistData = LH_Data,
+                                    MaxMismatch = 129,
+                                    Tassign = 0.01,
+                                    Tfilter = -100,
+                                    StrictGenoCheck = TRUE, 
+                                    CalcLLR = TRUE)
+# PED: assigned 83 dams and 81 sires to 208 + 51 individuals (real + dummy)
+# PAR: assigned 20 dams and 11 sires to 208 individuals
+
+gmr_reg_LHinc <- GetMaybeRel(GenoM = filtered_gmmat_po_check_75,
+                             SeqList = outfull_reg_40,
+                             Module = "par",
+                             MaxMismatch = 129,   # <- RELAX threshold here
+                             LifeHistData = LH_Data,
+                             quiet = FALSE,
+                             Tassign = 0.01, 
+                             Tfilter = -100,
+                             MaxPairs = 7*nrow(filtered_gmmat_po_check))
+# PED/condition on outfull_reg_40: Found 9 likely parent-offspring pairs, and 335, other non-assigned pairs of possible relatives
+# PED/NOT CONDITIONING:  Found 42 likely parent-offspring pairs, and 382, other non-assigned pairs of possible relatives
+
+# PAR/condition on outfull_reg_40: Found 4 likely parent-offspring pairs, and 1, other non-assigned pairs of possible relatives
+# PAR/NOT CONDITIONING: Found 34 likely parent-offspring pairs, and 4, other non-assigned pairs of possible relatives
+
+
+gmr_custom_LHinc <- GetMaybeRel_Custom(GenoM = filtered_gmmat_po_check_75,
+                                       SeqList = outfull_75,
+                                       Module = "par",
+                                       MaxMismatch = 129,   # <- RELAX threshold here
+                                       LifeHistData = LH_Data,
+                                       quiet = FALSE,
+                                       Tassign = 0.01, 
+                                       Tfilter = -100,
+                                       MaxPairs = 7*nrow(filtered_gmmat_po_check))
+# PED/condition on outfull_reg_40: 4 likely parent-offspring pairs, and 1, other non-assigned pairs of possible relatives
+# PED/NOT CONDITIONING: Found 42 likely parent-offspring pairs, and 382 other non-assigned pairs of possible relatives
+                        # Found 1 parent-parent-offspring trios
+
+# PAR/condition on outfull_reg_40: Found 4 likely parent-offspring pairs, and 3 other non-assigned pairs of possible relatives
+# PAR/NOT CONDITIONING: Found 46 likely parent-offspring pairs, and 14 other non-assigned pairs of possible relatives
+                        # Found 1 parent-parent-offspring trios
 
 
 
-                       
+
+
