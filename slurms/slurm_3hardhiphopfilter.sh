@@ -25,7 +25,7 @@ cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem
 vcftools --vcf variants_pflav_bial_noindels_q20.recode.vcf  --min-meanDP 8 --max-meanDP 75 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75 --recode
 
 # filter the vcf that now includes depth by maf and missing data per site.
-vcftools --vcf hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75.recode.vcf  --maf 0.30 --max-missing 0.95 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf30_miss95 --recode
+vcftools --vcf hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75.recode.vcf  --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf1_miss95 --recode
 
 # create genotype matrix
-vcftools --vcf hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.vcf --012 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf30_miss95
+# vcftools --vcf hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf1_miss95.recode.vcf --012 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf1_miss95
