@@ -13,15 +13,15 @@ BiocManager::install("SNPRelate")
 library(SNPRelate)
 
 # 2. Upload vcf
-setwd("/Users/samjohnson/Desktop/")
-vcf <- read.vcfR("variants_maf1_miss9.recode.vcf", verbose = FALSE)
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/vcfs")
+vcf <- read.vcfR("hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.vcf", verbose = FALSE)
 
 # 3. From vcf to GDS file, needed for the pca
-snpgdsVCF2GDS("/Users/samjohnson/Desktop/variants_maf1_miss9.recode.vcf", 
-              "/Users/samjohnson/Desktop/variants_maf1_miss9.recode.gds") #first argument is the location of the vcf, the second is where you want to save the created GDS file
+snpgdsVCF2GDS("/Users/samjohnson/Documents/Sauger_042225/GeneticData/vcfs/hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.vcf", 
+              "/Users/samjohnson/Documents/Sauger_042225/GeneticData/vcfs/hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.gds") #first argument is the location of the vcf, the second is where you want to save the created GDS file
 
 # then upload the created GDS 
-genofile <- snpgdsOpen("/Users/samjohnson/Desktop/variants_maf1_miss9.recode.gds")
+genofile <- snpgdsOpen("/Users/samjohnson/Documents/Sauger_042225/GeneticData/vcfs/hard_variants_bial_noindels_q20_mindep8_maxdep75_maf30_miss95.recode.gds")
 
 # 4. PCA
 # you only need to indicate the uploaded GDS. The default is that it will create 32 PC's
@@ -62,16 +62,20 @@ color_map <- c("purple", "blue", "forestgreen", "darkred", "gold", "goldenrod" ,
 names(color_map) <- group_vals
 df_pca_sar$plot_col <- color_map[as.character(df_pca_sar$Group)]
 
-round(df_pca_sar$Var.Prop[1]*100, 1)
-round(df_pca_sar$Var.Prop[2]*100, 1)
+round(df_pca_sar$Var.Prop[1]*100, 1) # 1.9
+round(df_pca_sar$Var.Prop[2]*100, 1) # 1.1
+round(df_pca_sar$Var.Prop[3]*100, 1) # 0.7
+round(df_pca_sar$Var.Prop[4]*100, 1) # 0.7
 
 df_pca_sar <- df_pca_sar %>% 
   select(Sample_ID, Group, plot_col, everything())
 
-plot(PC2 ~ PC1, data = df_pca_sar, 
+df_pca_sar <- df_pca_sar[-c(556, 950, 896, 1183, 1184, 1182), ]
+
+plot(PC4 ~ PC3, data = df_pca_sar, 
      col = plot_col, pch = 19,
-     xlab = "PC1 (1.9% variance)",
-     ylab = "PC2 (0.5% variance)")
+     xlab = "PC3 (0.7% variance)",
+     ylab = "PC4 (0.7% variance)")
 
 legend("bottomright", legend = c(sort(unique(df_pca_sar$Group))), 
                       col = c("purple", "blue", "forestgreen", "darkred", "gold", "goldenrod" ,"grey", "red"),
