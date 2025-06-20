@@ -31,7 +31,7 @@ push @jobarray, "#SBATCH --ntasks-per-node=32"; # one core per node
 push @jobarray, "#SBATCH --mem=64000"; 
 push @jobarray, 'module load arcc/1.0 gcc/14.2.0 bwa/0.7.17 samtools/1.20'; 
 
-push @jobarray, "bwa mem -t 32 /project/ysctrout/reference_genomes/Perca_flavescens/yellowperch $fastq >  mem_"."$id".".sam"; 
+push @jobarray, "bwa mem -t 32 /project/ysctrout/hatchsauger/Perca_flavescens/yellowperch $fastq >  mem_pflav_t2_"."$id".".sam"; 
 
 push @jobarray, "echo \"Converting sam to bam for "."$id"."\n\"";
 
