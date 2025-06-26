@@ -9,6 +9,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 
+cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2
+
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
 vcftools --gzvcf variants_pflav_mem_t2_bial_noindels_q20.recode.vcf --site-mean-depth --out variants_pflav_mem_t2_bial_noindels_q20
