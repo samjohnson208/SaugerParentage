@@ -5,6 +5,7 @@
 ## USAGE: sbatch slurm_3hardhiphopfilter.sh
 
 ## note: also used 061525 to filter yellow perch vcfs for pca
+## note: also used 062625 to filter yellow perch mem t2 vcfs for randomforest
 
 #SBATCH --job-name=hardfilter
 #SBATCH --account=ysctrout
@@ -19,13 +20,13 @@
 
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
-cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem
+cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2
 
 # filter first output file (variants_bial_noindels_q20.recode.vcf) by min and max mean depth per site across all samples.
-vcftools --vcf variants_pflav_bial_noindels_q20.recode.vcf  --min-meanDP 8 --max-meanDP 75 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75 --recode
+vcftools --vcf variants_pflav_mem_t2_bial_noindels_q20.recode.vcf  --min-meanDP 8 --max-meanDP 75 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep8_maxdep75 --recode
 
 # filter the vcf that now includes depth by maf and missing data per site.
-vcftools --vcf hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75.recode.vcf  --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf1_miss95 --recode
+vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep8_maxdep75.recode.vcf  --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep8_maxdep75_maf1_miss95 --recode
 
 # create genotype matrix
-# vcftools --vcf hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf1_miss95.recode.vcf --012 --out hard_variants_pflav_bial_noindels_q20_mindep8_maxdep75_maf1_miss95
+vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep8_maxdep75_maf1_miss95.recode.vcf --012 --out hard_variants_pflav_bial_mem_t2_noindels_q20_mindep8_maxdep75_maf1_miss95
