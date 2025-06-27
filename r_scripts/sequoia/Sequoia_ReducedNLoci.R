@@ -5,6 +5,9 @@
           # what sequoia specifies in its documentation.
 ## USAGE: Rscript Sequoia_ReducedNLoci.R
 
+## libraries
+################################################################################
+
 # install.packages("sequoia")
 # 65
 library(sequoia)
@@ -13,6 +16,12 @@ library(sequoia)
 # 65
 library(dplyr)
 
+################################################################################
+
+
+
+## initial steps with reduce n loci
+################################################################################
 # going to run it locally first. then cluster if run time is too long.
 setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/genotype_matrices/vcftools--012/")
 
@@ -113,6 +122,11 @@ filtered_gmmat_po_check_10 <- filtered_gmmat_po_check[, samp_loci]
 outfull10 <- sequoia(GenoM = filtered_gmmat_po_check_10, Module = 'ped', StrictGenoCheck = TRUE, CalcLLR = TRUE, Tfilter = -10, Tassign = 0)
 gmr10 <- GetMaybeRel(GenoM = filtered_gmmat_po_check_10)
 # 8 trios. valid with hiphop.
+################################################################################
+
+
+## trying custom functions
+################################################################################
 
 # i have now customized the GetMaybeRel function using gmr_custom.R
 # now, you can pass in the MaxMismatch argument to relax the ME and OH filters to be the same number.
@@ -167,7 +181,12 @@ gmr_custom_10 <- GetMaybeRel_Custom(
 )
 # same w this one.
 # even including the custom functions!!!
+################################################################################
 
+
+
+## does including LH data help? 
+################################################################################
 setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/Sequoia/Sequoia_Inp/")
 LH_Data <- read.csv(file = "testindivs_LH.csv", header = TRUE)
 # alright, what's going on here with the missing individual?
@@ -315,6 +334,100 @@ gmr_custom_LHinc <- GetMaybeRel_Custom(GenoM = filtered_gmmat_po_check_75,
 # PAR/condition on outfull_reg_40: Found 4 likely parent-offspring pairs, and 3 other non-assigned pairs of possible relatives
 # PAR/NOT CONDITIONING: Found 46 likely parent-offspring pairs, and 14 other non-assigned pairs of possible relatives
                         # Found 1 parent-parent-offspring trios
+################################################################################
+
+
+
+
+## heard from Nancy Chen that sequoia has trouble with ANY error in large datasets
+## does a min mean depth filter of 15 tighten it up?
+################################################################################
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/Sequoia/Sequoia_Inp/WAE_bwamem_hardfilter")
+
+# read in genotype matrix
+mat <- read.table(file = "hard_variants_pflav_mem_t2_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.012_conv", header = FALSE, sep = "\t", 
+                  na.strings = c("NA", "-1"))
+
+# correct row names as sample id's
+mat<- mat[, -1]
+gmmat <- as.matrix(mat)
+ind <- read.table(file = "hard_variants_pflav_mem_t2_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.012.indv", header = FALSE)
+
+str(ind)
+ind <- ind %>% 
+  rename(sample = V1)
+rownames(gmmat) <- ind$sample
+
+# read in parent offspring (F0 and Test F1 sample id's)
+testsamp <- read.csv(file = "posampleids.csv", header = TRUE) # 210 samples, 114 Parents, 96 Test F1's
+
+# read in lh data
+LH_Data <- read.csv(file = "testindivs_LH.csv", header = TRUE)
+# alright, what's going on here with the missing individual?
+missingind <- testsamp$sample[!testsamp$sample %in% LH_Data$ID]
+# first thing is to check the extractions, readme, and hiphop scripts.
+# i understand 6757 wasn't sequenced, but what's up with 6436. it's on the plate map!
+# 6436 wasn't spawned. 
+
+# here's what we need to do:
+# change the F's to 1 and M's to 2
+LH_Data$Sex[LH_Data$Sex == "M"] <- 2
+LH_Data$Sex[LH_Data$Sex == "F"] <- 1
+LH_Data$Sex <- as.numeric(LH_Data$Sex)
+str(LH_Data)
+
+# add birth year info
+LH_Data <- data.frame(LH_Data, BY.min = NA, BY.max = NA)
+LH_Data$BY.min[1:95] <- 2005
+LH_Data$BY.max[1:95] <- 2005
+LH_Data$BY.min[96:nrow(LH_Data)] <- 2000
+LH_Data$BY.max[96:nrow(LH_Data)] <- 2000
+# NEED TO WRITE THIS OUT FOR FUTURE USE
+
+# filter the genotype matrix so that it only includes the ids from LH_Data$ID
+gmmat_po <- gmmat[rownames(gmmat) %in% LH_Data$ID, , drop = FALSE]
+dim(gmmat) # 208 indivs, 978 loci
+
+# check for all heterozygous sites since those likely will not be informative.
+all_ones <- apply(gmmat_po_check, 2, function(col) all(col == 1))
+filtered_gmmat_po_check <- gmmat_po_check[, !all_ones]
+# removed two sites
+
+# check genotype matrix for samples/loci to be excluded
+filtered_gmmat_po_check <- CheckGeno(filtered_gmmat_po_check, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
+# 95 Test F1's, 114 Parents and 976 SNPs going into this.
+
+# run sequoia on the checked genotype matrix
+outfull <- sequoia_custom(GenoM = filtered_gmmat_po_check, 
+                   Module = 'par',
+                   LifeHistData = LH_Data,
+                   MaxMismatch = 978,
+                   Tassign = 0.01,
+                   Tfilter = -100,
+                   StrictGenoCheck = TRUE, 
+                   CalcLLR = TRUE)
+# adding all of this stuff makes it WORSE GOD DAMMIT
+
+gmr<- GetMaybeRel_Custom(GenoM = filtered_gmmat_po_check_75,
+                             SeqList = outfull,
+                             Module = "par",
+                             MaxMismatch = 796,   
+                             LifeHistData = LH_Data,
+                             quiet = FALSE,
+                             Tassign = 0.01, 
+                             Tfilter = -100,
+                             MaxPairs = 7*nrow(filtered_gmmat_po_check))
+# alright there seems to be no rhyme or reason to how many i can add and i'm starting
+# to freak out so i'm going to call it here and wait to hear from jisca.
+
+
+
+
+
+
+
+
+
 
 
 
