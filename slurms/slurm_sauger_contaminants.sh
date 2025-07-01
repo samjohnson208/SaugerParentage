@@ -15,6 +15,7 @@
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_contam
 #SBATCH --mail-type=END
 
+module load arcc/1.0 bowtie2/2.5.4
 
 ##########################################################################################
 ## odds library
