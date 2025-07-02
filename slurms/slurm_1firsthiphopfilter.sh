@@ -22,16 +22,16 @@
 
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
-cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem_t3
+cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2/rf_2
 
 # filter raw vcf for biallelic sites
-vcftools --vcf rehead_variants_rawfiltered_pflav_mem_031325.vcf --min-alleles 2 --max-alleles 2 --out variants_pflav_mem_bial --recode 
+vcftools --vcf rehead_variants_rawfiltered_pflav_mem_t2_062525.vcf --min-alleles 2 --max-alleles 2 --out variants_pflav_mem_t2_bial --recode  
 
 # filter bial vcf for indels
-vcftools --vcf variants_pflav_mem_bial.recode.vcf --remove-indels  --out variants_pflav_mem_bial_noindels --recode
+vcftools --vcf variants_pflav_mem_t2_bial.recode.vcf --remove-indels  --out variants_pflav_mem_t2_bial_noindels --recode
 
 # now biallelic sites, no indels ----->  quality > 20
-vcftools --vcf variants_pflav_mem_bial_noindels.recode.vcf --minQ 20 --out variants_pflav_mem_bial_noindels_q20 --recode
+vcftools --vcf variants_pflav_mem_t2_bial_noindels.recode.vcf --minQ 20 --out variants_pflav_mem_t2_bial_noindels_q20 --recode
 
 
 
