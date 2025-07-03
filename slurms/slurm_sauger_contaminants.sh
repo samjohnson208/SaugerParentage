@@ -20,6 +20,14 @@ module load bowtie2/2.5.4
 module load perl/5.38.0_x86_64
 module load perl/5.38.0_zen4
 
+# perl environment for local modules (from chat... let's see if it works...)
+export PERL_LOCAL_LIB_ROOT=$HOME/perl5
+export PERL_MB_OPT="--install_base $HOME/perl5"
+export PERL_MM_OPT="INSTALL_BASE=$HOME/perl5"
+export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB
+export PATH=$HOME/perl5/bin:$PATH
+
+
 ##########################################################################################
 ## odds library
 ##########################################################################################
