@@ -65,4 +65,4 @@ importance(rf_model)[,4]
 
 importance <- data.frame(importance(rf_model)[,4])
 summary(importance)
-# unsuccessful.
+# unsuccessful. less than 10 ch7 sites anyway...
