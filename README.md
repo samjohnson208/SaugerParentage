@@ -952,7 +952,7 @@ During the week of 060225 I was also interested in running hiphop on the simulat
 However, if we could determine sex with reasonable accuracy from the genetic data, as Will did, we'd be in business. I therefore put a yellow perch aligned and filtered .vcf -> genotype matrix into R and cbind()ed it with a df that contained all of the F0's and their sex data. 
 
 ```{bash}
-/project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2/hard_variants_pflav_mem_t2_bial_noindels_q20_mindep8_maxdep75_maf1_miss95.recode.vcf
+/project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2/rf_2/hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss95.012
 ```
 
 I then used randomForest to see if these few sites (less than 200) could predict sex with any reasonable accuracy. It cannot. This was done on 07/02/25. (see SaugerParentage/r_scripts/randomForest)
