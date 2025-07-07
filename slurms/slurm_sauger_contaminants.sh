@@ -13,7 +13,6 @@
 #SBATCH --mem=10G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_contam
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_contam
-#SBATCH --constraint=zen4
 #SBATCH --mail-type=END
 
 # set -euxo pipefail
