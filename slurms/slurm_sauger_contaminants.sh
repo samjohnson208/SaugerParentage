@@ -16,7 +16,7 @@
 #SBATCH --constraint=zen4
 #SBATCH --mail-type=END
 
-set -euxo pipefail
+# set -euxo pipefail
 
 module load arcc/1.0 
 module load bowtie2/2.5.4 
