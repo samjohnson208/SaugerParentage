@@ -62,10 +62,12 @@ cd /project/ysctrout/hatchsauger/sam_sai_svit_mem/thin_filtered
 # vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 100000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin100K --recode
 # vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 200000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin200K --recode
 # vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 300000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin300K --recode
-vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 500000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin500K --recode
-vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 750000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin750K --recode
-vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 1000000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin1M --recode
-
+# vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 500000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin500K --recode
+# vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 750000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin750K --recode
+# vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 1000000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin1M --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 2000000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin2M --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 2500000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin2.5M --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 5000000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin5M --recode
 
 # create genotype matrix
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80.recode.vcf --012 --out hard_variants_pflav_bial_mem_t2_noindels_q20_mindep4_maxdep75_maf1_miss80
