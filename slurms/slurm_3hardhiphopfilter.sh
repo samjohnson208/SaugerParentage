@@ -23,7 +23,7 @@
 
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
-cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2/rf_2
+cd /project/ysctrout/hatchsauger/sam_sai_svit_mem/thin_filtered
 
 # filter first output file (variants_bial_noindels_q20.recode.vcf) by min and max mean depth per site across all samples.
 # vcftools --vcf variants_pflav_mem_t2_bial_noindels_q20.recode.vcf  --min-meanDP 4 --max-meanDP 75 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75 --recode
@@ -40,8 +40,8 @@ cd /project/ysctrout/hatchsauger/sam_sai_pflav_mem_t2/rf_2
 # vcftools --vcf hard_variants_pflav_mem_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.30 --max-missing 0.95 --out hard_variants_pflav_mem_bial_noindels_q20_mindep4_maxdep75_maf30_miss95 --recode
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.01 --max-missing 0.80 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80 --recode
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75.recode.vcf --maf 0.01 --max-missing 0.80 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80 --recode
-vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss95 --recode
-vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75.recode.vcf --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss95 --recode
+# vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss95 --recode
+# vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75.recode.vcf --maf 0.01 --max-missing 0.95 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss95 --recode
 
 
 # thin!
@@ -52,6 +52,15 @@ vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75.rec
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80.recode.vcf --thin 1000 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80_thin1K --recode
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80.recode.vcf --thin 5000 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80_thin5K --recode
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80.recode.vcf --thin 10000 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep3_maxdep75_maf1_miss80_thin10K --recode
+
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 15000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin15K --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 20000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin20K --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 25000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin25K --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 30000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin30K --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 40000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin40K --recode
+vcftools --vcf hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95.recode.vcf --thin 50000 --out hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin50K --recode
+
+
 
 # create genotype matrix
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80.recode.vcf --012 --out hard_variants_pflav_bial_mem_t2_noindels_q20_mindep4_maxdep75_maf1_miss80
