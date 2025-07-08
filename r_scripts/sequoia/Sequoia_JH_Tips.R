@@ -563,4 +563,56 @@ gmr <- GetMaybeRel(GenoM = check5M_100,
 # see how many we pull, see if increasing the number of sites, but having a really
 # small error rate changes things. lots of dials to turn.
 
+################################################################################
+#### What happens if we use only sites with NO missing data?
+################################################################################
+# do these sites exist? if so, how many?
+complete_sites <- apply(check5M, 2, function(col) all(col != -9))
+table(complete_sites) # only 64 exist...
 
+# Subset the matrix to keep only those columns
+check5M_nomiss <- check5M[, complete_sites] 
+dim(check5M_nomiss) # only 64 snps
+
+error_rate <- c(0.0001, 0.0001, 0.0001)
+gmr <- GetMaybeRel(GenoM = check5M_nomiss,
+                   Err = error_rate,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   MaxPairs = 7*nrow(check5M_nomiss))
+# error 0.0001, par, simp, no seqlist: 152 po, 44 others, 33 trios
+
+# how does that compare to 64 snps with 95% miss?
+samp_64 <- sample(ncol(check5M), 64)
+check5M_64 <- check5M[, samp_64]
+
+error_rate <- c(0.01, 0.01, 0.01)
+gmr <- GetMaybeRel(GenoM = check5M_64,
+                   Err = error_rate,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   MaxPairs = 7*nrow(check5M_64))
+# error 0.0001, par, simp, no seqlist: 155 po, 36 others, 24 trios
+# same but resampled the 64: 139 pairs, 48 others, 27 trios.
+# same but resampled the 64: 140 pairs, 39 others, 36 trios.
+# same but resampled the 64: 150 pairs, 34 others, 37 trios.
+# same but resampled the 64: 144 pairs, 41 others, 40 trios.
+# ERROR 0.0001 ^^^
+
+# ERROR 0.01
+# 64 snps w  no md, no seqlist, par, simp: 162 po, 69 others, 75 trios.
+# resample 64, same settings: 177 pairs, 70 others, 89 trios.
+# resample 64, same settings: 156 pairs, 64 others, 71 trios.
+# resample 64, same settings: 172 pairs, 62 others, 83 trios.
