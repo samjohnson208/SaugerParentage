@@ -306,7 +306,7 @@ outfull <- sequoia(GenoM = filtered_gmmat_po_check_100,
                    CalcLLR = TRUE)
 
 gmr <- GetMaybeRel(GenoM = filtered_gmmat_po_check_100,
-                   SeqList = outfull,
+                   # SeqList = outfull,
                    Module = "ped",
                    # MaxMismatch = 796,
                    Complex = "simp",
@@ -314,7 +314,7 @@ gmr <- GetMaybeRel(GenoM = filtered_gmmat_po_check_100,
                    quiet = FALSE,
                    Tassign = 1.0,
                    # Tfilter = -100
-                   MaxPairs = 7*nrow(filtered_gmmat_po_check))
+                   MaxPairs = 7*nrow(filtered_gmmat_po_check_100))
 # ped, SeqList = outfull, Complex = "full": 38 pairs, 93 others, 3 trios
 # ped, SeqList commented out, Complex = "full": 97 pairs, 248 others, 21 trios
 # par, SeqList commented out, Complex = "full": 120 pairs, 25 others, 25 trios
@@ -341,14 +341,226 @@ gmr <- GetMaybeRel_Custom(GenoM = filtered_gmmat_po_check_100,
 # no trio assignments where the parent had more than one OH mismatch, or more than 1 ME
 # mismatch.
 
+################################################################################
+#### RUNNING ON FURTHER THINNED (LD FILTERED) FILES
+################################################################################
 
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/Sequoia/Sequoia_Inp/svit_mem_thinned")
 
+# read in genotype matrix
+mat1M <- read.table(file = "hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin1M.012_conv", 
+                  header = FALSE, sep = "\t", na.strings = c("NA", "-1"))
+mat2.5M <- read.table(file = "hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin2.5M.012_conv", 
+                    header = FALSE, sep = "\t", na.strings = c("NA", "-1"))
+mat5M <- read.table(file = "hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin5M.012_conv", 
+                    header = FALSE, sep = "\t", na.strings = c("NA", "-1"))
 
+# correct row names as sample id's
+mat1M <- mat1M[, -1]
+mat2.5M <- mat2.5M[, -1]
+mat5M <- mat5M[, -1]
 
+mat1M <- as.matrix(mat1M)
+mat2.5M <- as.matrix(mat2.5M)
+mat5M <- as.matrix(mat5M)
 
+ind1M <- read.table(file = "hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin1M.012.indv", header = FALSE)
+ind2.5M <- read.table(file = "hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin2.5M.012.indv", header = FALSE)
+ind5M <- read.table(file = "hard_variants_svit_mem_bial_noindels_q20_mindep15_maxdep75_maf30_miss95_thin5M.012.indv", header = FALSE)
 
+ind1M <- ind1M %>% 
+  rename(sample = V1)
+ind2.5M <- ind2.5M %>% 
+  rename(sample = V1)
+ind5M <- ind5M %>% 
+  rename(sample = V1)
 
+rownames(mat1M) <- ind1M$sample
+rownames(mat2.5M) <- ind2.5M$sample
+rownames(mat5M) <- ind5M$sample
 
+# read in parent offspring (F0 and Test F1 sample id's)
+testsamp <- read.csv(file = "posampleids.csv", header = TRUE) # 210 samples, 114 Parents, 96 Test F1's
 
+# read in lh data
+LH_Data <- read.csv(file = "testindivs_LH.csv", header = TRUE)
+# alright, what's going on here with the missing individual?
+
+missingind <- testsamp$sample[!testsamp$sample %in% LH_Data$ID]
+# first thing is to check the extractions, readme, and hiphop scripts.
+# i understand 6757 wasn't sequenced, but what's up with 6436. it's on the plate map!
+# 6436 wasn't spawned. 
+
+# here's what we need to do:
+# change the F's to 1 and M's to 2
+LH_Data$Sex[LH_Data$Sex == "M"] <- 2
+LH_Data$Sex[LH_Data$Sex == "F"] <- 1
+LH_Data$Sex <- as.numeric(LH_Data$Sex)
+str(LH_Data)
+
+# add birth year info
+LH_Data <- data.frame(LH_Data, BY.min = NA, BY.max = NA)
+LH_Data$BY.min[1:95] <- 2005
+LH_Data$BY.max[1:95] <- 2005
+LH_Data$BY.min[96:nrow(LH_Data)] <- 2000
+LH_Data$BY.max[96:nrow(LH_Data)] <- 2000
+# NEED TO WRITE THIS OUT FOR FUTURE USE
+
+# filter the genotype matrix so that it only includes the ids from LH_Data$ID
+mat1M <- mat1M[rownames(mat1M) %in% LH_Data$ID, , drop = FALSE]
+dim(mat1M) # 208 indivs, 371 loci
+
+mat2.5M <- mat2.5M[rownames(mat2.5M) %in% LH_Data$ID, , drop = FALSE]
+dim(mat2.5M) # 208 indivs, 220 loci
+
+mat5M <- mat5M[rownames(mat5M) %in% LH_Data$ID, , drop = FALSE]
+dim(mat5M) # 208 indivs, 140 loci
+
+# check for all heterozygous sites since those likely will not be informative.
+all_ones_1M <- apply(mat1M, 2, function(col) all(col == 1))
+all_ones_2.5M <- apply(mat2.5M, 2, function(col) all(col == 1))
+all_ones_5M <- apply(mat5M, 2, function(col) all(col == 1))
+
+mat1M <- mat1M[, !all_ones_1M]
+mat2.5M <- mat2.5M[, !all_ones_2.5M]
+mat5M <- mat5M[, !all_ones_5M]
+
+dim(mat1M)
+# lost one snp
+dim(mat2.5M)
+# kept all
+dim(mat5M)
+# kept all
+
+# check genotype matrix for samples/loci to be excluded
+check1M <- CheckGeno(mat1M, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
+# 95 Test F1's, 113 Parents and 370 SNPs
+
+check2.5M <- CheckGeno(mat2.5M, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
+# 95 Test F1's, 113 Parents and 220 SNPs
+
+check5M <- CheckGeno(mat5M, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))    
+# 95 Test F1's, 113 Parents and 140 SNPs
+
+## ~~~~~~~~~~ 1Mbp, 370 SNPs ~~~~~~~~~~ ##
+
+# run sequoia on the checked genotype matrix
+outfull <- sequoia(GenoM = check1M, 
+                   Module = 'par',
+                   LifeHistData = LH_Data,
+                   # MaxMismatch = 978,
+                   Complex = "simp",
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   StrictGenoCheck = TRUE, 
+                   CalcLLR = TRUE)
+# par, complex="full": 78 dams, 71 sires to 208 indivs...
+# par, complex="simp": 81 dams 77 sires to 208 indivs...
+
+gmr <- GetMaybeRel(GenoM = check1M,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100
+                   MaxPairs = 7*nrow(check1M))
+# par, complex="simp", SeqList = outfull: 8 pairs, 0 others, 0 trios.
+# par, complex="simp", no SeqList: 120 pairs, 29 others, 15 trios.
+
+## ~~~~~~~~~~ 2.5Mbp, 220 SNPs ~~~~~~~~~~ ##
+
+outfull <- sequoia(GenoM = check2.5M, 
+                   Module = 'par',
+                   LifeHistData = LH_Data,
+                   # MaxMismatch = 978,
+                   Complex = "simp",
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   StrictGenoCheck = TRUE, 
+                   CalcLLR = TRUE)
+# par, simp: 45 dams, 42 sires. 208 indivs.
+
+gmr <- GetMaybeRel(GenoM = check2.5M,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100
+                   MaxPairs = 7*nrow(check2.5M))
+# par, seqlist = outfull, simp: 31 pairs, 0 others, 3 trios.
+# par, no seqlist, simp: 101 pairs, 54 others, 26 trios.
+
+## ~~~~~~~~~~ 5Mbp, 140 SNPs ~~~~~~~~~~ ##
+
+outfull <- sequoia(GenoM = check5M, 
+                   Module = 'par',
+                   LifeHistData = LH_Data,
+                   # MaxMismatch = 978,
+                   Complex = "simp",
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   StrictGenoCheck = TRUE, 
+                   CalcLLR = TRUE)
+# par, simp: 36 dams 40 sires 208 indivs. 
+
+gmr <- GetMaybeRel(GenoM = check5M,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   MaxPairs = 7*nrow(check5M))
+# par, SeqList = outfull, simp: 47 po, 0 others, 6 trios.
+# par, no seqlist, simp: 108 po, 47 others, 27 trios. 
+
+# take 100 of the 5M snps
+samp_100 <- sample(ncol(check5M), 100)
+check5M_100 <- check5M[, samp_100]
+
+gmr <- GetMaybeRel(GenoM = check5M_100,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   MaxPairs = 7*nrow(check5M_100))
+# 131 pairs, 36 others, 34 trios... hmmm... Wonder what's up with these...
+# Obviously a discrepancy in the quality of some of these SNPs. Wonder if it has
+# to do with the allele frequencies. You'd think that a mix of SNPs with varying
+# MAFs would be good but I suppose not if the recommended MAF filter is 30% and up.
+
+# try with error?
+error_rate <- c(0.0001, 0.0001, 0.0001)
+gmr <- GetMaybeRel(GenoM = check5M_100,
+                   Err = error_rate,
+                   # SeqList = outfull,
+                   Module = "par",
+                   # MaxMismatch = 796,
+                   Complex = "simp",
+                   LifeHistData = LH_Data,
+                   quiet = FALSE,
+                   Tassign = 1.0,
+                   # Tfilter = -100,
+                   MaxPairs = 7*nrow(check5M_100))
+# WITH ERROR 0.01 WE GET 164 PAIRS, 49 OTHERS, 80 TRIOS.
+# WITH ERROR 0.02 WE GET 170 PAIRS, 64 OTHERS, 86 TRIOS.
+# WITH ERROR 0.025 WE GET 171 PAIRS, 73 OTHERS, 91 TRIOS.
+# WITH ERROR RATE 0.0001 132 PAIRS, 36 OTHERS, 35 TRIOS.
+
+# additional things to try: filter for sites with NO missing data
+# see how many we pull, see if increasing the number of sites, but having a really
+# small error rate changes things. lots of dials to turn.
 
 
