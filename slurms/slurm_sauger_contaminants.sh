@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
 #SBATCH --time=6-23:59:59
-#SBATCH --mem=10G
+#SBATCH --mem=30G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_contam
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_contam
 #SBATCH --mail-type=END
