@@ -35,23 +35,24 @@ module load perl/5.38.0_x86_64
 /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/test.fastq > test.readstofilter.ill.txt 
 # 2> test.readstofilter.ill.stderr
 
+
 # /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ill.txt 2> 1SaugOdds.readstofilter.ill.stderr
-# /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ill.txt
+/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ill.txt
 
 echo "Illumina filtering done for odds"
 
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.phix.txt 2> 1SaugOdds.readstofilter.phix.stderr
-# /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.phix.txt
+/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.phix.txt
 
 echo "PhiX filtering done for odds"
 
 
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ecoli.txt 2> 1SaugOdds.readstofilter.ecoli.stderr
-# /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ecoli.txt
+/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ecoli.txt
 echo "ecoli filtering done for odds"
 
 
-#cat /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq | /project/ysctrout/bin/fqu_cull -r 1SaugOdds.readstofilter.ill.txt 1SaugOdds.readstofilter.phix.txt 1SaugOdds.readstofilter.ecoli.txt > 1SaugOdds.clean.fastq
+cat /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq | /project/ysctrout/bin/fqu_cull -r 1SaugOdds.readstofilter.ill.txt 1SaugOdds.readstofilter.phix.txt 1SaugOdds.readstofilter.ecoli.txt > 1SaugOdds.clean.fastq
 
 echo "Clean copy of odds done"
 
@@ -61,20 +62,21 @@ echo "Clean copy of odds done"
 ##########################################################################################
 
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.ill.txt 2> 1SaugEvens.readstofilter.ill.stderr
-# /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.ill.txt
+/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.ill.txt
 echo "Illumina filtering done for evens"
 
+
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.phix.txt 2> 1SaugEvens.readstofilter.phix.stderr
-# /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.phix.txt
+/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.phix.txt
 echo "PhiX filtering done for evens"
 
 
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.ecoli.txt 2> 1SaugEvens.readstofilter.ecoli.stderr
-# /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.ecoli.txt
+/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq > 1SaugEvens.readstofilter.ecoli.txt
 echo "ecoli filtering done for evens"
 
 
-#cat /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq | /project/ysctrout/bin/fqu_cull -r 1SaugEvens.readstofilter.ill.txt 1SaugEvens.readstofilter.phix.txt 1SaugEvens.readstofilter.ecoli.txt > 1SaugEvens.clean.fastq
+cat /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq | /project/ysctrout/bin/fqu_cull -r 1SaugEvens.readstofilter.ill.txt 1SaugEvens.readstofilter.phix.txt 1SaugEvens.readstofilter.ecoli.txt > 1SaugEvens.clean.fastq
 
 echo "Clean copy of evens done"
 
