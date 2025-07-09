@@ -13,7 +13,7 @@
 # this script is by MPR. working to edit my own. added to git 070825
 # filters split fastq's for: 
 # 1. Trimming bases lower than 20 
-# 2. Reads shorter than 60 bp 
+# 2. Reads shorter than 50 bp 
 # 3. Remove poly g tails 
 # 4. Remove any sequence adapters (checking against that db she’s got in there). 
 
