@@ -171,3 +171,80 @@ points(radmap_pfluv$lociNmin10reads ~ radmap_pfluv$assembledreads, col = pfluv_c
 legend("bottomright", legend = c("WAE_Lib1", "WAE_Lib2", "YPE_Lib1", "YPE_Lib2", "EURO_Lib1", "EURO_Lib2"),
        col = c("dodgerblue4", "deepskyblue1", "tomato4", "salmon", "darkgreen", "seagreen2"), 
        pch = 19)
+
+##### ---------- Walleye Alignment (svit_mem) ---------- #####
+##### -------------------- 07/09/25 -------------------- #####
+library(dplyr)
+
+# load in both tables
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/RadMapReport/RadMap_svit_mem")
+svit <- read.table(file = "mappingReport.txt", header = TRUE, sep = "\t", na.strings = "")
+samp <- read.table(file = "sample_sampleLib.txt", header = TRUE, sep = "\t")
+
+#svit$sample has "mem_" in front of the sample id
+svit$sample <- substr(svit$sample, 5, nchar(svit$sample))
+
+# merge by sample id, conserve all rows
+radmap_svit <- merge(samp, svit, by = "sample", all = TRUE)
+radmap_svit <- radmap_svit %>% 
+  rename(library = sampleLib.x)
+radmap_svit <- radmap_svit %>% 
+  rename(plate = library)
+
+# create a new column to JUST store the library, so that we can color by lib in downstream plots
+radmap_svit <- data.frame(radmap_svit, lib = NA)
+
+# rearrange columns so that plate and library info are at the left of the df
+radmap_svit <- radmap_svit %>% 
+    select(sample, plate, lib, mappedReads, lociN, meanDepth, lociNmin10reads, meanDepthMin10reads)
+
+# for every row in the df, if the plate is from lib 1, put 1 in the lib column, else 2 for lib 2.
+for(i in 1:nrow(radmap_svit)) {
+  if(grepl("Lib1", radmap_svit$plate[i])) {
+    radmap_svit$lib[i] <- 1
+  } else {
+    radmap_svit$lib[i] <- 2
+  }
+}
+
+# Now the full dataframe has been established as we wish it to be.
+write.table(radmap_svit, file = "final_mappingreport_svit_mem.txt")
+
+plot(radmap_svit$lociNmin10reads ~ radmap_svit$mappedReads, col = radmap_svit$lib,
+     main = "Loci with 10+ Reads ~ Assembled Reads (svit mem)", xlab = "Assembled Reads (per indiv.)", 
+     ylab = "n loci with 10x depth or higher", pch = 1)
+legend("topleft", legend = c("Library1", "Library2"),
+       col = c("black", "red"), 
+       pch = 1)
+
+# add svit aln/samse
+setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/RadMapReport/RadMap_svit_alnsamse/CompleteReportSVit")
+radmap_svit_alnsamse <- read.table(file = "mappingreport_svit_reads_lib.txt", header = TRUE, sep = "\t", na.strings = "")
+
+##### ---------- Plot Both Alignments Together  ---------- #####
+#assign colors to libraries for each sp alignment
+svit_alnsamse_col <- c("1" = "dodgerblue4", "2" = "deepskyblue1")
+svit_mem_col <- c("1" = "tomato4", "2" = "salmon")
+
+alnsamse_colors <- svit_alnsamse_col[radmap_svit_alnsamse$lib]
+mem_colors <- svit_mem_col[radmap_svit$lib]
+
+#now we'll use plot and points...
+plot(radmap_svit$lociNmin10reads ~ radmap_svit$mappedReads, col = mem_colors,
+     main = "Loci with 10x Coverage ~ Assembled Reads (n = 1184)",
+     xlab = "Assembled Reads", 
+     ylab = "n loci with 10x depth or higher", 
+     pch = 19)
+mtext("(by alignment algorithm, by library)", side = 3, line = 0.5, cex = 0.9)
+points(radmap_svit_alnsamse$lociNmin10reads ~ radmap_svit_alnsamse$assembledreads, 
+       col = alnsamse_colors, 
+       pch = 19)
+legend("topleft", 
+       legend = c("ALNSAMSE_Lib1", "ALNSAMSE_Lib2", "MEM_Lib1", "MEM_Lib2"),
+       col = c("dodgerblue4", "deepskyblue1", "tomato4", "salmon"), 
+       pch = 19)
+
+
+
+
+
