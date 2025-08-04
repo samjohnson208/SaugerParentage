@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
 #SBATCH --time=6-23:59:59
-#SBATCH --mem=100G
+#SBATCH --mem=200G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_contam_odd
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_contam_odd
 #SBATCH --mail-type=END
@@ -33,14 +33,14 @@ module load perl/5.38.0_x86_64
 ##########################################################################################
 
 # /project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ill.txt 2> 1SaugOdds.readstofilter.ill.stderr
-/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ill.txt
+#/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/illumina_oligos --pct 20 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ill.txt
 
-echo "Illumina filtering done for odds"
+#echo "Illumina filtering done for odds"
 
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.phix.txt 2> 1SaugOdds.readstofilter.phix.stderr
-/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.phix.txt
+#/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/phix174 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.phix.txt
 
-echo "PhiX filtering done for odds"
+#echo "PhiX filtering done for odds"
 
 
 #/project/ysctrout/bin/tapioca/src/tap_contam_analysis --db /project/ysctrout/contaminants/ecoli-k-12 --pct 80 /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq > 1SaugOdds.readstofilter.ecoli.txt 2> 1SaugOdds.readstofilter.ecoli.stderr
