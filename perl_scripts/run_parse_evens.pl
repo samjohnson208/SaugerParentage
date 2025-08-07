@@ -50,7 +50,7 @@ foreach my $file (@ARGV) {
   
   push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
   push @slurmdirectives, "cd /project/ysctrout/hatchsauger/1Saug/contam_cleaned";
-  push @slurmdirectives, "operl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
+  push @slurmdirectives, "perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
 
   
   ## join slurmdirectives and print
