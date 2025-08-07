@@ -22,7 +22,7 @@ if (@ARGV < 1) {
 
 my $account = "ysctrout";     ## partition
 my $time = "5-00:00:00";     ## max time allowed for analysis
-my $mem = "1G";             ## memory
+my $mem = "10G";             ## memory
 
 
 ##########################################################
@@ -49,7 +49,7 @@ foreach my $file (@ARGV) {
   ## actual work
   
   push @slurmdirectives, "module load arcc/1.0 gcc/14.2.0";
-  push @slurmdirectives, "cd /project/ysctrout/hatchsauger/1Saug/rawreads";
+  push @slurmdirectives, "cd /project/ysctrout/hatchsauger/1Saug/contam_cleaned";
   push @slurmdirectives, "operl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/parse_barcodes768.pl 1SaugEvens_Demux.csv $file LH0";
 
   
