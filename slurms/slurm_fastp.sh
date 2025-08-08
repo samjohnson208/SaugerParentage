@@ -2,12 +2,11 @@
 
 #SBATCH --job-name=FastP
 #SBATCH -A ysctrout
-#SBATCH -t 0-12:00:00
+#SBATCH -t 1-12:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=10   
-#SBATCH --mem=36G
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=sjohn208@uwyo.edu
+#SBATCH --mem=50G
+#SBATCH --mail-type=END
 #SBATCH --array=0-1183
 
 # this script is by MPR. working to edit my own. added to git 070825
@@ -20,6 +19,9 @@
 # SPJ edits 070825
 # USAGE: sbatch slurm_fastp.sh /path/to/split/fastqs /path/to/cleaned/fastqs
 # today's usage: sbatch slurm_fastp.sh /project/ysctrout/hatchsauger/1Saug/rawfastqs /project/ysctrout/hatchsauger/1Saug/fastp_cleaned
+
+#SPJ edits 080825
+# today's usage: sbatch slurm_fastp.sh /project/ysctrout/hatchsauger/1Saug/contam_cleaned/ind_files /project/ysctrout/hatchsauger/1Saug/contam_cleaned/fastp_cleaned
 
 # Load fastp module
 module load fastp/0.23.4
