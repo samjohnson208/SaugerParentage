@@ -10,8 +10,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
 #SBATCH --time=0-4:00:00
-#SBATCH --mem=1G
+#SBATCH --mem=5G
 
-cd /project/ysctrout/hatchsauger/1Saug/rawreads
+cd /project/ysctrout/hatchsauger/1Saug/contam_cleaned
 cat parsed_* > all_parsed.fastq
 
