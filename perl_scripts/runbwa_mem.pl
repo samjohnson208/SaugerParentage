@@ -17,9 +17,19 @@ unless(@ARGV){
 my $fastq;
 foreach $fastq (@ARGV){
 
-    $fastq =~ m/([A-Z]+_[A-Z]+_[A-Z]+_[0-9]+_[0-9]+)\.fastq/;
-    #print $fastq;
-    my $id = $1;
+    # $fastq =~ m/([A-Z]+_[0-9]+_[0-9]+)\.fastq/;
+    # my $id = $1;
+    
+    # THIS CHUNK ABOVE THAT I USUALLY USE DID NOT WORK ON CONTAM TO FASTP FASTQS
+    # because instead of just being SAR_YY_XXXX.fastq, they're trim_read_SAR_YY_XXXX.fastq
+    # after being output from fastp. This new chunk (27 - 35) should fix this.
+    
+    # Remove path and extension
+	(my $file = $fastq) =~ s!.*/!!;
+	$file =~ s/\.fastq$//;
+
+	# Extract SAR_Year_SampleNumber
+	my ($id) = $file =~ /(SAR_\d+_\d+)/;
     my $sam = "mem_svit_contam_fastp_"."$id"."\.sam";
     my $bam = "mem_svit_contam_fastp_"."$id"."\.bam";
     my $sorted = "mem_svit_contam_fastp_"."$id"."\.sorted\.bam";
