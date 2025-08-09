@@ -9,8 +9,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
 #SBATCH --account=ysctrout
-#SBATCH --time=7-0:00:00
-#SBATCH --mem=50G
+#SBATCH --time=3-0:00:00
+#SBATCH --mem=5G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_runbwa_mem
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_runbwa_mem
 #SBATCH --mail-type=END

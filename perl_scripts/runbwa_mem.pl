@@ -30,7 +30,7 @@ push @jobarray, "#SBATCH --job-name=bwa_mem";
 push @jobarray, "#SBATCH --time=7-00:00:00"; 
 push @jobarray, "#SBATCH --nodes=1";
 push @jobarray, "#SBATCH --ntasks-per-node=32"; # one core per node
-push @jobarray, "#SBATCH --mem=50G";
+push @jobarray, "#SBATCH --mem=64000";
 push @jobarray, "#SBATCH --mail-type=END" 
 push @jobarray, 'module load arcc/1.0 gcc/14.2.0 bwa/0.7.17 samtools/1.20'; 
 
