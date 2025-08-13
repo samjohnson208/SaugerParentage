@@ -36,6 +36,6 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs
 # now biallelic sites, no indels ----->  quality > 20
 # vcftools --vcf variants_pflav_mem_t2_bial_noindels.recode.vcf --minQ 20 --out variants_pflav_mem_t2_bial_noindels_q20 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 20 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20 --recode
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 30 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30 --recode
-
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 30 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 40 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40 --recode
 
