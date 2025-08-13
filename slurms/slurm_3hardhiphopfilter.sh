@@ -38,11 +38,11 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20.recode.vcf --min-meanDP 3 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep3_maxdep75 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20.recode.vcf --min-meanDP 4 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75 --recode
 
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 4 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep4_maxdep75 --recode
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 5 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep5_maxdep75 --recode
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 6 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep6_maxdep75 --recode
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 7 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep7_maxdep75 --recode
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 8 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75 --recode
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 4 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep4_maxdep75 --recode
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 5 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep5_maxdep75 --recode
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 6 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep6_maxdep75 --recode
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 7 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep7_maxdep75 --recode
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --min-meanDP 8 --max-meanDP 75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75 --recode
 
 
 
@@ -69,6 +69,18 @@ vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.2 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75_maf20_miss95 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.25 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75_maf25_miss95 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_mindep4_maxdep75_maf30_miss95 --recode
+
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep4_maxdep75_maf30_miss95 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.99 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep4_maxdep75_maf30_miss99 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep5_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep5_maxdep75_maf30_miss95 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep5_maxdep75.recode.vcf --maf 0.3 --max-missing 0.99 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep5_maxdep75_maf30_miss99 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep6_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep6_maxdep75_maf30_miss95 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep6_maxdep75.recode.vcf --maf 0.3 --max-missing 0.99 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep6_maxdep75_maf30_miss99 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep7_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep7_maxdep75_maf30_miss95 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep7_maxdep75.recode.vcf --maf 0.3 --max-missing 0.99 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep7_maxdep75_maf30_miss99 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95 --recode
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.99 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss99 --recode
+
 
 # thin!
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80.recode.vcf --thin 1000 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80_thin1K --recode
