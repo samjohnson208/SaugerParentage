@@ -1050,71 +1050,94 @@ length(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
 table(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
 # still with some F0's as the offspring.
 
+# --- All of this was unsuccessfull work 08/26/25, I just don't yet want to get
+#     rid of it in case it proves valuable later --- #
+# age_prior <- MakeAgePrior(LifeHistData = LH_Data, 
+#                           MinAgeParent = 1,
+#                           MaxAgeParent = 1,
+#                           Discrete = 1)
+# 
+# gmr_min8_thin1M_nomiss <- GetMaybeRel(GenoM = check_min8_thin1M_nomiss,
+#                                       Err = erm1,
+#                                       # SeqList = outfull,
+#                                       Module = "par",
+#                                       # MaxMismatch = NA,
+#                                       Complex = "simp",
+#                                       LifeHistData = LH_Data,
+#                                       AgePrior = age_prior,
+#                                       quiet = FALSE,
+#                                       Tassign = 1,
+#                                       #Tfilter = -10,
+#                                       MaxPairs = 7*nrow(check_min8_thin1M_nomiss))
+# length(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
+# table(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
+# 
+# 
+# 
+# maf <- sequoia::SnpStats(check_min8_thin1M_nomiss, Plot=FALSE)[,"AF"]
+# erm2 <- ErrToM(Err = 0.02, flavour="version2.9", Return="matrix")
+# mm <- CalcMaxMismatch(Err = 0.02, MAF = maf)  # returns DUP, OH, ME
+# mm
+# 
+# mm["OH"] <- mm["OH"] + 3
+# mm["ME"] <- mm["ME"] + 5
+# 
+# 
+# ped_min8_thin1M_nomiss <- sequoia(
+#   GenoM   = check_min8_thin1M_nomiss,
+#   Err     = erm2,
+#   Module  = "par",
+#   Complex = "simp",
+#   LifeHistData = LH_Data,
+#   UseAge  = "yes",
+#   args.AP = list(
+#     MinAgeParent = 1,
+#     MaxAgeParent = 1,
+#     Discrete = 1),
+#   quiet   = FALSE,
+#   Tassign = 0.5,
+#   Tfilter = -10,
+#   StrictGenoCheck = TRUE)
 
-age_prior <- MakeAgePrior(LifeHistData = LH_Data, 
-                          MinAgeParent = 1,
-                          MaxAgeParent = 1,
-                          Discrete = 1)
+##### Work 08/26/25 - Checking all of my existing matrices in version 3.0.3 #####
+## objective is to report the number of unique test F1's that are in the trios ##
+
+# LET'S GET CRAZY
+erm75 <- ErrToM(Err = 0.075)
+erm10 <- ErrToM(Err = 0.1)
 
 gmr_min8_thin1M_nomiss <- GetMaybeRel(GenoM = check_min8_thin1M_nomiss,
-                                      Err = erm1,
-                                      # SeqList = outfull,
+                                      Err = erm10,
+                                      #SeqList = ped_min8_thin1M_nomiss,
                                       Module = "par",
                                       # MaxMismatch = NA,
                                       Complex = "simp",
                                       LifeHistData = LH_Data,
-                                      AgePrior = age_prior,
+                                      #AgePrior = age_prior,
                                       quiet = FALSE,
                                       Tassign = 1,
-                                      #Tfilter = -10,
+                                      # Tfilter = -100,
                                       MaxPairs = 7*nrow(check_min8_thin1M_nomiss))
+# no age prior
+#erm1: 159, 31, 95, 137. 76 unique f1's in the trios.
+#erm25: 159, 34, 127, 137. 79 test f1's in the trios.
+#erm5: 155, 49, 184, 137. 83 test f1's in the trios.
+#erm75: 146, 75, 208, 137. 71 test f1's in the trios.
+#erm10: 146, 114, 208, 137. 27 test f1's in the trios.
+
+# here's how you tell which f1's, and how many
+unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id)])
+length(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id)]))
+
+# how many unique focal indivs are in the trios
 length(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
+# see who it is
 table(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
 
 
 
-maf <- sequoia::SnpStats(check_min8_thin1M_nomiss, Plot=FALSE)[,"AF"]
-erm2 <- ErrToM(Err = 0.02, flavour="version2.9", Return="matrix")
-mm <- CalcMaxMismatch(Err = 0.02, MAF = maf)  # returns DUP, OH, ME
-mm
-
-mm["OH"] <- mm["OH"] + 3
-mm["ME"] <- mm["ME"] + 5
-
-
-ped_min8_thin1M_nomiss <- sequoia(
-  GenoM   = check_min8_thin1M_nomiss,
-  Err     = erm2,
-  Module  = "par",
-  Complex = "simp",
-  LifeHistData = LH_Data,
-  UseAge  = "yes",
-  args.AP = list(
-    MinAgeParent = 1,
-    MaxAgeParent = 1,
-    Discrete = 1),
-  quiet   = FALSE,
-  Tassign = 0.5,
-  Tfilter = -10,
-  StrictGenoCheck = TRUE)
-
-gmr_min8_thin1M_nomiss <- GetMaybeRel(GenoM = check_min8_thin1M_nomiss,
-                                      Err = erm2,
-                                      SeqList = ped_min8_thin1M_nomiss,
-                                      Module = "par",
-                                      # MaxMismatch = NA,
-                                      Complex = "simp",
-                                      LifeHistData = LH_Data,
-                                      MaxMismatch = mm,
-                                      AgePrior = age_prior,
-                                      quiet = FALSE,
-                                      Tassign = 1,
-                                      Tfilter = -10,
-                                      MaxPairs = 7*nrow(check_min8_thin1M_nomiss))
-
-
 gmr_min8_thin2M_nomiss <- GetMaybeRel(GenoM = check_min8_thin2M_nomiss,
-                                      Err = erm5,
+                                      Err = erm10,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1124,12 +1147,19 @@ gmr_min8_thin2M_nomiss <- GetMaybeRel(GenoM = check_min8_thin2M_nomiss,
                                       Tassign = 1.0,
                                       # Tfilter = -100,
                                       MaxPairs = 7*nrow(check_min8_thin2M_nomiss))
-#erm1: 
-#erm25: 
-#erm5: 
+# no age prior
+#erm1: 145, 50, 90, 87. 69 test f1's in the trios.
+#erm25: 151, 61, 131. 87. 78 test f1's in the trios.
+#erm5: 161, 85, 200. 87. 82 test f1's in the trios.
+#erm75: 164, 128, 208, 87. 48 test f1's in the trios.
+#erm10: 162, 179, 208, 87. 3 test f1's in the trios.
+
+length(unique(gmr_min8_thin2M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin2M_nomiss[["MaybeTrio"]]$id)]))
+
+
 
 gmr_min8_thin3M_nomiss <- GetMaybeRel(GenoM = check_min8_thin3M_nomiss,
-                                      Err = erm5,
+                                      Err = erm10,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1139,12 +1169,19 @@ gmr_min8_thin3M_nomiss <- GetMaybeRel(GenoM = check_min8_thin3M_nomiss,
                                       Tassign = 1.0,
                                       # Tfilter = -100,
                                       MaxPairs = 7*nrow(check_min8_thin3M_nomiss))
-#erm1: 
-#erm25: 
-#erm5: 
+# no age prior
+#erm1: 145, 50, 88, 79. 67 test f1's in the trios.
+#erm25: 146, 68, 129, 79. 75 test f1's in the trios.
+#erm5: 152, 115, 180, 79. 81 test f1's in the trios.
+#erm75: 152, 175, 208, 79. 53 test f1's in the trios.
+#erm10: 157, 239, 208, 79. 9 test f1's in the trios. 
+
+length(unique(gmr_min8_thin3M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin3M_nomiss[["MaybeTrio"]]$id)]))
+
+
 
 gmr_min8_thin4M_nomiss <- GetMaybeRel(GenoM = check_min8_thin4M_nomiss,
-                                      Err = erm5,
+                                      Err = erm75,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1154,12 +1191,18 @@ gmr_min8_thin4M_nomiss <- GetMaybeRel(GenoM = check_min8_thin4M_nomiss,
                                       Tassign = 1.0,
                                       # Tfilter = -100,
                                       MaxPairs = 7*nrow(check_min8_thin4M_nomiss))
-#erm1: 
-#erm25: 
-#erm5: 
+#erm1: 178, 75, 114, 53. 62 test f1's in the trios.
+#erm25: 179, 98, 157, 53. 69 test f1's in the trios.
+#erm5: 194, 129, 208, 53. 54 test f1's in the trios.
+#erm75: 195, 183, 208, 53. 4 test f1's in the trios. 
+#erm10: 188, 228, 208, 53. 0 test f1's in the trios.
+
+length(unique(gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id)]))
+
+
 
 gmr_min8_thin5M_nomiss <- GetMaybeRel(GenoM = check_min8_thin5M_nomiss,
-                                      Err = erm5,
+                                      Err = erm10,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1169,9 +1212,199 @@ gmr_min8_thin5M_nomiss <- GetMaybeRel(GenoM = check_min8_thin5M_nomiss,
                                       Tassign = 1.0,
                                       # Tfilter = -100,
                                       MaxPairs = 7*nrow(check_min8_thin5M_nomiss))
-#erm1: 
-#erm25: 
-#erm5: 
+#erm1: 189, 68, 107, 47. 58 test f1's in the trios.
+#erm25: 185, 93, 138, 47. 65 test f1's in the trios.
+#erm5: 177, 134, 204, 47. 67 test f1's in the trios.
+#erm75: 168, 181, 208, 47. 28 test f1's in the trios.
+#erm10: 165, 233, 208, 47. 5 test f1's in the trios.
+
+length(unique(gmr_min8_thin5M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin5M_nomiss[["MaybeTrio"]]$id)]))
+
+# alright, maybe with missing data and more SNPs?!
+
+################################################################################
+
+# with missing data!
+gmr_min8_thin1M <- GetMaybeRel(GenoM = check_min8_thin1M,
+                               Err = erm5,
+                               # SeqList = outfull,
+                               Module = "par",
+                               # MaxMismatch = NA,
+                               Complex = "simp",
+                               LifeHistData = LH_Data,
+                               quiet = FALSE,
+                               Tassign = 1.0,
+                               # Tfilter = -100,
+                               MaxPairs = 7*nrow(check_min8_thin1M))
+#erm1: 141, 30, 60, 418. 57 test f1's in the trios.
+#erm25: 156, 25, 98, 418. 72 test f1's in the trios.
+#erm5: 163, 24, 160, 418. 85 test f1's in the trios. 
+
+length(unique(gmr_min8_thin1M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin1M[["MaybeTrio"]]$id)]))
+
+
+
+gmr_min8_thin2M <- GetMaybeRel(GenoM = check_min8_thin2M,
+                               Err = erm5,
+                               # SeqList = outfull,
+                               Module = "par",
+                               # MaxMismatch = NA,
+                               Complex = "simp",
+                               LifeHistData = LH_Data,
+                               quiet = FALSE,
+                               Tassign = 1.0,
+                               # Tfilter = -100,
+                               MaxPairs = 7*nrow(check_min8_thin2M))
+#erm1: 131, 43, 68, 272. 59 test f1's in the trios.
+#erm25: 148, 33, 106, 272. 73 test f1's in the trios.
+#erm5: 152, 36, 159, 272. 80 test f1's in the trios.
+
+length(unique(gmr_min8_thin2M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin2M[["MaybeTrio"]]$id)]))
+
+
+
+gmr_min8_thin3M <- GetMaybeRel(GenoM = check_min8_thin3M,
+                               Err = erm5,
+                               # SeqList = outfull,
+                               Module = "par",
+                               # MaxMismatch = NA,
+                               Complex = "simp",
+                               LifeHistData = LH_Data,
+                               quiet = FALSE,
+                               Tassign = 1.0,
+                               # Tfilter = -100,
+                               MaxPairs = 7*nrow(check_min8_thin3M))
+#erm1: 118, 46, 66, 211. 54 test f1's in the trios.
+#erm25: 134, 41, 95, 211. 66 test f1's in the trios.
+#erm5: 138, 47, 139, 211. 72 test f1's in the trios.
+
+length(unique(gmr_min8_thin3M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin3M[["MaybeTrio"]]$id)]))
+
+
+
+gmr_min8_thin4M <- GetMaybeRel(GenoM = check_min8_thin4M,
+                               Err = erm5,
+                               # SeqList = outfull,
+                               Module = "par",
+                               # MaxMismatch = NA,
+                               Complex = "simp",
+                               LifeHistData = LH_Data,
+                               quiet = FALSE,
+                               Tassign = 1.0,
+                               # Tfilter = -100,
+                               MaxPairs = 7*nrow(check_min8_thin4M))
+#erm1: 117, 54, 62, 175. 55 test f1's in the trios.
+#erm25: 129, 56, 92, 175. 72 test f1's in the trios.
+#erm5: 133, 64, 140, 175. 81 test f1's in the trios.
+
+length(unique(gmr_min8_thin4M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin4M[["MaybeTrio"]]$id)]))
+
+
+
+gmr_min8_thin5M <- GetMaybeRel(GenoM = check_min8_thin5M,
+                               Err = erm25,
+                               # SeqList = outfull,
+                               Module = "par",
+                               # MaxMismatch = NA,
+                               Complex = "simp",
+                               LifeHistData = LH_Data,
+                               quiet = FALSE,
+                               Tassign = 1.0,
+                               # Tfilter = -100,
+                               MaxPairs = 7*nrow(check_min8_thin5M))
+#erm1: 109, 50, 64, 151. 52 test f1's in the trios.
+#erm25: 124, 52, 92. 151. 65 test f1's in the trios.
+#erm5: 129, 62, 139, 151. 75 test f1's in the trios.
+
+length(unique(gmr_min8_thin5M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin5M[["MaybeTrio"]]$id)]))
+
+#####  ----- Alright, so we got to 85/95 with gmr_min8_thin1M with erm5 ----- #####
+
+trios_gmr_min8_thin1M_erm5 <- gmr_min8_thin1M[["MaybeTrio"]]
+head(trios_gmr_min8_thin1M_erm5)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin1M_erm5 <- trios_gmr_min8_thin1M_erm5 %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+              # or NA, if the pair exists in the lookup table, or if it does not.
+              by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+  # all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin1M_erm5)
+table(trios_gmr_min8_thin1M_erm5$valid_cross)
+
+
+trios_gmr_min8_thin1M_erm5_checked <- trios_gmr_min8_thin1M_erm5 %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin1M_erm5_checked <- trios_gmr_min8_thin1M_erm5_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin1M_erm5_checked)
+table(trios_gmr_min8_thin1M_erm5_checked$valid_cross) # 76 true, 9 false. 89.41% 
+
+#####  ----- And we got to 81/95 with gmr_min8_thin4M with erm5 ----- #####
+
+trios_gmr_min8_thin4M_erm5 <- gmr_min8_thin4M[["MaybeTrio"]]
+head(trios_gmr_min8_thin4M_erm5)
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin4M_erm5 <- trios_gmr_min8_thin4M_erm5 %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair                                                                           
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin4M_erm5)
+table(trios_gmr_min8_thin4M_erm5$valid_cross)
+
+
+trios_gmr_min8_thin4M_erm5_checked <- trios_gmr_min8_thin4M_erm5 %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin4M_erm5_checked <- trios_gmr_min8_thin4M_erm5_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin4M_erm5_checked)
+table(trios_gmr_min8_thin4M_erm5_checked$valid_cross) # 73 true, 9 false. 89.02% 
+# 175 SNPs, up to 12 ME mismatches. That's 6.8%. What if we crank the error?
+
+# go check the no missing data. error rates over 5% are a no go (as if that wasn't)
+# already obvious from the documentation.
+
+# Seems like the success rate is relatively similar to hiphop, which is good.
+# Somewhere in the ballpack of 90%, it would just be nice to know that I'm picking
+# up more crosses than what I'm getting right now. Figure that adding SNPs might
+# be a good thing, as well as more rigorous filtering to LD and the genotypes themselves.
+
 
 
 
