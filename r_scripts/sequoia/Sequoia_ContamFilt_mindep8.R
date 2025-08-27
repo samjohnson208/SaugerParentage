@@ -853,7 +853,7 @@ gmr_min8_thin3M_nomiss <- GetMaybeRel(GenoM = check_min8_thin3M_nomiss,
                                       Tassign = 1.0,
                                       # Tfilter = -100,
                                       MaxPairs = 7*nrow(check_min8_thin3M_nomiss))
-s#complex = "simp"
+#complex = "simp"
 #erm1: 145 pairs, 50 others, 70 trios. 79 SNPs.
 #erm25: 146 pairs, 68 others,  81 trios. 79 SNPs.
 #erm5: 152 pairs, 115 others, 100 trios. 79 SNPs.
@@ -943,15 +943,14 @@ length(unique(gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id))
 table(unique(gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id))
 # alright, up to 84 unique individuals (offspring) at the center of those trios.
 
-?MakeAgePrior
 # i've noticed there that in MaybePar, some of the FS relationships are between
 # test F1's and F0's. impossible. does that get weeded out when we add a min and
 # max birth year to the LH_Data?
 LH_Data <- data.frame(LH_Data, BY.min = NA, BY.max = NA)
 LH_Data[1:95, 4:5] <- 2005
 LH_Data[96:208, 4:5] <- 2000
-LH_Data <- LH_Data %>% 
-    select(!BirthYear)
+#LH_Data <- LH_Data %>% 
+    #select(!BirthYear)
 
 gmr_min8_thin4M_nomiss <- GetMaybeRel(GenoM = check_min8_thin4M_nomiss,
                                       Err = erm5,
@@ -1107,7 +1106,7 @@ erm75 <- ErrToM(Err = 0.075)
 erm10 <- ErrToM(Err = 0.1)
 
 gmr_min8_thin1M_nomiss <- GetMaybeRel(GenoM = check_min8_thin1M_nomiss,
-                                      Err = erm10,
+                                      Err = erm1,
                                       #SeqList = ped_min8_thin1M_nomiss,
                                       Module = "par",
                                       # MaxMismatch = NA,
