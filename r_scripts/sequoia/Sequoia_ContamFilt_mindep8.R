@@ -1404,10 +1404,62 @@ table(trios_gmr_min8_thin4M_erm5_checked$valid_cross) # 73 true, 9 false. 89.02%
 # up more crosses than what I'm getting right now. Figure that adding SNPs might
 # be a good thing, as well as more rigorous filtering to LD and the genotypes themselves.
 
+##### ----- 08/27/25 Work: r^2 coefficients (LD) for within-scaffold pairs ----- #####
+
+rsq_500kb <- read.table(file = "nothin_window500K.geno.ld", header = TRUE)
+rsq_100kb <- read.table(file = "nothin_window100K.geno.ld", header = TRUE)
+
+rsq_500kb$dist <- abs(rsq_500kb$POS2 - rsq_500kb$POS1)
+rsq_100kb$dist <- abs(rsq_100kb$POS2 - rsq_100kb$POS1)
+
+rsq_500kb$CHR <- as.factor(rsq_500kb$CHR)
+rsq_100kb$CHR <- as.factor(rsq_100kb$CHR)
+
+rsq_500kb$CHR_num <- as.numeric(sub("scaffold_","", rsq_500kb$CHR))
+rsq_100kb$CHR_num <- as.numeric(sub("scaffold_","", rsq_100kb$CHR))
+
+# Plot 500Kb
+#------------------------------------------------------------------------------#
+scaf_levels_500 <- sort(unique(rsq_500kb$CHR_num))
+n_scaf_500 <- length(scaf_levels_500)
+mycols_500 <- rainbow(n_scaf_500)
+rsq_500kb$col <- mycols_500[match(rsq_500kb$CHR_num, scaf_levels_500)]
+
+par(mar = c(5, 4, 4, 8)) 
+plot(R.2 ~ dist, data = rsq_500kb, col = col, pch = 19, 
+     main = "LD by distance (within-scaffold snps, 500kb window)")
+
+legend("topright", 
+       inset = c(-0.15, 0),
+       legend = paste0("scaffold_", scaf_levels),
+       col = mycols,
+       pch = 19,
+       cex = 0.7,
+       xpd = TRUE)
+#------------------------------------------------------------------------------#
 
 
 
 
+# Plot 100Kb
+#------------------------------------------------------------------------------#
+scaf_levels_100 <- sort(unique(rsq_100kb$CHR_num))
+n_scaf_100 <- length(scaf_levels_100)
+mycols_100 <- rainbow(n_scaf_100)
+rsq_100kb$col <- mycols_100[match(rsq_100kb$CHR_num, scaf_levels_100)]
+
+par(mar = c(5, 4, 4, 8)) 
+plot(R.2 ~ dist, data = rsq_100kb, col = col, pch = 19, 
+     main = "LD by distance (within-scaffold snps, 100kb window)")
+
+legend("topright", 
+       inset = c(-0.15, 0),
+       legend = paste0("scaffold_", scaf_levels),
+       col = mycols,
+       pch = 19,
+       cex = 0.7,
+       xpd = TRUE)
+#------------------------------------------------------------------------------#
 
 
 
