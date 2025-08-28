@@ -21,10 +21,17 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8
 
 vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95.recode.vcf --geno-r2  --ld-window-bp 100000 --out nothin_window100K
 vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95.recode.vcf --geno-r2  --ld-window-bp 500000 --out nothin_window500K
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin1M.recode.vcf --geno-r2 --ld-window-bp 1000000 --out thin1M_window1M
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin2M.recode.vcf --geno-r2 --ld-window-bp 2000000 --out thin2M_window2M
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin3M.recode.vcf --geno-r2 --ld-window-bp 3000000 --out thin3M_window3M
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin4M.recode.vcf --geno-r2 --ld-window-bp 4000000 --out thin4M_window4M
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin5M.recode.vcf --geno-r2 --ld-window-bp 5000000 --out thin5M_window5M
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin1M.recode.vcf --geno-r2 --out thin1M_window1M
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin2M.recode.vcf --geno-r2 --out thin2M_window2M
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin3M.recode.vcf --geno-r2 --out thin3M_window3M
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin4M.recode.vcf --geno-r2 --out thin4M_window4M
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin5M.recode.vcf --geno-r2 --out thin5M_window5M
+
+# without any previous thinning, you can use the window size to isolate pairwise comparisons that exist on a single chromosome.
+# i tried that with the previously thinned ones, and the file was empty. maybe what i need to do is just do ALL snps in those,
+# since they're already thinned by that threshold. only problem is now we'll have less of an idea of the positions. i'm going
+# to not worry about that just yet, and just focus on the output from those first two for now. 
+
+
 
 
