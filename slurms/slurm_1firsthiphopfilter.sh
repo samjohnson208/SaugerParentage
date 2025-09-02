@@ -8,6 +8,7 @@
 ## note: also used 062625 to filter yellow perch mem t2 vcfs for randomforest
 ## note: also used 070125 to filter walleye from the rehead_variants_rawfiltered_svit_mem_031325.vcf
 ## note: also used 070125 to filter yellow perch from the rehead_variants_rawfiltered_pflav_mem_031325.vcf
+## note: also used 090225 to implement --minGQ and --geno-r2 into existing datasets
 
 #SBATCH --job-name=firstfilter
 #SBATCH --account=ysctrout
@@ -37,5 +38,14 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs
 # vcftools --vcf variants_pflav_mem_t2_bial_noindels.recode.vcf --minQ 20 --out variants_pflav_mem_t2_bial_noindels_q20 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 20 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 30 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30 --recode
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 40 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40 --recode
+#vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 40 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40 --recode
+
+# read 09/02025 that --recode should come before --out
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20.recode.vcf --minGQ 20 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30.recode.vcf --minGQ 30 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40.recode.vcf --minGQ 40 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40
+
+
+
+
 

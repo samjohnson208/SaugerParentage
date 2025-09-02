@@ -1418,6 +1418,13 @@ rsq_100kb$CHR <- as.factor(rsq_100kb$CHR)
 rsq_500kb$CHR_num <- as.numeric(sub("scaffold_","", rsq_500kb$CHR))
 rsq_100kb$CHR_num <- as.numeric(sub("scaffold_","", rsq_100kb$CHR))
 
+cor.test(rsq_500kb$dist, rsq_500kb$R.2, method = "pearson")
+cor.test(rsq_500kb$dist, rsq_500kb$R.2, method = "spearman")
+
+cor.test(rsq_100kb$dist, rsq_100kb$R.2, method = "pearson")
+cor.test(rsq_100kb$dist, rsq_100kb$R.2, method = "spearman")
+
+
 # Plot 500Kb
 #------------------------------------------------------------------------------#
 scaf_levels_500 <- sort(unique(rsq_500kb$CHR_num))
