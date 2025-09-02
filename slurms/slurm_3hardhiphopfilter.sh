@@ -17,7 +17,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem=50G
 #SBATCH -o /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stdout_pcahardfilter
 #SBATCH -e /project/ysctrout/hatchsauger/SaugerParentage/slurms/std/stderr_pcahardfilter
 #SBATCH --mail-type=END
