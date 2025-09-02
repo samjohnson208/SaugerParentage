@@ -1,4 +1,4 @@
-## Sequoia_ContamFilt_mindep8.R by SPJ 081125
+## Sequoia_ContamFilt_mindep8.R by SPJ 081325
 ## PURPOSE: to implement suggestions from Jisca into a new dataset that has been
 # cleaned using illumina, phix, and ecoli databases, and has been cleaned using
 # FASTP (remove bases with q<20, reads shorter than 50bp, poly g tails, and any 
@@ -22,16 +22,18 @@
 # these vcf -> .012 came from me wanting to be more confident in my genotype calls
 # which is why q went up from 20 to 40, and mindep went up to 8.
 
-# the first ~581 lines are me prepping the matrices and running them on sequoia's 
+# before 08/22/25 is me prepping the matrices and running them on sequoia's 
 # latest version on CRAN at the time of 08/2025 (version 2.11.2)
 
-# lines 582 onward (starting on 08/22/25) are where I start experimenting with 
+# starting on 08/22/25 is where I start experimenting with 
 # older versions (2.8.3) to see if that will help increase the number of assignments
 # that I'm able to make.
 
 # note: i had to restart R studio, prior to that point, so I first had to rebuild
 # the matrices in sequoia 2.8.3 but that'll only affect sequoia functions such as
 # CheckGeno() and GetMaybeRel().
+
+# then on 08/25/25 i started working with the newest version (3.0.3)
 
 ## libraries
 ################################################################################
@@ -49,7 +51,7 @@ library(dplyr)
 setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/Sequoia/Sequoia_Inp/contam_fastp_svit_mem/firstfilt_hardfilt_thinned/mindep8_maf30/geno_mat")
 
 ################################################################################
-#### RUNNING ON FURTHER THINNED (LD FILTERED) FILES
+#### RUNNING ON FURTHER THINNED (LD FILTERED) FILES ####
 ################################################################################
 
 mat_min8_thin1M <- read.table(file = "rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin1M.012_conv",
@@ -1396,8 +1398,8 @@ dim(trios_gmr_min8_thin4M_erm5_checked)
 table(trios_gmr_min8_thin4M_erm5_checked$valid_cross) # 73 true, 9 false. 89.02% 
 # 175 SNPs, up to 12 ME mismatches. That's 6.8%. What if we crank the error?
 
-# go check the no missing data. error rates over 5% are a no go (as if that wasn't)
-# already obvious from the documentation.
+# go check the no missing data. error rates over 5% are a no go (as if that wasn't
+# already obvious from the documentation)
 
 # Seems like the success rate is relatively similar to hiphop, which is good.
 # Somewhere in the ballpack of 90%, it would just be nice to know that I'm picking
