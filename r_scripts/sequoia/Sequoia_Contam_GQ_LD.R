@@ -211,4 +211,56 @@ length(unique(trios_gmr_ld_pruned_erm5_checked$id[grepl("^SAR_15_67", trios_gmr_
 # alright, well at least it's good to know that this LD and GQ filtering didn't 
 # really improve anything. now we can focus efforts on finishing the table.
 
+# BUT the only big change here is that you're dealing with 5% MORE missing data.
+
+dim(check_ld_pruned_mat)
+miss_prop <- colMeans(check_ld_pruned_mat == -9)
+check_ld_pruned_mat_miss975 <- check_ld_pruned_mat[, miss_prop < 0.025]
+check_ld_pruned_mat_miss95 <- check_ld_pruned_mat[, miss_prop < 0.05]
+check_ld_pruned_mat_miss925 <- check_ld_pruned_mat[, miss_prop < 0.075]
+
+dim(check_ld_pruned_mat_miss925) # 167 snps
+dim(check_ld_pruned_mat_miss95) # 57 snps
+dim(check_ld_pruned_mat_miss975) # 16 snps
+
+# does that extra 2.5% missing data help? this is now 92.5% samples must be genotyped
+
+erm1 <- ErrToM(Err = 0.01)
+erm25 <- ErrToM(Err = 0.025)
+erm5 <- ErrToM(Err = 0.05)
+
+gmr_ld_pruned_mat_erm5_925 <- GetMaybeRel(GenoM = check_ld_pruned_mat_miss925,
+                                      Err = erm5,
+                                      # SeqList = outfull,
+                                      Module = "par",
+                                      # MaxMismatch = NA,
+                                      Complex = "simp",
+                                      LifeHistData = LH_Data,
+                                      quiet = FALSE,
+                                      Tassign = 1.0,
+                                      # Tfilter = -100,
+                                      MaxPairs = 7*nrow(check_ld_pruned_mat_miss925))
+
+# erm1: 113, 86, 106 trios. 167 snps. 78 unique test f1's.
+# erm25: 109, 107, 150 trios. 167 snps. 81 unique test f1's.
+# erm5: 97, 195, 192 trios. 167 snps. 83 unique test f1's.
+
+length(unique(gmr_ld_pruned_mat_erm5_925[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_ld_pruned_mat_erm5_925[["MaybeTrio"]]$id)]))
+
+# negligible differences in the assignment rate. not going to check accuracy right now.
+# i'm not even sure how this works. how is it that i keep all of these sites when i use
+# vcftools to filter to miss 90, then i can filter to miss 95 in here and keep 57,
+# but when i filter for miss 95 in vcftools i only kept 19? i don't get it.
+
+# yknow why? i know why. it's because i'm filtering now for miss 95 in only these
+# 207 individuals. that's the deal. so maybe it's worth it to variant call on only those?
+
+# let's ask them.
+
+
+
+
+
+
+
 
