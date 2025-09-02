@@ -89,9 +89,9 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.99 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss99 --recode
 
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss95
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30_mindep4_maxdep75_maf30_miss95
-vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.95 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40_mindep4_maxdep75_maf30_miss95
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.9 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.9 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30_mindep4_maxdep75_maf30_miss90
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40_mindep4_maxdep75.recode.vcf --maf 0.3 --max-missing 0.9 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40_mindep4_maxdep75_maf30_miss90
 
 
 
