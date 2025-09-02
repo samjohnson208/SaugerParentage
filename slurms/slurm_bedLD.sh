@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## slurm_bedLD by SPJ 090225
-## PURPOSE: run LD based site pruning using PLINK
+## PURPOSE: run LD-based site pruning using PLINK, then retain original VCF info
 ## USAGE: sbatch slurm_bedLD.sh
 
 #SBATCH --job-name=bedLD
@@ -19,14 +19,30 @@ module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
 cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/sitequal/plink_LD
 
-# step 1: convert vcf to plink format
+# step 1: convert vcf to bed, set SNP IDs to CHR:POS
+/project/ysctrout/mrodri23/programs/plink \
+  --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.recode.vcf \
+  --make-bed \
+  --out bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90 \
+  --double-id \
+  --allow-extra-chr \
+  --set-missing-var-ids @:#
 
-/project/ysctrout/mrodri23/programs/plink --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.recode.vcf --make-bed --out bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90 --double-id --allow-extra-chr
+# step 2: ld-based pruning on the bed file
+/project/ysctrout/mrodri23/programs/plink \
+  --bfile bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90 \
+  --indep-pairwise 5 2 0.2 \
+  --allow-extra-chr \
+  --out pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
 
-# step 2: LD-based pruning
-/project/ysctrout/mrodri23/programs/plink --bfile bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90 --indep-pairwise 5 2 0.2 --allow-extra-chr --out pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
+# step 3: revert pruned file back to vcf, retain all original vcf info, retain only sites that were not pruned from the bed file
+vcftools \
+  --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.recode.vcf \
+  --positions pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.prune.in \
+  --recode \
+  --recode-INFO-all \
+  --out pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
 
-# step 3: revert pruned file back to vcf
 
 
 
