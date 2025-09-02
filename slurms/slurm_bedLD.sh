@@ -17,6 +17,8 @@
 
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
+cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/sitequal/plink_LD
+
 # step 1: convert vcf to plink format
 /project/ysctrout/mrodri23/programs/plink --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.recode.vcf --make-bed --out bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
 
