@@ -19,7 +19,7 @@ module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
 cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/sitequal/plink_LD
 
-# step 1: convert vcf to bed, set SNP IDs to CHR:POS
+# step 1: convert VCF to PLINK format, set SNP IDs to CHR:POS
 /project/ysctrout/mrodri23/programs/plink \
   --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.recode.vcf \
   --make-bed \
@@ -28,22 +28,25 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/sitequal/pli
   --allow-extra-chr \
   --set-missing-var-ids @:#
 
-# step 2: ld-based pruning on the bed file
+# step 2: LD-based pruning
 /project/ysctrout/mrodri23/programs/plink \
   --bfile bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90 \
   --indep-pairwise 5 2 0.2 \
   --allow-extra-chr \
   --out pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
 
-# step 3: revert pruned file back to vcf, retain all original vcf info, retain only sites that were not pruned from the bed file
+# step 3a: create positions file (CHR and POS) from pruned variants
+awk -F':' '{print $1"\t"$2}' \
+  pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.prune.in \
+  > pruned_positions.txt
+
+# step 3b: filter original VCF using positions, retain all INFO and genotypes
 vcftools \
   --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.recode.vcf \
-  --positions pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90.prune.in \
+  --positions pruned_positions.txt \
   --recode \
   --recode-INFO-all \
   --out pruned_bed_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75_maf30_miss90
-
-
 
 
 
