@@ -1108,7 +1108,7 @@ erm75 <- ErrToM(Err = 0.075)
 erm10 <- ErrToM(Err = 0.1)
 
 gmr_min8_thin1M_nomiss <- GetMaybeRel(GenoM = check_min8_thin1M_nomiss,
-                                      Err = erm1,
+                                      Err = erm5,
                                       #SeqList = ped_min8_thin1M_nomiss,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1135,10 +1135,62 @@ length(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
 # see who it is
 table(unique(gmr_min8_thin1M_nomiss[["MaybeTrio"]]$id))
 
+trios_gmr_min8_thin1M_nomiss <- gmr_min8_thin1M_nomiss[["MaybeTrio"]]
+head(trios_gmr_min8_thin1M_nomiss)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin1M_nomiss <- trios_gmr_min8_thin1M_nomiss %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin1M_nomiss)
+dim(trios_gmr_min8_thin1M_nomiss)
+table(trios_gmr_min8_thin1M_nomiss$valid_cross)
+
+
+trios_gmr_min8_thin1M_nomiss_checked <- trios_gmr_min8_thin1M_nomiss %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin1M_nomiss_checked <- trios_gmr_min8_thin1M_nomiss_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin1M_nomiss_checked)
+table(trios_gmr_min8_thin1M_nomiss_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin1M_nomiss_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin1M_nomiss_checked$id)]))
+
+
+
+
+
+
+
+
+
+
+
 
 
 gmr_min8_thin2M_nomiss <- GetMaybeRel(GenoM = check_min8_thin2M_nomiss,
-                                      Err = erm10,
+                                      Err = erm5,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1157,10 +1209,78 @@ gmr_min8_thin2M_nomiss <- GetMaybeRel(GenoM = check_min8_thin2M_nomiss,
 
 length(unique(gmr_min8_thin2M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin2M_nomiss[["MaybeTrio"]]$id)]))
 
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin2M_nomiss[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin2M_nomiss[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin2M_nomiss <- gmr_min8_thin2M_nomiss[["MaybeTrio"]]
+head(trios_gmr_min8_thin2M_nomiss)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin2M_nomiss <- trios_gmr_min8_thin2M_nomiss %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin2M_nomiss)
+dim(trios_gmr_min8_thin2M_nomiss)
+table(trios_gmr_min8_thin2M_nomiss$valid_cross)
+
+
+trios_gmr_min8_thin2M_nomiss_checked <- trios_gmr_min8_thin2M_nomiss %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin2M_nomiss_checked <- trios_gmr_min8_thin2M_nomiss_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin2M_nomiss_checked)
+table(trios_gmr_min8_thin2M_nomiss_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin2M_nomiss_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin2M_nomiss_checked$id)]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 gmr_min8_thin3M_nomiss <- GetMaybeRel(GenoM = check_min8_thin3M_nomiss,
-                                      Err = erm10,
+                                      Err = erm5,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1180,9 +1300,64 @@ gmr_min8_thin3M_nomiss <- GetMaybeRel(GenoM = check_min8_thin3M_nomiss,
 length(unique(gmr_min8_thin3M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin3M_nomiss[["MaybeTrio"]]$id)]))
 
 
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin3M_nomiss[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin3M_nomiss[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin3M_nomiss <- gmr_min8_thin3M_nomiss[["MaybeTrio"]]
+head(trios_gmr_min8_thin3M_nomiss)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin3M_nomiss <- trios_gmr_min8_thin3M_nomiss %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin3M_nomiss)
+dim(trios_gmr_min8_thin3M_nomiss)
+table(trios_gmr_min8_thin3M_nomiss$valid_cross)
+
+
+trios_gmr_min8_thin3M_nomiss_checked <- trios_gmr_min8_thin3M_nomiss %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin3M_nomiss_checked <- trios_gmr_min8_thin3M_nomiss_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin3M_nomiss_checked)
+table(trios_gmr_min8_thin3M_nomiss_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin3M_nomiss_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin3M_nomiss_checked$id)]))
+
+
+
+
+
+
+
+
+
 
 gmr_min8_thin4M_nomiss <- GetMaybeRel(GenoM = check_min8_thin4M_nomiss,
-                                      Err = erm75,
+                                      Err = erm5,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1200,10 +1375,67 @@ gmr_min8_thin4M_nomiss <- GetMaybeRel(GenoM = check_min8_thin4M_nomiss,
 
 length(unique(gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id)]))
 
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin4M_nomiss[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin4M_nomiss <- gmr_min8_thin4M_nomiss[["MaybeTrio"]]
+head(trios_gmr_min8_thin4M_nomiss)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin4M_nomiss <- trios_gmr_min8_thin4M_nomiss %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin4M_nomiss)
+dim(trios_gmr_min8_thin4M_nomiss)
+table(trios_gmr_min8_thin4M_nomiss$valid_cross)
+
+
+trios_gmr_min8_thin4M_nomiss_checked <- trios_gmr_min8_thin4M_nomiss %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin4M_nomiss_checked <- trios_gmr_min8_thin4M_nomiss_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin4M_nomiss_checked)
+table(trios_gmr_min8_thin4M_nomiss_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin4M_nomiss_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin4M_nomiss_checked$id)]))
+
+
+
+
+
+
+
+
+
+
+
 
 
 gmr_min8_thin5M_nomiss <- GetMaybeRel(GenoM = check_min8_thin5M_nomiss,
-                                      Err = erm10,
+                                      Err = erm5,
                                       # SeqList = outfull,
                                       Module = "par",
                                       # MaxMismatch = NA,
@@ -1221,7 +1453,66 @@ gmr_min8_thin5M_nomiss <- GetMaybeRel(GenoM = check_min8_thin5M_nomiss,
 
 length(unique(gmr_min8_thin5M_nomiss[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin5M_nomiss[["MaybeTrio"]]$id)]))
 
-# alright, maybe with missing data and more SNPs?!
+
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin5M_nomiss[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin5M_nomiss[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin5M_nomiss <- gmr_min8_thin5M_nomiss[["MaybeTrio"]]
+head(trios_gmr_min8_thin5M_nomiss)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin5M_nomiss <- trios_gmr_min8_thin5M_nomiss %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin5M_nomiss)
+dim(trios_gmr_min8_thin5M_nomiss)
+table(trios_gmr_min8_thin5M_nomiss$valid_cross)
+
+
+trios_gmr_min8_thin5M_nomiss_checked <- trios_gmr_min8_thin5M_nomiss %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin5M_nomiss_checked <- trios_gmr_min8_thin5M_nomiss_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin5M_nomiss_checked)
+table(trios_gmr_min8_thin5M_nomiss_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin5M_nomiss_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin5M_nomiss_checked$id)]))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ################################################################################
 
@@ -1243,6 +1534,56 @@ gmr_min8_thin1M <- GetMaybeRel(GenoM = check_min8_thin1M,
 
 length(unique(gmr_min8_thin1M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin1M[["MaybeTrio"]]$id)]))
 
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin1M[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin1M[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin1M <- gmr_min8_thin1M[["MaybeTrio"]]
+head(trios_gmr_min8_thin1M)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin1M <- trios_gmr_min8_thin1M %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin1M)
+dim(trios_gmr_min8_thin1M)
+table(trios_gmr_min8_thin1M$valid_cross)
+
+
+trios_gmr_min8_thin1M_checked <- trios_gmr_min8_thin1M %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin1M_checked <- trios_gmr_min8_thin1M_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin1M_checked)
+table(trios_gmr_min8_thin1M_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin1M_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin1M_checked$id)]))
+
+
+
+
 
 
 gmr_min8_thin2M <- GetMaybeRel(GenoM = check_min8_thin2M,
@@ -1261,6 +1602,56 @@ gmr_min8_thin2M <- GetMaybeRel(GenoM = check_min8_thin2M,
 #erm5: 152, 36, 159, 272. 80 test f1's in the trios.
 
 length(unique(gmr_min8_thin2M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin2M[["MaybeTrio"]]$id)]))
+
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin2M[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin2M[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin2M <- gmr_min8_thin2M[["MaybeTrio"]]
+head(trios_gmr_min8_thin2M)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin2M <- trios_gmr_min8_thin2M %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin2M)
+dim(trios_gmr_min8_thin2M)
+table(trios_gmr_min8_thin2M$valid_cross)
+
+
+trios_gmr_min8_thin2M_checked <- trios_gmr_min8_thin2M %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin2M_checked <- trios_gmr_min8_thin2M_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin2M_checked)
+table(trios_gmr_min8_thin2M_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin2M_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin2M_checked$id)]))
+
+
+
 
 
 
@@ -1281,6 +1672,59 @@ gmr_min8_thin3M <- GetMaybeRel(GenoM = check_min8_thin3M,
 
 length(unique(gmr_min8_thin3M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin3M[["MaybeTrio"]]$id)]))
 
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin3M[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin3M[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin3M <- gmr_min8_thin3M[["MaybeTrio"]]
+head(trios_gmr_min8_thin3M)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin3M <- trios_gmr_min8_thin3M %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin3M)
+dim(trios_gmr_min8_thin3M)
+table(trios_gmr_min8_thin3M$valid_cross)
+
+
+trios_gmr_min8_thin3M_checked <- trios_gmr_min8_thin3M %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin3M_checked <- trios_gmr_min8_thin3M_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin3M_checked)
+table(trios_gmr_min8_thin3M_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin3M_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin3M_checked$id)]))
+
+
+
+
+
+
+
 
 
 gmr_min8_thin4M <- GetMaybeRel(GenoM = check_min8_thin4M,
@@ -1300,10 +1744,68 @@ gmr_min8_thin4M <- GetMaybeRel(GenoM = check_min8_thin4M,
 
 length(unique(gmr_min8_thin4M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin4M[["MaybeTrio"]]$id)]))
 
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin4M[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin4M[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin4M <- gmr_min8_thin4M[["MaybeTrio"]]
+head(trios_gmr_min8_thin4M)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin4M <- trios_gmr_min8_thin4M %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin4M)
+dim(trios_gmr_min8_thin4M)
+table(trios_gmr_min8_thin4M$valid_cross)
+
+
+trios_gmr_min8_thin4M_checked <- trios_gmr_min8_thin4M %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin4M_checked <- trios_gmr_min8_thin4M_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin4M_checked)
+table(trios_gmr_min8_thin4M_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin4M_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin4M_checked$id)]))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 gmr_min8_thin5M <- GetMaybeRel(GenoM = check_min8_thin5M,
-                               Err = erm25,
+                               Err = erm5,
                                # SeqList = outfull,
                                Module = "par",
                                # MaxMismatch = NA,
@@ -1318,6 +1820,78 @@ gmr_min8_thin5M <- GetMaybeRel(GenoM = check_min8_thin5M,
 #erm5: 129, 62, 139, 151. 75 test f1's in the trios.
 
 length(unique(gmr_min8_thin5M[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr_min8_thin5M[["MaybeTrio"]]$id)]))
+
+# how many unique focal indivs are in the trios
+length(unique(gmr_min8_thin5M[["MaybeTrio"]]$id))
+# see who it is
+table(unique(gmr_min8_thin5M[["MaybeTrio"]]$id))
+
+trios_gmr_min8_thin5M <- gmr_min8_thin5M[["MaybeTrio"]]
+head(trios_gmr_min8_thin5M)
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+trios_gmr_min8_thin5M <- trios_gmr_min8_thin5M %>%
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+
+head(trios_gmr_min8_thin5M)
+dim(trios_gmr_min8_thin5M)
+table(trios_gmr_min8_thin5M$valid_cross)
+
+
+trios_gmr_min8_thin5M_checked <- trios_gmr_min8_thin5M %>%
+  select(id, parent1, parent2, pair, valid_cross, everything())
+
+trios_gmr_min8_thin5M_checked <- trios_gmr_min8_thin5M_checked %>% 
+  filter(!LLRparent1 %in% c(555, -555),
+         !LLRparent2 %in% c(555, -555),
+         !LLRpair    %in% c(555, -555))
+dim(trios_gmr_min8_thin5M_checked)
+table(trios_gmr_min8_thin5M_checked$valid_cross)
+
+length(unique(trios_gmr_min8_thin5M_checked$id[grepl("^SAR_15_67", trios_gmr_min8_thin5M_checked$id)]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #####  ----- Alright, so we got to 85/95 with gmr_min8_thin1M with erm5 ----- #####
 
