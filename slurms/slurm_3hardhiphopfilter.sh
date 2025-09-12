@@ -11,6 +11,7 @@
 ## note: also used 070125 to filter yellow perch from the rehead_variants_rawfiltered_pflav_mem_031325.vcf
 ## note: also used 090225 to implement --minGQ and --geno-r2 into existing datasets
 ## note: also used 090825 to loosen --miss to 90, --thin 1-5M for sequoia table. "does more md and more snps with the same thin help assignment/accuracy rates?"
+## note: also used 091225 to create new vcfs to supplement 
 
 #SBATCH --job-name=hardfilter
 #SBATCH --account=ysctrout
@@ -26,9 +27,9 @@
 module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 
 # cd /project/ysctrout/hatchsauger/sam_sai_svit_mem/thin_filtered
-cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8/geno_mat/miss90
+# cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8/geno_mat/miss90
 # cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs
-
+cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8
 
 
 # filter first output file (variants_bial_noindels_q20.recode.vcf) by min and max mean depth per site across all samples.
@@ -96,6 +97,7 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8/
 
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.9 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss90 --recode
 
+vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.85 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss85 --recode
 
 # thin!
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80.recode.vcf --thin 1000 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80_thin1K --recode
@@ -228,7 +230,7 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8/
 #sed "s/-1/-9/g" rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss90_thin800K.012 > rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss90_thin800K.012_conv
 #sed "s/-1/-9/g" rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss90_thin900K.012 > rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss90_thin900K.012_conv
 
-# meow meow testing i'm a gato
+
 
 
 
