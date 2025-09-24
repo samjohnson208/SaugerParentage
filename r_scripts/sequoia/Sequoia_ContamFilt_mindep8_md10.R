@@ -471,8 +471,8 @@ erm25 <- ErrToM(Err = 0.025)
 erm5 <- ErrToM(Err = 0.05)
 
 # run gmr
-gmr_thin5M <- GetMaybeRel(GenoM = check_thin5M,                             # here
-                               Err = erm5,                                      # error
+gmr_thin5M <- GetMaybeRel(GenoM = check_thin5M,                               # here
+                               Err = erm5,                                    # error
                                # SeqList = outfull,
                                Module = "par",
                                # MaxMismatch = NA,
@@ -491,7 +491,7 @@ length(unique(gmr_thin5M[["MaybeTrio"]]$id))                                  # 
 # see who it is
 table(unique(gmr_thin5M[["MaybeTrio"]]$id))                                   # here
 
-trios_thin5M <- gmr_thin5M[["MaybeTrio"]]                                   # here
+trios_thin5M <- gmr_thin5M[["MaybeTrio"]]                                     # here
 head(trios_thin5M)                                                            # here
 
 # read in lookup table
@@ -521,10 +521,10 @@ dim(trios_thin5M)                                                             # 
 table(trios_thin5M$valid_cross)                                               # here
 
 
-trios_thin5M_checked <- trios_thin5M %>%                                    # here
+trios_thin5M_checked <- trios_thin5M %>%                                      # here
   select(id, parent1, parent2, pair, valid_cross, everything())
 
-trios_thin5M_checked <- trios_thin5M_checked %>%                            # here
+trios_thin5M_checked <- trios_thin5M_checked %>%                              # here
   filter(!LLRparent1 %in% c(555, -555),
          !LLRparent2 %in% c(555, -555),
          !LLRpair    %in% c(555, -555))

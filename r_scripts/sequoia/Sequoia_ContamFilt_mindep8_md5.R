@@ -408,16 +408,16 @@ trios_thin900K <- trios_thin900K %>%                                            
               select(pair) %>% # but ONLY the column cross_lookup$pair
               distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
               mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
-            # or NA, if the pair exists in the lookup table, or if it does not.
-            by = "pair") %>% # actually completes the join, by the shared pair column.
-  # this is the line in which the matching actually occurs. 
-  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) # recreates that valid_cross column but turns
-# all of the NA's formed by the join into FALSE's
+                                          # or NA, if the pair exists in the lookup table, or if it does not.
+              by = "pair") %>% # actually completes the join, by the shared pair column.
+              # this is the line in which the matching actually occurs. 
+              mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) 
+              # recreates that valid_cross column but turns
+              # all of the NA's formed by the join into FALSE's
 
 head(trios_thin900K)                                                            # here (1)
 dim(trios_thin900K)                                                             # here (1)
 table(trios_thin900K$valid_cross)                                               # here (1)
-
 
 trios_thin900K_checked <- trios_thin900K %>%                                    # here (2)
   select(id, parent1, parent2, pair, valid_cross, everything())
