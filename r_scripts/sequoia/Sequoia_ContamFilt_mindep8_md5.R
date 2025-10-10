@@ -541,22 +541,6 @@ hwe_threshold <- 0.05 # set threshold
 datasets <- c("25K", "50K", "75K", "100K", "200K", "300K", "400K", "500K", "600K", 
               "700K", "800K", "900K", "1M", "2M", "3M", "4M", "5M")
 
-# for each of these unique character strings (thinning distances)
-for(d in datasets){
-  stats_obj <- get(paste0("stats_", d)) # get the snpstats object that corresponds to that distance
-  mat_obj <- get(paste0("mat_thin", d)) # and get the GenoM that corresponds to that distance
-  
-  # create a vector of the rownames of the stats object, where the HWE.p value is below 0.05
-  snps_fail_hwe <- rownames(stats_obj)[stats_obj$HWE.p < hwe_threshold]
-  
-  # creat a filtered matirx, from the original matrix object, keep all rows, but remove columns
-  # where the column name is a character string that's in the snps_fail_hwe object
-  mat_filtered <- mat_obj[, !colnames(mat_obj) %in% snps_fail_hwe]
-  
-  # now assign the filtered matrix to a new object that's named appropriately, with a _HWEfilt extension
-  assign(paste0("mat_thin", d, "_HWEfilt"), mat_filtered)
-}
-
 # now let's recreate the check_thin objects FROM the HWE filtered objects
 check_thin25K <- CheckGeno(mat_thin25K_HWEfilt, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
 check_thin50K <- CheckGeno(mat_thin50K_HWEfilt, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
