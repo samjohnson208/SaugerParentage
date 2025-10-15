@@ -541,6 +541,23 @@ hwe_threshold <- 0.05 # set threshold
 datasets <- c("25K", "50K", "75K", "100K", "200K", "300K", "400K", "500K", "600K", 
               "700K", "800K", "900K", "1M", "2M", "3M", "4M", "5M")
 
+
+# here's the for loop that was used to swing this.
+for (d in datasets) {
+  stats_obj <- get(paste0("stats_", d))       
+  mat_obj   <- get(paste0("mat_thin", d))     
+  
+  # get SNPs that fail HWE
+  snps_out <- rownames(stats_obj)[stats_obj$HWE.p < hwe_threshold]
+  
+  # filter genotype matrix to not include positions that are in the snps_out vector
+  mat_filtered <- mat_obj[, !(colnames(mat_obj) %in% snps_out)]
+  
+  # create a new object with a name that indicates that it's been filtered
+  assign(paste0("mat_thin", d, "_HWEfilt"), mat_filtered)
+}
+
+
 # now let's recreate the check_thin objects FROM the HWE filtered objects
 check_thin25K <- CheckGeno(mat_thin25K_HWEfilt, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
 check_thin50K <- CheckGeno(mat_thin50K_HWEfilt, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
@@ -655,11 +672,4 @@ dim(trios_thin4M_checked)                                                     # 
 table(trios_thin4M_checked$valid_cross)                                       # here (1)
 
 length(unique(trios_thin4M_checked$id[grepl("^SAR_15_67", trios_thin4M_checked$id)])) # here (2)
-
-
-
-
-
-
-
 
