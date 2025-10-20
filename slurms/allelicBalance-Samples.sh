@@ -26,7 +26,7 @@ module load arcc/1.0 gcc/14.2.0 bcftools/1.20
 vcf_file="$1"
 label="$2"
 
-outfile="meanPerSample_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K_${label}.txt"
+outfile="meanPerSample_allelicBalance_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K_${label}.txt"
 
 
 bcftools query -f '%CHROM\t%POS[\t%SAMPLE=%GT:%AD]\n' "$vcf_file" | awk -v lib="$label" '{
