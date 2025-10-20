@@ -466,6 +466,23 @@ check_thin3M <- CheckGeno(mat_thin3M, quiet = FALSE, Plot = TRUE, Return = "Geno
 check_thin4M <- CheckGeno(mat_thin4M, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
 check_thin5M <- CheckGeno(mat_thin5M, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
 
+dim(check_thin25K)
+dim(check_thin50K)
+dim(check_thin75K)
+dim(check_thin100K)
+dim(check_thin200K)
+dim(check_thin300K)
+dim(check_thin400K)
+dim(check_thin500K)
+dim(check_thin600K) 
+dim(check_thin700K) 
+dim(check_thin800K) 
+dim(check_thin900K) 
+dim(check_thin1M) 
+dim(check_thin2M) 
+dim(check_thin3M) 
+dim(check_thin4M)
+dim(check_thin5M)
 
 # ##### ---- SNP Stats, checking for HWE, and filtering for HWE
 # stats_25K <- data.frame(SnpStats(GenoM = mat_thin25K, Pedigree = NULL, Plot = TRUE, quiet = FALSE, calc_HWE = TRUE))
@@ -671,11 +688,11 @@ length(unique(trios_thin4M_checked$id[grepl("^SAR_15_67", trios_thin4M_checked$i
 
 ##### ---- RADseq Error Matrix Exploration ---- #####
 
-# Define e0 and e1 values
+# create vectors of e0 and e1 values
 e0_vals <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
 e1_vals <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5)
 
-# Create empty result matrices
+# create empty dfs to display
 assign_rate_mat <- matrix(NA, nrow = length(e1_vals), ncol = length(e0_vals),
                           dimnames = list(paste0("e1_", e1_vals),
                                           paste0("e0_", e0_vals)))
@@ -684,23 +701,25 @@ acc_rate_mat <- assign_rate_mat  # same structure
 # total number of offspring
 n_offspring <- 95
 
+# read in cross lookup table
 cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
 cross_lookup <- cross_lookup[,-1]
 
-# Loop through e1 and e0 combinations
+# nested loop for all combinations:
 for (i in seq_along(e1_vals)) {
   for (j in seq_along(e0_vals)) {
     
     e1_val <- e1_vals[i]
     e0_val <- e0_vals[j]
     
+    # print text to display each combination, track progress
     cat("Running GetMaybeRel for E0 =", e0_val, "and E1 =", e1_val, "\n")
     
-    # --- Create RADseq error matrix ---
+    # create the error matrix for that combination
     errM <- Err_RADseq(E0 = e0_val, E1 = e1_val, Return = 'matrix')
     
-    # --- Run GetMaybeRel ---
-    gmr <- GetMaybeRel(GenoM = check_thin4M,
+    # run gmr (change dataset here only! how great is that?!)
+    gmr <- GetMaybeRel(GenoM = check_thin5M,
                        Err = errM,
                        Module = "par",
                        Complex = "simp",
@@ -709,7 +728,7 @@ for (i in seq_along(e1_vals)) {
                        Tassign = 1.0,
                        MaxPairs = 7 * nrow(check_thin4M))
     
-    # --- Handle case where no trios are found ---
+    # if there are no trios found, place 0 in that place for assign, NA for accuracy
     if (is.null(gmr[["MaybeTrio"]]) || nrow(gmr[["MaybeTrio"]]) == 0) {
       cat("   No trios found for this combination. Skipping...\n")
       assign_rate_mat[i, j] <- 0
@@ -717,14 +736,14 @@ for (i in seq_along(e1_vals)) {
       next
     }
     
-    # --- Extract unique assigned offspring ---
+    # how many unique test f1's were assigned to parents?
     assigned_ids <- unique(gmr[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr[["MaybeTrio"]]$id)])
-    n_assigned <- length(assigned_ids)
+    n_assigned <- length(assigned_ids) # define it as an object
     
-    # --- Calculate assignment rate ---
-    assign_rate <- (n_assigned / n_offspring) * 100
+    # use that object to calculate assignment rate
+    assign_rate <- (n_assigned / n_offspring) * 100 
     
-    # --- Build trio table and check valid crosses ---
+    # make trios an object, create the pair entry, check it against the lookup...
     trios <- gmr[["MaybeTrio"]] %>%
       mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
       left_join(cross_lookup %>%
@@ -733,11 +752,13 @@ for (i in seq_along(e1_vals)) {
                   mutate(valid_cross = TRUE),
                 by = "pair") %>%
       mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) %>%
+      # ...and filter out any placeholders. 
       filter(!LLRparent1 %in% c(555, -555),
              !LLRparent2 %in% c(555, -555),
              !LLRpair    %in% c(555, -555))
     
-    # --- Calculate accuracy rate (conditional on assignments existing) ---
+    # if we have assigned individuals, grab the number of valid crosses and calculate
+    # the accuracy rate by dividing it by the number of unique test f1's that got assigned
     if (n_assigned > 0) {
       valid_ids <- unique(trios$id[trios$valid_cross])
       n_valid <- length(valid_ids)
@@ -746,30 +767,58 @@ for (i in seq_along(e1_vals)) {
       acc_rate <- NA
     }
     
-    # --- Store results ---
+    # place those values in the correct cell of each summary table.
     assign_rate_mat[i, j] <- assign_rate
     acc_rate_mat[i, j] <- acc_rate
   }
 }
 
 
-# View results
+# print results, round to three decimal places
 cat("\nAssignment rate matrix (%):\n")
-print(round(assign_rate_mat, 2))
+print(round(assign_rate_mat, 3))
 
 cat("\nAccuracy rate matrix (%):\n")
-print(round(acc_rate_mat, 2))
+print(round(acc_rate_mat, 3))
 
-# --- Create composite score matrix (scaled 0–100) ---
+# create composite score matrix
 composite_mat <- (assign_rate_mat * acc_rate_mat) / 100
 
-# --- Keep same row/column names ---
+# use the same row and column names as the other two result tables
 dimnames(composite_mat) <- dimnames(assign_rate_mat)
 
-# --- Print nicely rounded results ---
+# print results, round to three decimal places
 cat("\nComposite score matrix (%):\n")
-print(round(composite_mat, 2))
+print(round(composite_mat, 3))
 
+# > # here is the best error matrix for the snp chip (produced best composite score)
+#   > # for check_thin1M (80)
+#   > erm5 <- ErrToM(Err = 0.05)
+# > erm5
+# obs
+# act        0        1        2
+# 0 0.950000 0.049375 0.000625
+# 1 0.025000 0.950000 0.025000
+# 2 0.000625 0.049375 0.950000
 
+# > # here is the best error matrix for radseq (produced best composite score)
+  # > # for 50K, 75K, 100K (83.158)
+  # > Err_RADseq(E0 = 0.075, E1 = 0.025, Return = 'matrix')
+# obs
+# act        0       1        2
+# 0 0.855625 0.13875 0.005625
+# 1 0.024375 0.95125 0.024375
+# 2 0.005625 0.13875 0.855625
+
+# > # here is the best error matrix for radseq (produced the best composite score)
+  > # for 1M (83.158)
+#   > Err_RADseq(E0 = 0.1, E1 = 0.005, Return = 'matrix')
+# obs
+# act        0       1        2
+# 0 0.810000 0.18000 0.010000
+# 1 0.004975 0.99005 0.004975
+# 2 0.010000 0.18000 0.810000
+
+# WHAT IS HAPPENING?! WHY IS THE HET|HOM RATE STILL SO MUCH LOWER THAN
 
 
