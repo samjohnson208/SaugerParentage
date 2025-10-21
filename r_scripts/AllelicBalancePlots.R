@@ -34,9 +34,12 @@ setwd("/Users/samjohnson/Desktop/allelic_balance/")
 site_ab <- read.table(file = "meanPerSite_allelicBalance_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K_label.txt",
                       header = FALSE, sep = "\t") 
 
+# setup/maintenence/good practice
 colnames(site_ab) <- c("Scaffold", "Position", "AllelicBalance", "IgnoreLabel")
+site_ab$AllelicBalance <-  as.numeric(site_ab$AllelicBalance)
 head(site_ab)
 
+# plot hist
 hist(site_ab$AllelicBalance, breaks = 50, main = "AB Per Site at Heterozygous Sites (n snps = 943)",
      xlab = "AB for Heterozyotes")
 
@@ -50,6 +53,7 @@ colnames(ind_ab) <- c("Scaffold", "Position", "IgnoreLabel", "Sample_ID", "Allel
 ind_ab$AllelicBalance <- as.numeric(ind_ab$AllelicBalance)
 table(is.na(ind_ab$AllelicBalance)) # none!? i suppose the slurm filters out these options already with that if else statement
 
+# create a new summary table, group by individual, and generate summary stats
 summary_ind_ab <- ind_ab %>%
   group_by(Sample_ID) %>%
   summarize(
@@ -59,7 +63,10 @@ summary_ind_ab <- ind_ab %>%
     sd_AB = sd(AllelicBalance, na.rm = TRUE)
   )
 
+# convert back to df from tibble
 summary_ind_ab <- data.frame(summary_ind_ab)
+
+# plot hist
 hist(summary_ind_ab$mean_AB, breaks = 50, main = "AB Per Sample at Heterozygous Sites (n inds = 1182)",
      xlab = "AB at Heterozygous Sites")
 dim(summary_ind_ab)
