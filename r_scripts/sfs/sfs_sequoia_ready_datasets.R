@@ -116,3 +116,61 @@ for (name in names(GenoM_list)) {
     border = "white"
   )
 }
+
+
+# it seems like katie also wants to see the sfs and shape for these data pre-maf
+# and miss filtering. let's go ahead and get that in as well.
+
+setwd("/Users/samjohnson/Desktop/sfs_sequoia_ready_datasets/parent_dataset/")
+parent <- read.table(file = "rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.012_conv", 
+                     header = FALSE, sep = "\t", na.strings = c("NA", "-9"))
+
+#remove first column
+parent <- parent[, -1]
+
+#create sfs df
+sfs_parent <- data.frame(site = 1:ncol(parent), site_mean = NA,  site_mean_d2 = NA, fold_site_mean_d2 = NA)
+
+# loop over each site, take genotype means
+for (i in 1:ncol(parent)) {
+  sfs_parent$site_mean[i] <- mean(parent[[i]], na.rm = TRUE)
+}
+
+# check
+summary(sfs_parent$site_mean)
+
+# divide those by two to bound them [0,1], use these values for unfoldedSFS
+for (i in 1:nrow(sfs_parent)){
+  m <- sfs_parent$site_mean[i]
+  d2 <- m/2
+  sfs_parent$site_mean_d2[i] <- d2
+}
+
+#check
+summary(sfs_parent$site_mean_d2)
+
+# if the mean value divided by two is greater than 0.5, subtract it from 1,
+# and place that new value in the fold column, use for foldedSFS
+
+for (i in 1:nrow(sfs_parent)){
+  f <- sfs_parent$site_mean_d2[i]
+  if (f > 0.5){
+    sfs_parent$fold_site_mean_d2[i] <-  1-f
+  } else {
+    sfs_parent$fold_site_mean_d2[i] <-  f
+  }
+}
+
+# check
+summary(sfs_parent$fold_site_mean_d2)
+
+# generate sfs
+par(mfrow = c(2,1))
+hist(sfs_parent$site_mean_d2, breaks = 25, main = "Unfolded SFS - Parent Dataset",
+     xlab = "Unfolded Allele Frequencies")
+hist(sfs_parent$fold_site_mean_d2, breaks = 25, main = "Folded SFS - Parent Dataset",
+     xlab = "Folded Allele Frequencies")
+
+
+
+
