@@ -3,7 +3,7 @@ Created by Sam Johnson, 10/25/24
 
 sjohn208@uwyo.edu
 
-## Project Summary
+# Project Summary
 
 Below is the code and notes for the Wind River Sauger Parentage Analysis bioinformatics workflow. This began on 10/25/24 with file transfers and establishment of the Sauger Parentage github repository, followed by unzipping files (10/29/24) and parsing (11/01/24).
 
@@ -11,7 +11,7 @@ Problems arose in the alignment phase, where vastly different datasets were prod
 Trial 1: Alignment to the Yellow Perch genome (Perca flavescens) produced very few loci after initial filtering. 
 Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
-## Workflow Outline
+# Workflow Outline
 
 * Demultiplex
    * Unzip Raw .fastq's
@@ -32,7 +32,7 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * Count Raw Reads Per Individual
 
-* Alignment (Yellow Perch and Walleye, Trials 1 and 2, respectively)
+* Alignment and Choice of Reference Genome (Yellow Perch and Walleye, Trials 1 and 2, respectively)
 
    * Remove 60 line endings
 
@@ -70,7 +70,7 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * Running BWA MEM
 
-   * Variant Calling BWA MEM, Reheadring
+   * Variant Calling BWA MEM, Reheadering
 
    * SFS Analysis for all combinations of reference genomes and alignment algorithms
 
@@ -90,9 +90,15 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
 * HipHop
 
+   * randomForest
+
+* Contaminant Filtering
+
+   * fastp filtering
+
 * Entropy
 
-## Demultiplex
+# Demultiplex
 
 ### Unzip raw .fastq's
 
@@ -208,7 +214,7 @@ After the transition, perl parsing script no longer worked. Required this comman
 ```
 No longer required to run the perl module at the beginning of this script. Reason unknown. 
 
-## Split .fastq
+# Split .fastq
 ### Splitting to 1184 .fastq files
 Make ID's file and check nrow using...
 
@@ -240,7 +246,7 @@ grep -c "^@" *.fastq > nreads_per_ind.txt
 
 We'll then load this .txt into R and generate a histogram. (see nrawreads.R)
 
-## Alignment
+# Alignment and Choice of Reference Genome
 
 ### Yellow Perch Reference (Trial 1)
 
@@ -323,6 +329,8 @@ Run this slurm script from your sam_sai_svit directory. It will output a .txt fi
 ```{bash}
 sbatch /project/ysctrout/hatchsauger/SaugerParentage/slurms/count_assembled.sh
 ```
+
+# Variant Calling and Filtering
 
 ## Variant Calling (Yellow Perch)
 
@@ -581,6 +589,8 @@ first_filter_out_noMAF/stdout_miss8:After filtering, kept 66084 out of a possibl
 first_filter_out_noMAF/stdout_miss9:After filtering, kept 59169 out of a possible 366797 Sites
 ```
 
+# Data Quality Investigations
+
 ## Percent Missing Data Per Locus Investigation
 
 We are concerned about the low number of reads that were retained for the yellow perch allignment. Is it possible that there's a lot of missing data for each site? This script investigates that.
@@ -623,7 +633,8 @@ cd /Documents/Sauger_102824/GeneticData/RadMapReport/RadMap_pflav
 ```
 to see complete reports as they are intended to be used in plotting.
 
-## BWA MEM Investigation
+
+# BWA MEM Investigation
 
 We found out that Will's data were aligned using BWA MEM rather that BWA ALN and SAMSE. Josh and I have generated runbwa_mem.pl and have run it on the walleye and yellow perch reference genomes.
 
@@ -728,6 +739,16 @@ sed "s/-1/-9/g" variants_maf1_miss9_mem_pflav.012 > variants_maf1_miss9_mem_pfla
 
 SFS generated in SaugerParentage/r_scripts/sfs_all.R on 03/14/25
 
+## radmap Reports from BWA MEM
+
+Remember that there are also a set of scripts to generate radmapreports from data aligned using bwa mem. We were having trouble with this at first. See here:
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/slurms
+ls -ltrh *rad*
+```
+
+# Sequoia
 
 ## Generating Input for Sequoia
 It appears that the alignment to the walleye reference generated a much higher quality dataset. Now we are ready to filter start with a standard filter of MAF ≥ 1 and Missing Data < 10% per site.
@@ -838,7 +859,7 @@ Results: They stack nicely. Few fish from Willie's Lab may be WAE, as well as a 
 
 03/14/25 - Changed all of the .bam, .sorted.bam, and .sorted.bam.bai in both mem directories to start with the prefix "mem_" rather than "aln_". The runbwa_mem.pl script was also updated to reflect this change, should we have to run that alignment again. Keep that in mind for any discrepancies in documentation you may come across down the line.
 
-## Simulation Work
+# Simulation Work
 
 04/09/25 - Today is the firs time that I pulled down Josh's scripts from github and ran them in full, on the cluster. This involved changing some paths in sauger_cross_sim.R and suager_cross_sim.pl. The r script carries out simulating genotype matrices for each generation/group and creating a table of true parents. Then it uses sequoia::GetMaybeRel() to assign parent-offspring pairs and trios. The perl script runs all of those steps in the R script over all the combinations for set of values for nloci and wild_samp, where wild_samp is the percentage of the total simulated population that has been sampled. 
 
@@ -848,7 +869,7 @@ These scripts appear to generate a table that describes how many true and false 
 
 Both sauger_cross_check_trios.R and sauger_cross_check_pars.R ran successfully, so I'm now curious about adding in missing data.
 
-#### Adding missing Data
+## Adding missing Data
 
 sauger_cross_sim_sj.pl and sauger_cross_sim_sj.R were created on 04/11/25 to run the simulations on 125 combinations of nloci, wild_samp, and md values.
 
@@ -868,7 +889,7 @@ This was completed late April 2025 (around and on 4/24/25). See
 
 for visualizations. Keep in mind that the simulations will need to be slightly altered for the correct PTPS scenario. At least for now, results indicate that missing data per site does not have a huge impact. Our ability to detect relationships depends mostly on the number of loci, and the PTPS.
 
-## Bedtools Intersect
+# Bedtools Intersect
 
 When it comes to comparing aln/samse and mem, we've noticed a strange trend that mem adds a TON of reads (many thousands), yet only adds about a thousand sites when aligned to the walleye reference. This is troubling because we're unsure as to where all of those other reads are going, and as to whether or not there is significant overlap in the sites that are being generated by the data when aligned using each algorithm. 
 
@@ -920,10 +941,14 @@ wc -l intersect_output_maf1_miss9.bed
 ```
 Intersect shows overlap in ~94% of aln/samse sites. Looks like mem captures most of the same sites as aln/samse, but also picks up a bunch more.
 
-## HipHop Parentage Assignment (+randomForest)
+# HipHop Parentage Assignment (+randomForest)
 
 In the few weeks before WDAFS 2025, I was becoming pretty nervous about the state of my results using Sequoia, and sought out to make parentage relationships using the r package hiphop. This is an exclusion method that relies on principals of Mendelian inheritance to give hothiphop (Homozygous Opposite Test, Homozygous Identical Parents, Heterozygous Offspring Precluded) scores to each pair of parents that get assigned to each offspring. 
 
+### There are a series of five r scripts in:
+```
+/project/ysctrout/hatchsauger/SaugerParentage/r_scripts/hiphop
+```
 
 First, I ran hiphop on all of the test F1's and F0 parents and got some pretty good results. I took the parent pairs that were inferred by hiphop and cross checked them against the list of known crosses. When I did that, 85 of the 95 test F1 offspring got assigned to parent crosses that were actually made.
 
@@ -947,6 +972,8 @@ All of that information was then plotted using
 /Users/samjohnson/Documents/Sauger_042225/SaugerParentage/r_scripts/hiphop/sauger_hiphop_plot.R
 ```
 
+## randomForest
+
 During the week of 060225 I was also interested in running hiphop on the simulated data, though I learned that hiphop requires the parental sexes to be specified in the individuals dataframe. This thwarts our ability to use hiphop on the F2 -> F1 assignments, which has caused me to return to sequoia as the primary candidate for my parentage assignment method.
 
 However, if we could determine sex with reasonable accuracy from the genetic data, as Will did, we'd be in business. I therefore put a yellow perch aligned and filtered .vcf -> genotype matrix into R and cbind()ed it with a df that contained all of the F0's and their sex data. 
@@ -959,7 +986,7 @@ I then used randomForest to see if these few sites (less than 200) could predict
 
 This prompted me to begin to investigate Will's data to see where in the process my data are faltering. Why, when we align to the same reference, do mine perform so poorly by comparision?
 
-## Contaminant filtering
+# Contaminant Filtering
 These developments and continued skepticism about my data have prompted me to attempt contaminant filtering to see if there is a larger problem with the data than anticipated. Contaminant filtering using tapioca was run with the following script, and relies on a few downloaded perl functions and downloaded modules (e.g., File::which). This module can be downloaded using cpanm. First, you must download cpanm to your home directory
 
 ```{bash}
@@ -984,7 +1011,10 @@ Josh downloaded the illumina, phix, and ecoli files to /project/ysctrout/contami
 
 Contaminant filtering was initiated on 7/02/25 at 8:49pm.
 
-## sam_sai_pflav_mem trials and updated location for sam_sai_svit_mem .vcfs
+## Fastp Filtering
+
+
+# sam_sai_pflav_mem trials and updated location for sam_sai_svit_mem .vcfs
 These developments and continued skepticism about my data have ALSO prompted me to try re-aligning and re-filtering the my data to the yellow perch genome using bwa mem. I was concerned about the file basenames having some issues during the first pflav_mem trial (e.g., some files were yellowperch.genome.fna instead of just yellowperch.fna). sam_sai_pflav_mem_t2 was created to address that issue. The alignment scripts (.pl and .sh) were altered and the alignment and variant calling were rerun but with no success.
 
 In contrast, sam_sai_pflav_mem_t3 was created because I saw some pflav .vcfs in sam_sai_svit_mem/Sequoia_Inp/maf30_miss95. First I redid the filtering for svit_mem (with thinning) and placed updated walleye aligned .vcf's in: 

@@ -198,7 +198,10 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
 
 # per-sample md?
 
+# duplicate check?
 
+# 6 indivs scored for < 20 % of snps
+# 2 indivs genotyped for < 5 % of snps
 
 
 
