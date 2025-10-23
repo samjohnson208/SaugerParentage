@@ -43,7 +43,7 @@
 # did all the md10 ones to get more SNPs, then came back and did all the rest of the
 # md5 ones in here. I'm going to go to Sequoia_ContamFilt_mindep8.R, grab the code to
 # construct the matrices and get them ready for GetMaybeRel(), then I'm going to run
-# SnpStats on them to get the information that I'm looking for.
+# SnpStats on them to get the information that I'm looking for. (UPDATE: HWE didn't help.)
 
 # THIS WAS ALL COPIED FROM Sequoia_ContamFilt_mindep8_md5.R
 
