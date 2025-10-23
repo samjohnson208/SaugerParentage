@@ -78,7 +78,13 @@ Trial 2: Alignment to the Walleye refernce genome (Sander vitreus)
 
    * Generating input for Sequoia
    
-   * Sequoia using F0's & Test F1's (aln/samse and mem)
+   * Sequoia using F0's & Test F1's (BWA ALN to Walleye Reference)
+
+   * Desperate Times...
+
+   * Picking Up Speed on Sequoia...
+
+   * Expanding Beyond the Test Group....
 
 * Principal Component Analysis
 
@@ -748,6 +754,8 @@ Remember that there are also a set of scripts to generate radmapreports from dat
 ls -ltrh *rad*
 ```
 
+Again, svit mem outperforms everything else (species and alignment tools), and there do not appear to be differences among our two libraries. Great news.
+
 # Sequoia
 
 ## Generating Input for Sequoia
@@ -844,6 +852,88 @@ The first step is to thin our sites for LD, in case we had not yet done this. I 
 ```
 
 Next step is to try sequoia on these thinned .vcf's (especially svit_mem), then increase the Tassign (use default functions), and alter the complex argument (default functions as well).
+
+
+### Picking Up Speed on Sequoia...
+
+Lots of knob turning occurred in the summer and fall of 2025. All of it's documented in:
+
+```
+cd /project/ysctrout/hatchsauger/SaugerParentage/r_scripts/sequoia
+```
+
+I won't document it all here, but big changes include trying earlier sequoia program versions, adding the contaminant filtering described below, incorporating (unsuccessfully) genotype likelihood and correlation-based LD filtering using vcftools. Since I was concerned about the quality of the genotype calls, I also upped min mean read depth to 4 and then 8, and messed with md and thinning to see how many snps I would retain, then created the sequoia_params tables to see how many assignments and accurate assignments we could make for the test group with various combinations of error and thinning. Also created the sequoia_params_plots to visualize.
+
+I also tried leaving out loci that were out of HWE using sequoia's SNPStats() function, but that didn't improve things either. This was implemented in
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/r_scripts/sequoia/Sequoia_ContamFilt_mindep8_md5.R
+```
+
+and the output is stored in sequoia_params_snpchip.xlsx (Genetic Data folder)
+
+A breakthrough finally happened when I shared those results with Dr. Jisca Huisman, who explained that the error matrix that informs the pedigree reconstruction has been built on SNP chip data, which has drastically different error rates and structures than RADseq/GBS data. She pointed me in the direction of this sequoia info page,
+
+https://jiscah.github.io/articles/howto_RADseq.html
+
+, as well as this paper by Bresadola et al, (2020, Mol. Ecol. Resources). I was then compelled to switch error types and generate the sequoia_params_radseq tables. Using this radseq error bumped up my compsite scores (Assignment x Accuracy) for the test group, to just over 83%. This was for a few different degrees of thinning, and with a few combinations of E0 and E1.
+
+### Expanding beyond the Test Group...
+
+#### Final Checks (SFS)
+
+Once that breakthrough happened, I was ready to expand to the full dataset. I decided to go with this one:
+
+```
+/project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8/rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K.recode.vcf
+```
+
+because it had all of the up front filering for the raw reads, high site quality, high min depth, the right maf for sequoia, and low md per site, all criteria of a good dataset according to the documentation. This dataset got a composite of 83.158% in sequoia_params_radseq.xlsx, and had the most snps of any dataset that got that score. Sequoia says you want lots of snps for small, potentially inbred populations, but that in some cases, fewer snps are better because the dataset are error prone and fewer snps means fewer OH mismatches, which means higher assignment rates. Since this population is small, low diversity, and because I was about to add a lot more individuals by expanding, I wanted to keep as many loci as possible to retain as much signal as possible.
+
+We wanted to undergo a few final checks before expanding, just to be safe. The first of which was to check the SFS for the parent dataset before maf filtering, as well as the data as they were going into sequoia (with final maf and miss filters). The SFS were generated using 
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/r_scripts/sfs_sequoia_ready_datasets
+```
+
+and were deemed reasonable, so we pushed forward.
+
+#### Final Checks (AB, Allelic Balance)
+
+During the process of changing error matrices to resemble RADseq rates rather than SNPchip error rates, I became increasingly concerned with allelic dropout, where, because of PCR issues or mutations at cut sites, true heterozygotes only have one or their alleles amplified and genotyped. In the error matrix that I chose, the E1 (error rate for heterozygotes) was much less than E0 (for homozygotes), which seems backwards given the expectation of high rates of ADO in this kind of dataset. Because of that, I wanted to analyze AB at heterozygous sites and for each individual to see if the allelic balances looked off, even though I am using strict filtering.
+
+See these two scrips, modified from MPR, who modified Jessi Rick's approach from an earlier Journal of Heredity paper.
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/slurms/allelicBalance-Site.sh 
+```
+
+and
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/slurms/allelicBalance-Samples.sh     
+```
+
+The first script takes each site where there are heterozygotes, and takes a mean AB among all individuals genotyped at that site. The second takes each individual, and gives me a mean AB for that individual across all heterozygous sites. I completed these calculations and plotted histograms for these using this r script.
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/r_scripts/AllelicBalancePlots.R
+```
+
+Both showed normal distributions centered right around 0.5, but I want to filter out sites/inds with poor AB's. That's coming soon.
+
+#### Running sequoia() and GetMaybeRel() on the full dataset
+
+First trials are stored in:
+
+```
+/project/ysctrout/hatchsauger/SaugerParentage/r_scripts/Sequoia_ContamFilt_mindep8_md5_RADseqErr_ALLINDS.R
+```
+
+which was created on 102225. First attempts poor. Improvements incoming.
+
+
+
 
 ## Principal Component Analysis
 
@@ -1011,7 +1101,33 @@ Josh downloaded the illumina, phix, and ecoli files to /project/ysctrout/contami
 
 Contaminant filtering was initiated on 7/02/25 at 8:49pm.
 
+Contaminant filtering took out a few of our reads, but allowed me to call more variants than beofre. See these notes from Sauger Meeting Notes F24/S25/Summer25.
+
+"Got contam filtering to finish early Thursday morning, 8/7. Can’t believe it.
+Splitting, parsing, concatenating, splitting to individual fastq’s finished 8/8.
+Fastp filtering completed 8/8.
+Alignment pending EOD 8/8. Fingers crossed.
+Amazingly, I called one hundred thousand additional variants than past attempts using the walleye reference and bwa mem (496,823 variants for this round). I suppose that cleaning the dataset more vigorously allowed the algorithm to more effectively search through the remaining reads?"
+
+Every dataset moving forward relied on this filtering. See:
+
+```
+cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem
+```
+
 ## Fastp Filtering
+
+After contaminant filtering was completed, I filtered the raw reads using Fastp (MPR used it and recommended it). This code takes the raw reads and remove any bases with q<20, reads with mean quality less than 20, reads shorter than 50bp, poly g tails, and any remaining sequence adapters.
+
+```
+cd /project/ysctrout/hatchsauger/SaugerParentage/slurms/slurm_fastp.sh
+```
+
+After running this in early August 2026, all datasets included this filtering. See:
+
+```
+cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem
+```
 
 
 # sam_sai_pflav_mem trials and updated location for sam_sai_svit_mem .vcfs
