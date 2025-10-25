@@ -862,7 +862,7 @@ Lots of knob turning occurred in the summer and fall of 2025. All of it's docume
 cd /project/ysctrout/hatchsauger/SaugerParentage/r_scripts/sequoia
 ```
 
-I won't document it all here, but big changes include trying earlier sequoia program versions, adding the contaminant filtering described below, incorporating (unsuccessfully) genotype likelihood and correlation-based LD filtering using vcftools. Since I was concerned about the quality of the genotype calls, I also upped min mean read depth to 4 and then 8, and messed with md and thinning to see how many snps I would retain, then created the sequoia_params tables to see how many assignments and accurate assignments we could make for the test group with various combinations of error and thinning. Also created the sequoia_params_plots to visualize.
+I won't document it all here, but big changes include trying earlier sequoia program versions, adding the contaminant filtering described below, incorporating (unsuccessfully) genotype likelihood and correlation-based LD filtering using vcftools (Sequoia_ContamFilt_GQ_LD.R). Since I was concerned about the quality of the genotype calls, I also upped min mean read depth to 4 and then 8, and messed with md and thinning to see how many snps I would retain, then created the sequoia_params tables to see how many assignments and accurate assignments we could make for the test group with various combinations of error and thinning. Also created the sequoia_params_plots to visualize.
 
 I also tried leaving out loci that were out of HWE using sequoia's SNPStats() function, but that didn't improve things either. This was implemented in
 
@@ -932,7 +932,15 @@ First trials are stored in:
 
 which was created on 102225. First attempts poor. Improvements incoming.
 
+There were a few instances where there are close genotypes that sequoia is calling duplicates. These are cases where individuals are genotyped for a lot of the SNPs, but they're just similar and only have mismatches for as few as 44 sites. Since this is a lower diversity population I'm not too worried about it. However, there are six individuals that are only genotyped for <20% of the SNPs, so I need to filter them out.
 
+See this line to get missing data stats for each individual:
+```
+module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
+--vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K.recode.vcf --missing-indv --out miss_per_indv_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K
+```
+
+I then scp'd down and filtered the GenoM = check_thin100K in Sequoia_ContamFilt_mindep8_md5_RADseqErr_ALLINDS.R
 
 
 ## Principal Component Analysis

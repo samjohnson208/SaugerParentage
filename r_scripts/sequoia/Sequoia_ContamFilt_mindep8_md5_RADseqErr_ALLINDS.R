@@ -37,7 +37,7 @@ library(dplyr)
 
 ################################################################################
 
-setwd("/Users/samjohnson/Documents/Sauger_042225/GeneticData/Sequoia/Sequoia_Inp/contam_fastp_svit_mem/firstfilt_hardfilt_thinned/mindep8_maf30/geno_mat")
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/Sequoia/Sequoia_Inp/contam_fastp_svit_mem/firstfilt_hardfilt_thinned/mindep8_maf30/geno_mat")
 
 ################################################################################
 
@@ -72,13 +72,13 @@ colnames(mat_thin100K) <- pos100K$position
 ##### ---- Adding Additional Data, Filtering by Individuals ---- #### 
 
 # first i need to add LH data, so that I can filter the GenoM to these indivs.
-setwd("/Users/samjohnson/Desktop/")
 LH_All <- read.csv(file = "LH_F0_F1Spawn_F1Juv_F2.csv", header = TRUE)
 # change the F's to 1 and M's to 2, all others are 3's
 LH_All$Sex[LH_All$Sex == "M"] <- 2
 LH_All$Sex[LH_All$Sex == "F"] <- 1
 LH_All$Sex <- as.numeric(LH_All$Sex)
 str(LH_All)
+dim(LH_All)
 
 table(LH_All$Sex)
 # Both 15 and 16 F0's
@@ -155,7 +155,24 @@ check_thin100K <- CheckGeno(mat_thin100K, quiet = FALSE, Plot = TRUE, Return = "
 
 ##### ----- ---- #####
 
-##### ---- GetMaybeRel() ---- #####
+##### ---- Missing Data per Individual ---- #####
+# first runs say that there are six individuals genotyped for <20% of snps. 
+# let's remedy that.
+
+miss_per_ind <- read.table(file = "miss_per_indv_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K.imiss", header = TRUE)
+
+inds_to_keep <- miss_per_ind$INDV[miss_per_ind$F_MISS < 0.2]
+inds_to_keep # individuals who are genotyped for 80% or samples or MORE
+length(inds_to_keep) # 1154
+dim(miss_per_ind) # 1184, means 30 inds are filtered out...
+
+dim(check_thin100K) # 1058 samples from JUST the groups we're interested in (F0, F1Spawn, F1Juv, F2)
+check_thin100K <- check_thin100K[rownames(check_thin100K) %in% inds_to_keep, ]
+dim(check_thin100K) # 1030 samples remaining.
+
+##### ---- ---- #####
+
+##### ---- sequoia() and GetMaybeRel() ---- #####
 
 errM <- Err_RADseq(E0 = 0.075, E1 = 0.025, Return = 'matrix')
 errM
@@ -171,13 +188,18 @@ seq <- sequoia(GenoM = check_thin100K,
                DummyPrefix = c("F", "M"),
                Tfilter = -2, 
                Tassign = 1.0)
-# ✔ assigned 112 dams and 105 sires to 1058 + 71 individuals (real + dummy) 
+# ✔ assigned 112 dams and 105 sires to 1058 + 71 individuals (real + dummy)
+# ✔ assigned 106 dams and 101 sires to 1030 + 66 individuals (real + dummy) 
+# run two after removing individuals with 20% or more missing data. surprised that
+# that there were fewer assignments, though there are fewer inds i suppose...
+# I hope that this also means that more of these assignments are accurate.
 
-# overlapping gens? going to have to fix this.
+
+# overlapping gens? going to have to fix this. bet that ups the number of assignments.
+# that's obviously the next step.
 
 gmr <- GetMaybeRel(GenoM = check_thin100K,
                    Err = errM,
-                   Pedigree = seq$Pedigree,
                    Module = "ped",
                    Complex = "full",
                    LifeHistData = LH_All,
@@ -193,15 +215,17 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
 # work on generation times and making the ageprior more informative
 # saying you get FS at agedif = 2. ask Jisca? just try some more stuff out first.
 
+
 # could try subsetting to just F0 and F1, seeing if we can extract more relationships,
 # similar to what we were doing with the test set? do pairwise generations?
 
-# per-sample md?
 
-# duplicate check?
+# duplicate check? see the seq objects (nothing to sweat. just some inds that are similar)
+# would expect them to be siblings or something. this is a low div pop.
 
+# per-sample md? DONE
 # 6 indivs scored for < 20 % of snps
 # 2 indivs genotyped for < 5 % of snps
-
+# should be fixed now.
 
 
