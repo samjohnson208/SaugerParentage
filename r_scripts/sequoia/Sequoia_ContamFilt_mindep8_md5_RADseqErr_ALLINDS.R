@@ -198,6 +198,93 @@ seq <- sequoia(GenoM = check_thin100K,
 # overlapping gens? going to have to fix this. bet that ups the number of assignments.
 # that's obviously the next step.
 
+# 10/26/25, trying to mess with age stuff. let's see how we can assign parents with
+# discrete generations on the most recent check_thin100K, which had inds with high md
+# removed from it. dim(check_thin100K) = 1030 943
+seq <- sequoia(GenoM = check_thin100K_10, 
+               LifeHistData = LH_All, 
+               Module = "ped",
+               Err = errM,
+               args.AP=list(Discrete = TRUE),
+               Complex = "full", 
+               Herm = "no", 
+               UseAge = "yes", 
+               StrictGenoCheck = TRUE, 
+               DummyPrefix = c("F", "M"),
+               Tfilter = -2, 
+               Tassign = 1.0)
+# with discrete generations:
+# with module = "par": ✔ assigned 27 dams and 24 sires to 1030 individuals 
+# with module = "ped": ✔ assigned 106 dams and 102 sires to 1030 + 71 individuals (real + dummy) 
+
+# so now we need to start subsampling loci, see if that has an effect...
+# subsample to 90%, 80%, 70%, so on...
+samp_loci_90 <- sample(ncol(check_thin100K), 849)
+check_thin100K_90 <- check_thin100K[, samp_loci_90]
+
+samp_loci_80 <- sample(ncol(check_thin100K), 754)
+check_thin100K_80 <- check_thin100K[, samp_loci_80]
+
+samp_loci_70 <- sample(ncol(check_thin100K), 660)
+check_thin100K_70 <- check_thin100K[, samp_loci_70]
+
+samp_loci_60 <- sample(ncol(check_thin100K), 566)
+check_thin100K_60 <- check_thin100K[, samp_loci_60]
+
+samp_loci_50 <- sample(ncol(check_thin100K), 472)
+check_thin100K_50 <- check_thin100K[, samp_loci_50]
+
+samp_loci_40 <- sample(ncol(check_thin100K), 377)
+check_thin100K_40 <- check_thin100K[, samp_loci_40]
+
+samp_loci_30 <- sample(ncol(check_thin100K), 283)
+check_thin100K_30 <- check_thin100K[, samp_loci_30]
+
+samp_loci_20 <- sample(ncol(check_thin100K), 189)
+check_thin100K_20 <- check_thin100K[, samp_loci_20]
+
+samp_loci_10 <- sample(ncol(check_thin100K), 94)
+check_thin100K_10 <- check_thin100K[, samp_loci_10]
+
+dim(check_thin100K_90)
+dim(check_thin100K_80)
+dim(check_thin100K_70)
+dim(check_thin100K_60)
+dim(check_thin100K_50)
+dim(check_thin100K_40)
+dim(check_thin100K_30)
+dim(check_thin100K_20)
+dim(check_thin100K_10)
+
+# alright, those are set. here are the results for each of those, structured this way:
+
+# seq <- sequoia(GenoM = check_thin100K, 
+#                LifeHistData = LH_All, 
+#                Module = "ped",
+#                Err = errM,
+#                args.AP=list(Discrete = TRUE),
+#                Complex = "full", 
+#                Herm = "no", 
+#                UseAge = "yes", 
+#                StrictGenoCheck = TRUE, 
+#                DummyPrefix = c("F", "M"),
+#                Tfilter = -2, 
+#                Tassign = 1.0)
+
+
+# 90: ✔ assigned 106 dams and 103 sires to 1030 + 72 individuals (real + dummy)
+# 80: ✔ assigned 106 dams and 97 sires to 1030 + 71 individuals (real + dummy) 
+# 70: ✔ assigned 105 dams and 97 sires to 1030 + 69 individuals (real + dummy)
+# 60: ✔ assigned 95 dams and 87 sires to 1030 + 60 individuals (real + dummy) 
+# 50: ✔ assigned 101 dams and 93 sires to 1030 + 66 individuals (real + dummy) 
+# 40: ✔ assigned 95 dams and 87 sires to 1030 + 61 individuals (real + dummy) 
+# 30: ✔ assigned 88 dams and 86 sires to 1030 + 60 individuals (real + dummy) 
+# 20: ✔ assigned 71 dams and 69 sires to 1030 + 51 individuals (real + dummy) 
+# 10: ✔ assigned 44 dams and 44 sires to 1030 + 30 individuals (real + dummy) 
+
+# consistently losing assignments with fewer loci. 
+
+
 gmr <- GetMaybeRel(GenoM = check_thin100K,
                    Err = errM,
                    Module = "ped",
@@ -214,18 +301,19 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
 # notes:
 # work on generation times and making the ageprior more informative
 # saying you get FS at agedif = 2. ask Jisca? just try some more stuff out first.
-
+  # not a huge impact when discrete gens are defined. see what else needs to be done.
 
 # could try subsetting to just F0 and F1, seeing if we can extract more relationships,
 # similar to what we were doing with the test set? do pairwise generations?
+  # could ask jisca her thoughts.
 
 
-# duplicate check? see the seq objects (nothing to sweat. just some inds that are similar)
-# would expect them to be siblings or something. this is a low div pop.
-
+# duplicate check? see the seq objects
+  # (nothing to sweat. just some inds that are similar) would expect them to be siblings or something. this is a low div pop.
+  
+  
 # per-sample md? DONE
-# 6 indivs scored for < 20 % of snps
-# 2 indivs genotyped for < 5 % of snps
-# should be fixed now.
-
+  # 6 indivs scored for < 20 % of snps
+  # 2 indivs genotyped for < 5 % of snps
+  # should be fixed now.
 
