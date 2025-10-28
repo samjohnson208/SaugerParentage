@@ -183,7 +183,7 @@ seq <- sequoia(GenoM = check_thin100K,
                Err = errM,
                Complex = "full", 
                Herm = "no", 
-               UseAge = "yes", 
+               UseAge = "yes",
                StrictGenoCheck = TRUE, 
                DummyPrefix = c("F", "M"),
                Tfilter = -2, 
@@ -294,6 +294,30 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
                    Tfilter = -2,
                    Tassign = 1.0,
                    MaxPairs = 7 * nrow(check_thin1M))
+
+# work 102725: I'm becoming very interested in using the LLRs to my advantage:
+
+# reran today with 
+
+# seq <- sequoia(GenoM = check_thin100K, 
+#                LifeHistData = LH_All, 
+#                Module = "ped", 
+#                Err = errM,
+#                Complex = "full", 
+#                Herm = "no", 
+#                UseAge = "yes",
+#                CalcLLR = TRUE,
+#                StrictGenoCheck = TRUE, 
+#                DummyPrefix = c("F", "M"),
+#                Tfilter = -2, 
+#                Tassign = 1.0)
+
+# ✔ assigned 106 dams and 101 sires to 1030 + 66 individuals (real + dummy) 
+
+# why don't we then take these LLR's and see how they align with those from the
+# test group. Should have an LLR for each. See how those compare for dummy, real
+# inds for each gen/group. (e.g., 15 vs 16 parents, etc.), and just how many got
+# assigned for each.
 
 
 ##### ----- ---- #####
