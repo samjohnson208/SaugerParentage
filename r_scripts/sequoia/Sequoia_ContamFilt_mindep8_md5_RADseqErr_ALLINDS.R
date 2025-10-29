@@ -24,6 +24,10 @@
 # miss95 - each snp needs to have 5% or less missing data
 # and thinned so that there are 100KB between each snp
 
+# work 102825 - think the first step in analyzing the pedigree is to take the LLRs
+# for both duos and trios assigned here, and map it against the dist of those for
+# the test group. first step is to get both genomats in here together. starting here:
+
 ## libraries
 ################################################################################
 
@@ -71,6 +75,7 @@ colnames(mat_thin100K) <- pos100K$position
 
 ##### ---- Adding Additional Data, Filtering by Individuals ---- #### 
 
+# --- LH FOR ALL --- #
 # first i need to add LH data, so that I can filter the GenoM to these indivs.
 LH_All <- read.csv(file = "LH_F0_F1Spawn_F1Juv_F2.csv", header = TRUE)
 # change the F's to 1 and M's to 2, all others are 3's
@@ -79,6 +84,10 @@ LH_All$Sex[LH_All$Sex == "F"] <- 1
 LH_All$Sex <- as.numeric(LH_All$Sex)
 str(LH_All)
 dim(LH_All)
+
+table(LH_All$Sex)
+# Both 15 and 16 F0's
+# 134 males, 129 females
 
 table(LH_All$Sex)
 # Both 15 and 16 F0's
@@ -93,10 +102,40 @@ table(LH_All$BirthYear)
 # note: will's samples excluded, possible hybrids excluded, WF fish excluded
 # THIS IS READY NOW FOR GETMAYBEREL
 
+
+
+# --- LH FOR TEST --- #
+# read in parent offspring (F0 and Test F1 sample id's)
+testsamp <- read.csv(file = "posampleids.csv", header = TRUE) # 210 samples, 114 Parents, 96 Test F1's
+
+# read in lh data for test inds
+LH_Test <- read.csv(file = "testindivs_LH.csv", header = TRUE)
+# alright, what's going on here with the missing individual?
+
+missingind <- testsamp$sample[!testsamp$sample %in% LH_Test$ID]
+# first thing is to check the extractions, readme, and hiphop scripts.
+# i understand 6757 wasn't sequenced, but what's up with 6436. it's on the plate map!
+# 6436 wasn't spawned. guess i didn't catch that when i was prepping for sequencing.
+# test group is for sure 208 individuals. 113 F0 parents, 95 test F1's.
+
+# change the F's to 1 and M's to 2
+LH_Test$Sex[LH_Test$Sex == "M"] <- 2
+LH_Test$Sex[LH_Test$Sex == "F"] <- 1
+LH_Test$Sex <- as.numeric(LH_Test$Sex)
+str(LH_Test)
+table(LH_Test$Sex) # 53 female F0, 60 male F0, 95 unknown sex test F1
+LH_Test$BirthYear[1:95] <- 1
+LH_Test$BirthYear[96:nrow(LH_Test)] <- 0
+# THIS IS READY NOW FOR GETMAYBEREL
+
+
+
+# --- Filtering the mat_thin100K GenoM to include each of the groups of inds --- #
+
 # filter GenoM so it only includes ids from LH_All$ID
 dim(mat_thin100K) # 1184, 943
-mat_thin100K <- mat_thin100K[rownames(mat_thin100K) %in% LH_All$ID, , drop = FALSE]
-dim(mat_thin100K) # 1060 943
+mat_thin100K_all <- mat_thin100K[rownames(mat_thin100K) %in% LH_All$ID, , drop = FALSE]
+dim(mat_thin100K_all) # 1060 943
 dim(LH_All)       # 1077 3
 
 # where did those other 17 inds go?
@@ -126,25 +165,41 @@ missinginds <- LH_All$ID[!LH_All$ID %in% rownames(mat_thin100K)]
 
 # filter out missing inds
 LH_All <- LH_All %>% 
-    filter(ID %in% rownames(mat_thin100K))
-dim(mat_thin100K) # 1060 943
-dim(LH_All)       # 1090 3
+    filter(ID %in% rownames(mat_thin100K_all))
+dim(mat_thin100K_all) # 1060 943
+dim(LH_All)       # 1060 3
 # okay, that's remedied. great.
 
+# filter GenoM so it only includes ids from LH_Test$ID
+dim(mat_thin100K) # 1184, 943
+mat_thin100K_test <- mat_thin100K[rownames(mat_thin100K) %in% LH_Test$ID, , drop = FALSE]
+dim(mat_thin100K_test) # 208 943
+dim(LH_Test)       # 208 3
 
+# so now we're dealing with two pairs of objects: mat_thin100K_all with LH_All
+                                           # and: mat_thin100K_test with LH_Test
+
+dim(mat_thin100K_all)
+dim(LH_All)
+
+dim(mat_thin100K_test)
+dim(LH_Test)
+
+# nice.
 ##### ----- ---- #####
 
 ##### ---- HWE Filtering and Final GenoMat Maintenence ---- #####
 # except no HWE filtering here.
 
+# WORK ON FULL DATASET (mat_thin100K_all)
 # check for all heterozygous sites since those likely will not be informative.
-all_ones_100 <- apply(mat_thin100K, 2, function(col) all(col == 1))
+all_ones_100_all <- apply(mat_thin100K_all, 2, function(col) all(col == 1))
 # remove all het. sites
-mat_thin100K <- mat_thin100K[, !all_ones_100]
+mat_thin100K_all <- mat_thin100K_all[, !all_ones_100_all]
 
-dim(mat_thin100K) # retained all
+dim(mat_thin100K_all) # retained all
 
-check_thin100K <- CheckGeno(mat_thin100K, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
+check_thin100K_all <- CheckGeno(mat_thin100K_all, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
 # ✖ There are 2 individuals scored for <5% of SNPs, these WILL BE IGNORED
 # ✖ In addition, there are 6 individuals scored for <20% of SNPs, it is advised to treat their assignments with caution
 # ℹ After exclusion, There are  1058  individuals and  943  SNPs.
@@ -152,7 +207,15 @@ check_thin100K <- CheckGeno(mat_thin100K, quiet = FALSE, Plot = TRUE, Return = "
 # should consider filtering for per individual md!!!
 # let's just let it fly right now and see what happens. we'll tighten that up later.
 
+# WORK ON TEST DATASET (mat_thin100K_test)
+# check for all heterozygous sites since those likely will not be informative.
+all_ones_100_test <- apply(mat_thin100K_test, 2, function(col) all(col == 1))
+# remove all het. sites
+mat_thin100K_test <- mat_thin100K_test[, !all_ones_100_test]
+dim(mat_thin100K_test) # lost one
 
+check_thin100K_test <- CheckGeno(mat_thin100K_test, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
+# ✔ Genotype matrix looks OK! There are  208  individuals and  942  SNPs.
 ##### ----- ---- #####
 
 ##### ---- Missing Data per Individual ---- #####
@@ -160,17 +223,31 @@ check_thin100K <- CheckGeno(mat_thin100K, quiet = FALSE, Plot = TRUE, Return = "
 # let's remedy that.
 
 miss_per_ind <- read.table(file = "miss_per_indv_rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin100K.imiss", header = TRUE)
-
+dim(miss_per_ind)
 inds_to_keep <- miss_per_ind$INDV[miss_per_ind$F_MISS < 0.2]
 inds_to_keep # individuals who are genotyped for 80% or samples or MORE
 length(inds_to_keep) # 1154
 dim(miss_per_ind) # 1184, means 30 inds are filtered out...
 
-dim(check_thin100K) # 1058 samples from JUST the groups we're interested in (F0, F1Spawn, F1Juv, F2)
-check_thin100K <- check_thin100K[rownames(check_thin100K) %in% inds_to_keep, ]
-dim(check_thin100K) # 1030 samples remaining.
+dim(check_thin100K_all) # 1058 samples from JUST the groups we're interested in (F0, F1Spawn, F1Juv, F2)
+check_thin100K_all <- check_thin100K_all[rownames(check_thin100K_all) %in% inds_to_keep, ]
+dim(check_thin100K_all) # 1030 samples remaining.
+
+dim(check_thin100K_test) # 208 inds
+check_thin100K_test <- check_thin100K_test[rownames(check_thin100K_test) %in% inds_to_keep, ]
+dim(check_thin100K_test) # lost two inds... somehow...
+
+dim(check_thin100K_all) # 1030 inds
+dim(check_thin100K_test) # 206 inds
+
 
 ##### ---- ---- #####
+
+# checking LLRs of the full dataset against those from the test. going into sequoia()
+# and GetMaybeRel() here are what the matrices should look like. correspond to LH_All
+# and LH_Test dataframes. These HAVE been filtered for md per individual.
+dim(check_thin100K_all) # 1030 inds
+dim(check_thin100K_test) # 206 inds
 
 ##### ---- sequoia() and GetMaybeRel() ---- #####
 
@@ -190,7 +267,7 @@ seq <- sequoia(GenoM = check_thin100K,
                Tassign = 1.0)
 # ✔ assigned 112 dams and 105 sires to 1058 + 71 individuals (real + dummy)
 # ✔ assigned 106 dams and 101 sires to 1030 + 66 individuals (real + dummy) 
-# run two after removing individuals with 20% or more missing data. surprised that
+# run two after removing individuals with 20% or more missing data. surprised
 # that there were fewer assignments, though there are fewer inds i suppose...
 # I hope that this also means that more of these assignments are accurate.
 
@@ -318,9 +395,9 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
 # test group. Should have an LLR for each. See how those compare for dummy, real
 # inds for each gen/group. (e.g., 15 vs 16 parents, etc.), and just how many got
 # assigned for each.
-
-
 ##### ----- ---- #####
+
+##### ----- Notes ---- #####
 
 # notes:
 # work on generation times and making the ageprior more informative
