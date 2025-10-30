@@ -440,18 +440,20 @@ seq_test <- sequoia(GenoM = check_thin100K_test,
 # Complex = "simp"
 # Module = "par"
 # ✔ assigned 91 dams and 90 sires to 206 individuals 
+# Module = "ped"
+# ✔ assigned 104 dams and 105 sires to 206 + 13 individuals (real + dummy) 
 
-# not incredibly different, which is nice. goal here is to make comparisons
+# not incredibly different, which is nice. goal here is to make comparisons.
 
 ################################################################################
-# after this, how different is the sequoia test object than the gmr object?
+# after this, how different is the sequoia test object than the gmr object? (for par and simp)
 
 # investigate seq_test object (write code to investigate these objects)
 
 # rerun gmr to get the same output from what we've gotten already
 
 # run the valid_cross pipeline on that gmr object, generate vectors of the LLRs
-  # for valid cross pairs and create a histogram of it.
+  # for valid cross pairs and analyze those
 ################################################################################
 # here's the code from Sequoia_ContamFilt_mindep8_md5_RADseqErr.R (slightly modified)
 # e.g., included the Tfilter = -2 to match the sequoia runs above
@@ -512,7 +514,7 @@ trios_test <- trios_test %>%                                            # here (
 head(trios_test)                                                            # here (1)
 dim(trios_test)                                                             # here (1)
 table(trios_test$valid_cross)                                               # here (1)
-# assign was 79/89 (88.76%), accuracy was 89/95 (93.68%)
+# assign was  89/95 (93.68%), accuracy was 79/89 (88.76%)
 # composite was 83.158 YES!!!
 
 trios_test_checked <- trios_test %>%                                    # here (2)
@@ -538,6 +540,8 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
+# create a dataframe that's pivoted so that we have each parent LLR in a row for 
+# each individual (2 rows per unique offspring)
 trios_test_long <- trios_test_checked %>%
   pivot_longer(cols = c(LLRparent1, LLRparent2),
                names_to = "ParentNum",
@@ -547,14 +551,15 @@ head(trios_test_long)
 
 #################################################################################
 # Stats and Plots for GMR Test
-# Assign: 79/89 (88.76%) Accuracy: 89/95 (93.68%) Composite: 83.158
+# Assign: 89/95 (93.68%) Accuracy: 79/89 (88.76%) Composite: 83.158
 ggplot(trios_test_long, aes(x = valid_cross, y = LLR, fill = valid_cross)) +
   geom_violin(trim = FALSE, alpha = 0.7) +
-  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.3) +
+  geom_boxplot(width = 0.15, outlier.shape = 16, outlier.colour = "black", 
+               outlier.fill = "black", alpha = 0.3) +
   labs(
     x = "Were inferred parents truly crossed?",
     y = "LLR(Parent)",
-    title = "Distribution of Individual Parent LLR Scores (GMR Test Group)"
+    title = "Distribution of Individual Parent LLR Scores (GMR Test Group, Module = Par, Complex = Simp)"
   ) +
   theme_classic() +
   theme(
@@ -564,11 +569,12 @@ ggplot(trios_test_long, aes(x = valid_cross, y = LLR, fill = valid_cross)) +
 
 ggplot(trios_test_checked, aes(x = valid_cross, y = LLRpair, fill = valid_cross)) +
   geom_violin(trim = FALSE, alpha = 0.7) +
-  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.3) +
+  geom_boxplot(width = 0.15, outlier.shape = 16, outlier.colour = "black", 
+                outlier.fill = "black", alpha = 0.3) +
   labs(
     x = "Were inferred parents truly crossed?",
     y = "LLR(Pair)",
-    title = "Distribution of Parent Pair LLR Scores (GMR Test Group)"
+    title = "Distribution of Parent Pair LLR Scores (GMR Test Group, Module = Par, Complex = Simp)"
   ) +
   theme_classic() +
   theme(
@@ -578,22 +584,305 @@ ggplot(trios_test_checked, aes(x = valid_cross, y = LLRpair, fill = valid_cross)
 #################################################################################
 
 # to do next: 
-# validate the crosses from seq_test and plot LLR's. Compare to gmr_test
+# 1. validate the crosses from seq_test and plot LLR's. Compare to gmr_test
 # see module and complex test above. they're not super different. goal here is to
 # get a bunch of assignments for the test group, USING the settings we used for the
-# gmr test, and see if sequoia and GMR are different. 
+# gmr test, and see if sequoia and GMR are different.
 
-# THEN, we want to take the module and complex settings and change them to what
+gmr_trios_test_checked <- trios_test_checked
+# just to make sure that the names are absolutely clear
+
+# > seq_test <- sequoia(GenoM = check_thin100K_test,
+#                       +                    LifeHistData = LH_Test,
+#                       +                    Module = "par",
+#                       +                    Err = errM,
+#                       +                    Complex = "simp",
+#                       +                    Herm = "no",
+#                       +                    UseAge = "yes",
+#                       +                    CalcLLR = TRUE,
+#                       +                    StrictGenoCheck = TRUE,
+#                       +                    DummyPrefix = c("F", "M"),
+#                       +                    Tfilter = -2,
+#                       +                    Tassign = 1.0)
+# ✔ assigned 91 dams and 90 sires to 206 individuals 
+
+# so we've got a few cases here with seq_test
+# ind is assigned to no parents
+# ind is assigned to one dummy parent
+# ind is assigned to two dummy parents
+# ind is assigned to one real parent
+# ind is assigned to one real parent, and one dummy parent
+# ind is assigned to two real parents
+
+
+# first, need to implement valid_cross into this output ^ seq_test
+
+seq_ped_test <- as.data.frame(seq_test[["PedigreePar"]])
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+seq_ped_test <- seq_ped_test %>%                                            # here (2)
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(dam, sire), pmax(dam, sire), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) 
+# recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+length(unique(seq_ped_test$id[grepl("^SAR_15_67", seq_ped_test$id)]))
+# 95. has all 95 test f1's in the table.
+table(seq_ped_test$valid_cross)
+# 78 true. nice.
+table(gmr_test$id)
+
+# need to see if the trios (two real parents) agree with GMR.
+
+colnames(gmr_trios_test_checked)
+colnames(seq_ped_test)
+
+
+# here's a function that takes a df and, for all valid crosses, grabs the distinct trios
+standardize_pairs <- function(df, id_col = "id", pair_col = "pair") {
+  df %>%
+    select(all_of(c(id_col, pair_col, "valid_cross"))) %>%
+    filter(valid_cross == TRUE) %>%
+    distinct() %>%
+    rename(id = all_of(id_col), pair = all_of(pair_col))
+}
+
+# then here are the valid trios for each
+valid_seq <- standardize_pairs(seq_ped_test)
+valid_gmr <- standardize_pairs(gmr_trios_test_checked)
+dim(valid_gmr) # 79 3
+dim(valid_seq) # 78 3
+
+
+# overlap gets you a df that's the valid dfs joined by id AND pair, and the nrow
+# is the number of trios shared between the two methods
+overlap <- inner_join(valid_seq, valid_gmr, by = c("id", "pair"))
+n_overlap <- nrow(overlap) # 78. UNREAL. 
+
+# which trios were unique to each method?
+unique_seq <- anti_join(valid_seq, valid_gmr, by = c("id", "pair"))
+unique_gmr <- anti_join(valid_gmr, valid_seq, by = c("id", "pair"))
+
+# summarize those results. 
+tibble(
+  Method = c("sequoia()", "GetMaybeRel()"),
+  ValidCrosses = c(nrow(valid_seq), nrow(valid_gmr)),
+  UniqueCrosses = c(nrow(unique_seq), nrow(unique_gmr)),
+  SharedCrosses = n_overlap
+)
+# GMR picked out one extra valid trio. pretty good. comparable searching of pedigree
+# space. does it give comparable LLR's for each pair?
+
+seq_llr <- seq_ped_test %>%
+  select(id, pair, valid_cross, LLRpair) %>%
+  mutate(method = "sequoia")
+
+gmr_llr <- gmr_trios_test_checked %>%
+  select(id, pair, valid_cross, LLRpair) %>%
+  mutate(method = "GetMaybeRel")
+
+# combine into one tidy dataframe
+llr_combined <- bind_rows(seq_llr, gmr_llr)
+
+head(llr_combined) # it has so many rows because sequoia() doesn't put a -555 placeholder
+# in for cases where id is an F0, like GetMaybeRel() does. in the gmr_trios_test_checked
+# object, those cases have already been filtered out, but this is not the case for
+# the seq_ped_test object. don't sweat this, since those weird cases don't have
+# an LLR associated with them anyway, they won't affect the plots.
+
+ggplot(llr_combined, aes(x = valid_cross, y = LLRpair, fill = method)) +
+  geom_violin(trim = FALSE, alpha = 0.7, position = position_dodge(width = 0.8)) +
+  geom_boxplot(width = 0.15, outlier.shape = 16, outlier.colour = "black",
+               outlier.fill = "black", alpha = 0.3, position = position_dodge((width = 0.8))) +
+  labs(
+    x = "Were inferred parents truly crossed?",
+    y = "LLR(Parent)",
+    title = "Distribution of Parent Pair LLR Scores sequoia() vs. GetMaybeRel() - Test Group"
+  ) +
+  theme_classic() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 14, face = "bold")
+  )
+
+# CONCLUSIONS: the same crosses (except for 1) are being recovered by gmr and sequoia.
+# the LLRs are also the same, and the pattern for differentiation of T and F valid cross
+# holds true no matter which function you are using. most of the TRUE valid crosses have
+# an LLR pair that is about 18. Most FALSE valid crosses have an LLRpair that's lower, around 11.
+
+# 2. THEN, we want to take the module and complex settings and change them to what
 # we'll use for the whole dataset, see how THAT differs...
 
-# and FINALLY, then take those settings, apply them to the whole dataset, Module = "ped"
+seq_ped_test_CHG <- sequoia(GenoM = check_thin100K_test,
+                            LifeHistData = LH_Test,
+                            Module = "ped",
+                            Err = errM,
+                            Complex = "full",
+                            Herm = "no",
+                            UseAge = "yes",
+                            CalcLLR = TRUE,
+                            StrictGenoCheck = TRUE,
+                            DummyPrefix = c("F", "M"),
+                            Tfilter = -2,
+                            Tassign = 1.0)
+# ✔ assigned 94 dams and 95 sires to 206 + 3 individuals (real + dummy) 
+
+seq_ped_test_CHG <- as.data.frame(seq_ped_test_CHG [["PedigreePar"]])
+
+# read in lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# this is a ridiculously effective set of piped functions here:
+seq_ped_test_CHG <- seq_ped_test_CHG %>%                              # here (2)
+  # create a new column called pair, where the cross is structured the same way
+  # as those in the lookup table. again, we're using pmin and pmax. sorting the
+  # pair entries this way ensures that the cross A_B will be treated the same as
+  # the cross B_A.
+  mutate(pair = paste(pmin(dam, sire), pmax(dam, sire), sep = "_")) %>%
+  
+  left_join(cross_lookup %>% # join the top3 dataframe to the lookup table
+              select(pair) %>% # but ONLY the column cross_lookup$pair
+              distinct() %>% # keeps only unique entries of the known pairs, avoids any repeats
+              mutate(valid_cross = TRUE), # creates a new column called valid_cross, which is either TRUE
+            # or NA, if the pair exists in the lookup table, or if it does not.
+            by = "pair") %>% # actually completes the join, by the shared pair column.
+  # this is the line in which the matching actually occurs. 
+  mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) 
+# recreates that valid_cross column but turns
+# all of the NA's formed by the join into FALSE's
+length(unique(seq_ped_test_CHG$id[grepl("^SAR_15_67", seq_ped_test_CHG$id)]))
+# 95. has all 95 test f1's in the table.
+table(seq_ped_test_CHG$valid_cross)
+# 77 true. nice.
+
+# need to see if the trios (two real parents) agree with seq_ped_test
+
+colnames(seq_ped_test_CHG)
+colnames(seq_ped_test)
+
+
+# here's a function that takes a df and, for all valid crosses, grabs the distinct trios
+standardize_pairs <- function(df, id_col = "id", pair_col = "pair") {
+  df %>%
+    select(all_of(c(id_col, pair_col, "valid_cross"))) %>%
+    filter(valid_cross == TRUE) %>%
+    distinct() %>%
+    rename(id = all_of(id_col), pair = all_of(pair_col))
+}
+
+# then here are the valid trios for each
+valid_seq <- standardize_pairs(seq_ped_test)
+valid_seq_CHG <- standardize_pairs(seq_ped_test_CHG)
+
+# overlap gets you a df that's the valid dfs joined by id AND pair, and the nrow
+# is the number of trios shared between the two methods
+overlap <- inner_join(valid_seq, valid_seq_CHG, by = c("id", "pair"))
+n_overlap <- nrow(overlap) # 77. GREAT.
+
+# which trios were unique to each method?
+unique_seq <- anti_join(valid_seq, valid_seq_CHG, by = c("id", "pair"))
+unique_seq_chg <- anti_join(valid_seq_CHG, valid_seq, by = c("id", "pair"))
+
+# summarize those results. 
+tibble(
+  Method = c("sequoia(par,simp)", "sequoia(ped,full)"),
+  ValidCrosses = c(nrow(valid_seq), nrow(valid_seq_CHG)),
+  UniqueCrosses = c(nrow(unique_seq), nrow(unique_seq_chg)),
+  SharedCrosses = n_overlap
+)
+# par,simp picked out one extra valid trio. pretty good. comparable searching of pedigree
+# space. does it give comparable LLR's for each pair?
+
+seq_llr <- seq_ped_test %>%
+  select(id, pair, valid_cross, LLRpair) %>%
+  mutate(method = "parsimp")
+
+seq_chg_llr <- seq_ped_test_CHG %>%
+  select(id, pair, valid_cross, LLRpair) %>%
+  mutate(method = "pedfull")
+
+# combine into one tidy dataframe
+llr_combined_seq <- bind_rows(seq_llr, seq_chg_llr)
+
+head(llr_combined_seq) # it has so many rows because sequoia() doesn't put a -555 placeholder
+# in for cases where id is an F0, like GetMaybeRel() does. in the gmr_trios_test_checked
+# object, those cases have already been filtered out, but this is not the case for
+# the seq_ped_test object. don't sweat this, since those weird cases don't have
+# an LLR associated with them anyway, they won't affect the plots.
+
+ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
+  geom_violin(trim = FALSE, alpha = 0.7, position = position_dodge(width = 0.8)) +
+  geom_boxplot(width = 0.15, outlier.shape = 16, outlier.colour = "black",
+               outlier.fill = "black", alpha = 0.3, position = position_dodge((width = 0.8))) +
+  labs(
+    x = "Were inferred parents truly crossed?",
+    y = "LLR(Parent)",
+    title = "Distribution of Individual Parent LLR Scores sequoia(test group) parsimp vs. pedfull"
+  ) +
+  theme_classic() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 14, face = "bold")
+  )
+
+# CONCLUSIONS: the same crosses (except for 1) are being recovered by parsimp and pedfull
+# the LLRs are also the same, and the pattern for differentiation of T and F valid cross
+# holds true no matter what the module and breeding system complexity are. most of the 
+# TRUE valid crosses have an LLR pair that is about 17 or 18. Most FALSE valid 
+# crosses have an LLRpair that's lower, around 11.
+
+
+# 3. and FINALLY, then take those settings, apply them to the whole dataset, Module = "ped"
 # and complex = "full", and we want to see how those stack up to what we set for gmr_test,
 # since that's what we know should have made that test situation as realistic as possible.
 # Module = "par" since we know those first order relationships should dominate, and 
-# complex = "simp" since we know that to be a monogamous mating structure. 
+# complex = "simp" since we know that to be a more simple mating structure than will
+# be observed on the actual spawning grounds without human intervention.
 # i.e., here's what scores should look like in an ideal scenario. when we expand
 # to the full set, here's what they look like, but keep in mind we did have to change
-# some of these parameters to accomodate for the different biological situation.
+# some of these parameters to accomodate for the different biological situation,
+# but that shouldn't be a problem, since even when you do that on the test group,
+# it doesn't really change the number of trios that are output, the number of valid
+# crosses that are output, or the distributions of the LLR scores.
+
+#  first step is to run sequoia on the full dataset with those ped and full options.
+
+# input object are as follows
+dim(check_thin100K_all) # 1030 inds
+dim(LH_All) # 1060 inds (have not been filtered for md/ind... does this matter?)
+
+seq_all <- sequoia(GenoM = check_thin100K_all,
+                   LifeHistData = LH_All,
+                   Module = "ped",
+                   Err = errM,
+                   Complex = "full",
+                   Herm = "no",
+                   UseAge = "yes",
+                   CalcLLR = TRUE,
+                   StrictGenoCheck = TRUE,
+                   DummyPrefix = c("F", "M"),
+                   Tfilter = -2,
+                   Tassign = 1.0)
+# ✔ assigned 106 dams and 101 sires to 1030 + 66 individuals (real + dummy)
+
+
+
 
 
 #################################################################################
