@@ -881,7 +881,132 @@ seq_all <- sequoia(GenoM = check_thin100K_all,
                    Tassign = 1.0)
 # ✔ assigned 106 dams and 101 sires to 1030 + 66 individuals (real + dummy)
 
+seq_ped_all <- as.data.frame(seq_all[["PedigreePar"]])
 
+head(seq_ped_all)
+# just realized that this is a problem. i'm not sure why, but there are NO assignments
+# from any F2 fish to any F1 parents. wonder if this is a problem with the ages,
+# so now I'm going to subset to have datasets with all of the combinations and try
+# to run sequoia() on just those. 
+
+# suppose first i should make the LH datasets for each, and then filter the GenoM
+# to include each of those combinations. then use discrete ages for each combination.
+
+inds_all <- read.csv(file = "Inds_F0_F1Spawn_F1Juv_F2.csv", header = TRUE)
+table(inds_all$Group)
+
+# F0 and F1
+  f0_f1_inds <- inds_all %>% 
+      filter(Group %in% c("F0", "F1 - Juvenile", "F1 - Spawning"))
+  # 263 f0, 19 f1 juv, 315 f1 spawning, 597 inds
+  
+  LH_F0_F1 <- LH_All[LH_All$ID %in% f0_f1_inds$ID, , drop = FALSE]
+  dim(LH_F0_F1) # 591 inds (going to have gotten rid of some of those missing fin clip ones)
+  
+  check_thin100K_f0f1 <- check_thin100K_all[rownames(check_thin100K_all) %in% LH_F0_F1$ID, , drop = FALSE]
+  dim(check_thin100K_f0f1) # 576 inds. suppose we've lost some of the ones with high md
+
+  seq_f0_f1 <- sequoia(GenoM = check_thin100K_f0f1,
+                       LifeHistData = LH_F0_F1,
+                       args.AP=list(Discrete = TRUE),
+                       Module = "ped",
+                       Err = errM,
+                       Complex = "full",
+                       Herm = "no",
+                       UseAge = "yes",
+                       CalcLLR = TRUE,
+                       StrictGenoCheck = TRUE,
+                       DummyPrefix = c("F", "M"),
+                       Tfilter = -2,
+                       Tassign = 1.0)
+# ✔ assigned 69 dams and 66 sires to 576 + 37 individuals (real + dummy) 
+
+  
+# F1 and F2
+  f1_f2_inds <- inds_all %>% 
+      filter(Group %in% c("F1 - Juvenile", "F1 - Spawning", "F2"))
+  # 19 f1 juv, 315 f1 spawning, 480 f2, 814 inds
+  
+  LH_F1_F2 <- LH_All[LH_All$ID %in% f1_f2_inds$ID, , drop = FALSE]
+  dim(LH_F1_F2) # 797 inds
+  
+  check_thin100K_f1f2 <- check_thin100K_all[rownames(check_thin100K_all) %in% LH_F1_F2$ID, , drop = FALSE]
+  dim(check_thin100K_f1f2) # 780 inds. suppose we've lost some of the ones with high md
+  
+  seq_f1_f2 <- sequoia(GenoM = check_thin100K_f1f2,
+                       LifeHistData = LH_F1_F2,
+                       args.AP=list(Discrete = TRUE),
+                       Module = "ped",
+                       Err = errM,
+                       Complex = "full",
+                       Herm = "no",
+                       UseAge = "yes",
+                       CalcLLR = TRUE,
+                       StrictGenoCheck = TRUE,
+                       DummyPrefix = c("F", "M"),
+                       Tfilter = -2,
+                       Tassign = 1.0)
+# ✔ assigned 53 dams and 53 sires to 780 + 50 individuals (real + dummy) 
+  
+  
+# F0 and F2
+  f0_f2_inds <- inds_all %>% 
+    filter(Group %in% c("F0", "F2"))
+  # 263 f0, 480 f2, 743 indivs
+  
+  LH_F0_F2 <- LH_All[LH_All$ID %in% f0_f2_inds$ID, , drop = FALSE]
+    dim(LH_F0_F2) # 732 inds
+    
+  check_thin100K_f0f2 <- check_thin100K_all[rownames(check_thin100K_all) %in% LH_F0_F2$ID, , drop = FALSE]
+  dim(check_thin100K_f0f2) #704 inds
+  
+  seq_f0_f2 <- sequoia(GenoM = check_thin100K_f0f2,
+                       LifeHistData = LH_F0_F2,
+                       args.AP=list(Discrete = TRUE, MaxAgeParent = 2),
+                       Module = "ped",
+                       Err = errM,
+                       Complex = "full",
+                       Herm = "no",
+                       UseAge = "yes",
+                       CalcLLR = TRUE,
+                       StrictGenoCheck = TRUE,
+                       DummyPrefix = c("F", "M"),
+                       Tfilter = -2,
+                       Tassign = 1.0)
+# ✔ assigned 61 dams and 61 sires to 704 + 57 individuals (real + dummy)
+# as anticipated, this one did not work out. let's try the whole thing w/ discrete gens.
+# upped maxageparent to 2
+# ✔ assigned 65 dams and 61 sires to 704 + 57 individuals (real + dummy) 
+  
+  
+seq_all <- sequoia(GenoM = check_thin100K_all,
+                   LifeHistData = LH_All,
+                   args.AP=list(Discrete = TRUE),
+                   Module = "ped",
+                   Err = errM,
+                   Complex = "full",
+                   Herm = "no",
+                   UseAge = "yes",
+                   CalcLLR = TRUE,
+                   StrictGenoCheck = TRUE,                     
+                   DummyPrefix = c("F", "M"),
+                   Tfilter = -2,
+                   Tassign = 1.0)
+# ✔ assigned 106 dams and 102 sires to 1030 + 71 individuals (real + dummy) 
+# so many questions here. where are the sibships and grandparents and everything?
+# are the 333 LLR's placeholders for dummy inds?
+# i have MaxAgeParent as 1,1 right now. obviously not biologically meaningful.
+
+
+seq_ped_all <- as.data.frame(seq_all[["Pedigree"]])
+colnames(seq_all)
+
+summary <- SummarySeq(SeqList = seq_all)
+
+# alright, so see the $SibSize data and the plot. There are sibships here. How do
+# we check them from the sequoia output if they aren't stored in the seq_all[["Pedigree"]]?
+
+#
 
 
 
@@ -902,7 +1027,8 @@ seq_all <- sequoia(GenoM = check_thin100K_all,
 
 
 # duplicate check? see the seq objects
-  # (nothing to sweat. just some inds that are similar) would expect them to be siblings or something. this is a low div pop.
+  # (nothing to sweat. just some inds that are similar) would expect them to be 
+  # siblings or something. this is a low div pop.
   
   
 # per-sample md? DONE
