@@ -947,7 +947,8 @@ table(inds_all$Group)
                        Tfilter = -2,
                        Tassign = 1.0)
 # ✔ assigned 53 dams and 53 sires to 780 + 50 individuals (real + dummy) 
-  
+# i cannot believe it. there are some sibships, but not a single f2 is assigned
+# to a REAL f1 parent.
   
 # F0 and F2
   f0_f2_inds <- inds_all %>% 
@@ -1006,7 +1007,7 @@ summary <- SummarySeq(SeqList = seq_all)
 # alright, so see the $SibSize data and the plot. There are sibships here. How do
 # we check them from the sequoia output if they aren't stored in the seq_all[["Pedigree"]]?
 
-#
+# i think the next thing that we'll try here is 
 
 
 
