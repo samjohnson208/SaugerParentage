@@ -712,7 +712,7 @@ ggplot(llr_combined, aes(x = valid_cross, y = LLRpair, fill = method)) +
   labs(
     x = "Were inferred parents truly crossed?",
     y = "LLR(Parent)",
-    title = "Distribution of Parent Pair LLR Scores sequoia() vs. GetMaybeRel() - Test Group"
+    title = "Distribution of Parent Pair LLR Scores sequoia() vs. GetMaybeRel() - Test Group - Module = par, Complex = simp"
   ) +
   theme_classic() +
   theme(
@@ -847,6 +847,14 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
 # TRUE valid crosses have an LLR pair that is about 17 or 18. Most FALSE valid 
 # crosses have an LLRpair that's lower, around 11.
 
+# SUMMARY SO FAR:
+# tests that have been completed so far:
+# individual parent LLR scores for test (parsimp)
+# parent pair LLR scores for test (parsimp)
+# parent pair LLR scores for test sequoia vs gmr
+  # i.e., do the number of relationships or the LLR's depend on the function? no.
+# individual parent LLR's for test using sequoia() par/simp vs ped/full
+  # i.e., do the number of relationships or the LLR's depend on the modules? no.
 
 # 3. and FINALLY, then take those settings, apply them to the whole dataset, Module = "ped"
 # and complex = "full", and we want to see how those stack up to what we set for gmr_test,
@@ -856,7 +864,7 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
 # be observed on the actual spawning grounds without human intervention.
 # i.e., here's what scores should look like in an ideal scenario. when we expand
 # to the full set, here's what they look like, but keep in mind we did have to change
-# some of these parameters to accomodate for the different biological situation,
+# some of these parameters to accommodate for the different biological situation,
 # but that shouldn't be a problem, since even when you do that on the test group,
 # it doesn't really change the number of trios that are output, the number of valid
 # crosses that are output, or the distributions of the LLR scores.
@@ -978,6 +986,7 @@ table(inds_all$Group)
 # as anticipated, this one did not work out. let's try the whole thing w/ discrete gens.
 # upped maxageparent to 2
 # ✔ assigned 65 dams and 61 sires to 704 + 57 individuals (real + dummy) 
+
   
   
 seq_all <- sequoia(GenoM = check_thin100K_all,
