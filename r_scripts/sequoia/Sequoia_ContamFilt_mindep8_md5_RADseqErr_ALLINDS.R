@@ -444,17 +444,25 @@ seq_test <- sequoia(GenoM = check_thin100K_test,
 # ✔ assigned 104 dams and 105 sires to 206 + 13 individuals (real + dummy) 
 
 # not incredibly different, which is nice. goal here is to make comparisons.
+##### ---- ---- #####
+
 
 ################################################################################
 # after this, how different is the sequoia test object than the gmr object? (for par and simp)
 
-# investigate seq_test object (write code to investigate these objects)
+# investigate seq_test object (write code to investigate these seq objects)
 
 # rerun gmr to get the same output from what we've gotten already
 
 # run the valid_cross pipeline on that gmr object, generate vectors of the LLRs
   # for valid cross pairs and analyze those
 ################################################################################
+
+
+
+
+
+##### ---- code to investigate gmr objects ---- #####
 # here's the code from Sequoia_ContamFilt_mindep8_md5_RADseqErr.R (slightly modified)
 # e.g., included the Tfilter = -2 to match the sequoia runs above
 # run gmr
@@ -548,6 +556,11 @@ trios_test_long <- trios_test_checked %>%
                values_to = "LLR"
                )
 head(trios_test_long)
+##### ---- ---- #####
+
+
+
+
 
 #################################################################################
 # Stats and Plots for GMR Test
@@ -583,6 +596,9 @@ ggplot(trios_test_checked, aes(x = valid_cross, y = LLRpair, fill = valid_cross)
   )
 #################################################################################
 
+
+
+#################################################################################
 # to do next: 
 # 1. validate the crosses from seq_test and plot LLR's. Compare to gmr_test
 # see module and complex test above. they're not super different. goal here is to
@@ -725,6 +741,16 @@ ggplot(llr_combined, aes(x = valid_cross, y = LLRpair, fill = method)) +
 # holds true no matter which function you are using. most of the TRUE valid crosses have
 # an LLR pair that is about 18. Most FALSE valid crosses have an LLRpair that's lower, around 11.
 
+#################################################################################
+
+
+
+
+
+
+
+
+#################################################################################
 # 2. THEN, we want to take the module and complex settings and change them to what
 # we'll use for the whole dataset, see how THAT differs...
 
@@ -845,8 +871,16 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
 # the LLRs are also the same, and the pattern for differentiation of T and F valid cross
 # holds true no matter what the module and breeding system complexity are. most of the 
 # TRUE valid crosses have an LLR pair that is about 17 or 18. Most FALSE valid 
-# crosses have an LLRpair that's lower, around 11.
+# crosses have an LLRpair that's lower, around 11. BUT, the distributions overlap quite
+# a bit. the medians are offset, sure, but there is considerable overlap. what happens
+# if you get a pairLLR of 15. is it a true or false positive?
 
+#################################################################################
+
+
+
+
+#################################################################################
 # SUMMARY SO FAR:
 # tests that have been completed so far:
 # individual parent LLR scores for test (parsimp)
@@ -855,6 +889,10 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
   # i.e., do the number of relationships or the LLR's depend on the function? no.
 # individual parent LLR's for test using sequoia() par/simp vs ped/full
   # i.e., do the number of relationships or the LLR's depend on the modules? no.
+#################################################################################
+
+
+
 
 # 3. and FINALLY, then take those settings, apply them to the whole dataset, Module = "ped"
 # and complex = "full", and we want to see how those stack up to what we set for gmr_test,
@@ -943,7 +981,7 @@ table(inds_all$Group)
   
   seq_f1_f2 <- sequoia(GenoM = check_thin100K_f1f2,
                        LifeHistData = LH_F1_F2,
-                       args.AP=list(Discrete = TRUE),
+                       args.AP=list(Discrete = TRUE, MinAgeParent = 1, MaxAgeParent = 1),
                        Module = "ped",
                        Err = errM,
                        Complex = "full",
@@ -957,6 +995,8 @@ table(inds_all$Group)
 # ✔ assigned 53 dams and 53 sires to 780 + 50 individuals (real + dummy) 
 # i cannot believe it. there are some sibships, but not a single f2 is assigned
 # to a REAL f1 parent.
+#
+#
   
 # F0 and F2
   f0_f2_inds <- inds_all %>% 
