@@ -1036,7 +1036,7 @@ table(inds_all$Group)
 
 ##### ---- ---- #####
   
-
+  
 # whole dataset (discrete genrations, pedfull)
 seq_all <- sequoia(GenoM = check_thin100K_all,
                    LifeHistData = LH_All,
@@ -1077,6 +1077,7 @@ summary <- SummarySeq(SeqList = seq_all)
 # gmr on f1_f2, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior
 # gmr on f0_f2, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior
 
+##### ---- gmr on all inds, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior ---- #####
 
 # all inds, with pedigree, with ageprior
 gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
@@ -1163,23 +1164,312 @@ gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
 # not going to mess with this. going to have to subset to pairwise generations and
 # just go from there.
 
+##### ---- ---- #####
 
 
+##### ---- gmr on f0_f1, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior ---- #####
+seq_f0_f1 <- sequoia(GenoM = check_thin100K_f0f1,
+                     LifeHistData = LH_F0_F1,
+                     args.AP=list(Discrete = TRUE),
+                     Module = "ped",
+                     Err = errM,
+                     Complex = "full",
+                     Herm = "no",
+                     UseAge = "yes",
+                     CalcLLR = TRUE,
+                     StrictGenoCheck = TRUE,
+                     DummyPrefix = c("F", "M"),
+                     Tfilter = -2,
+                     Tassign = 1.0)
+# ✔ assigned 69 dams and 66 sires to 576 + 37 individuals (real + dummy) 
+
+# gmr_f0_f1 with pedigree, with ageprior
+gmr_f0_f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
+                         SeqList = seq_f0_f1,
+                         AgePrior = seq_f0_f1[["AgePriors"]],
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F0_F1,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f1) * nrow(check_thin100K_f0f1))
+# (note that i increased the number of pairs that it'll allow)
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ℹ using Pedigree in SeqList
+# ℹ using LifeHist in SeqList
+# ℹ using AgePriors in SeqList
+# ✔ Genotype matrix looks OK! There are  576  individuals and  943  SNPs.
+# ℹ Conditioning on pedigree with 613 individuals, 69 dams and 66 sires
+# ℹ settings in SeqList$Specs will overrule input parameters
+# Transferring input pedigree ...
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 4 likely parent-offspring pairs, and 362, other non-assigned pairs of possible relatives
+
+# gmr_f0_f1 with pedigree, without ageprior
+
+# gmr_f0_f1 without pedigree, with ageprior
+gmr_f0_f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
+                         AgePrior = seq_f0_f1[["AgePriors"]],
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F0_F1,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f1) * nrow(check_thin100K_f0f1))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  576  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 64 likely parent-offspring pairs, and 434, other non-assigned pairs of possible relatives
+# ✔ Found 14 parent-parent-offspring trios
+# huh. cool.
+
+# gmr_f0_f1 without pedigree, without ageprior
+gmr_f0_f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F0_F1,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f1) * nrow(check_thin100K_f0f1))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  576  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# ℹ Ageprior: Flat 0/1, overlapping generations, MaxAgeParent = 2,2
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 33 likely parent-offspring pairs, and 499, other non-assigned pairs of possible relatives
+# ✔ Found 13 parent-parent-offspring trios
+# got some in here that are FS with agedif = 1. problem. looks like using the ageprior without
+# the pedigree gives you a lot more assignments.
+##### ---- ---- #####
 
 
+##### ---- gmr on f1_f2, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior ---- #####
+seq_f1_f2 <- sequoia(GenoM = check_thin100K_f1f2,
+                     LifeHistData = LH_F1_F2,
+                     args.AP=list(Discrete = TRUE),
+                     Module = "ped",
+                     Err = errM,
+                     Complex = "full",
+                     Herm = "no",
+                     UseAge = "yes",
+                     CalcLLR = TRUE,
+                     StrictGenoCheck = TRUE,
+                     DummyPrefix = c("F", "M"),
+                     Tfilter = -2,
+                     Tassign = 1.0)
+# ✔ assigned 53 dams and 53 sires to 780 + 50 individuals (real + dummy)
+
+# gmr_f1_f2 with pedigree, with ageprior
+gmr_f1_f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
+                         SeqList = seq_f1_f2,
+                         AgePrior = seq_f1_f2[["AgePriors"]],
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F1_F2,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f1f2) * nrow(check_thin100K_f1f2))
+# (note that i increased the number of pairs that it'll allow)
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ℹ using Pedigree in SeqList
+# ℹ using LifeHist in SeqList
+# ℹ using AgePriors in SeqList
+# ✔ Genotype matrix looks OK! There are  780  individuals and  943  SNPs.
+# ℹ Conditioning on pedigree with 830 individuals, 53 dams and 53 sires
+# ℹ settings in SeqList$Specs will overrule input parameters
+# Transferring input pedigree ...
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 43 likely parent-offspring pairs, and 582, other non-assigned pairs of possible relatives
+# ✔ Found 1 parent-parent-offspring trios
+
+# gmr_f1_f2 with pedigree, without ageprior
+
+# gmr_f1_f2 without pedigree, with ageprior
+gmr_f1_f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
+                         AgePrior = seq_f1_f2[["AgePriors"]],
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F1_F2,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f1f2) * nrow(check_thin100K_f1f2))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  780  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 44 likely parent-offspring pairs, and 630, other non-assigned pairs of possible relatives
+# ✔ Found 1 parent-parent-offspring trios
 
 
+# gmr_f1_f2 without pedigree, without ageprior
+gmr_f1_f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F1_F2,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f1) * nrow(check_thin100K_f0f1))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  780  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# ℹ Ageprior: Flat 0/1, overlapping generations, MaxAgeParent = 2,2
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 35 likely parent-offspring pairs, and 718, other non-assigned pairs of possible relatives
+# ✔ Found 1 parent-parent-offspring trios
 
 
+# problem with these situations where you use neither is that the ageprior is no longer
+# informative and you can have maxageparent set up as for you as something that it shouldn't be.
+##### ---- ---- #####
 
 
+##### ---- gmr on f0_f2, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior ---- #####
+seq_f0_f2 <- sequoia(GenoM = check_thin100K_f0f2,
+                     LifeHistData = LH_F0_F2,
+                     args.AP=list(Discrete = TRUE, MaxAgeParent = 2),
+                     Module = "ped",
+                     Err = errM,
+                     Complex = "full",
+                     Herm = "no",
+                     UseAge = "yes",
+                     CalcLLR = TRUE,
+                     StrictGenoCheck = TRUE,
+                     DummyPrefix = c("F", "M"),
+                     Tfilter = -2,
+                     Tassign = 1.0)
+# ✔ assigned 65 dams and 61 sires to 704 + 57 individuals (real + dummy)  
 
 
+# gmr_f0_f2 with pedigree, with ageprior
+gmr_f0_f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
+                         SeqList = seq_f0_f2,
+                         AgePrior = seq_f0_f2[["AgePriors"]],
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F0_F2,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f2) * nrow(check_thin100K_f0f2))
+# (note that i increased the number of pairs that it'll allow)
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ℹ using Pedigree in SeqList
+# ℹ using LifeHist in SeqList
+# ℹ using AgePriors in SeqList
+# ✔ Genotype matrix looks OK! There are  704  individuals and  943  SNPs.
+# ℹ Conditioning on pedigree with 761 individuals, 61 dams and 61 sires
+# ℹ settings in SeqList$Specs will overrule input parameters
+# Transferring input pedigree ...
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   ✔ Found 0 likely parent-offspring pairs, and 531, other non-assigned pairs of possible relatives
+# hm....
+
+# gmr_f0_f2 with pedigree, without ageprior
+
+# gmr_f0_f2 without pedigree, with ageprior
+gmr_f0_f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
+                         AgePrior = seq_f0_f2[["AgePriors"]],
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F0_F2,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f2) * nrow(check_thin100K_f0f2))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  704  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   ✔ Found 0 likely parent-offspring pairs, and 546, other non-assigned pairs of possible relatives
 
 
-
+# gmr_f0_f2 without pedigree, without ageprior
+gmr_f0_f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
+                         Err = errM,
+                         Module = "ped",
+                         Complex = "full",
+                         LifeHistData = LH_F0_F2,
+                         quiet = FALSE,
+                         Tfilter = -2,
+                         Tassign = 1.0,
+                         MaxPairs = nrow(check_thin100K_f0f2) * nrow(check_thin100K_f0f2))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  704  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# ℹ Ageprior: Flat 0/1, overlapping generations, MaxAgeParent = 3,3
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ****************************************
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 5 likely parent-offspring pairs, and 615, other non-assigned pairs of possible relatives
 
 ##### ---- ---- #####
+
+
+# alright, so we need to understand why we're getting these other relationships with GMR
+# is it to supplement? what is the point of using both? it's not like they're returning
+# the same relationships in the full datasets between the functions, as they are doing 
+# in the test group. is it to supplement the pedigree? how much do the relationships
+# overlap across outputs?
+
+# then how can we validate using LLR, given what we found with the test group? given
+# the overlap in those distributions of the T/F valid_cross?
+
 #################################################################################
 
 
