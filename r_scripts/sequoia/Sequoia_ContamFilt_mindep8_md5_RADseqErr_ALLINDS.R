@@ -370,7 +370,7 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
                    quiet = TRUE,
                    Tfilter = -2,
                    Tassign = 1.0,
-                   MaxPairs = 7 * nrow(check_thin1M))
+                   MaxPairs = 7 * nrow(check_thin100K))
 
 # work 102725: I'm becoming very interested in using the LLRs to my advantage:
 
@@ -450,10 +450,8 @@ seq_test <- sequoia(GenoM = check_thin100K_test,
 ################################################################################
 # after this, how different is the sequoia test object than the gmr object? (for par and simp)
 
+# run them both
 # investigate seq_test object (write code to investigate these seq objects)
-
-# rerun gmr to get the same output from what we've gotten already
-
 # run the valid_cross pipeline on that gmr object, generate vectors of the LLRs
   # for valid cross pairs and analyze those
 ################################################################################
@@ -462,7 +460,7 @@ seq_test <- sequoia(GenoM = check_thin100K_test,
 
 
 
-##### ---- code to investigate gmr objects ---- #####
+##### ---- here's the existing code to investigate/validate crosses from gmr objects ---- #####
 # here's the code from Sequoia_ContamFilt_mindep8_md5_RADseqErr.R (slightly modified)
 # e.g., included the Tfilter = -2 to match the sequoia runs above
 # run gmr
@@ -562,7 +560,7 @@ head(trios_test_long)
 
 
 
-#################################################################################
+######### Can we differentiate assignments in GMR using the LLR's? #############
 # Stats and Plots for GMR Test
 # Assign: 89/95 (93.68%) Accuracy: 79/89 (88.76%) Composite: 83.158
 ggplot(trios_test_long, aes(x = valid_cross, y = LLR, fill = valid_cross)) +
@@ -594,11 +592,17 @@ ggplot(trios_test_checked, aes(x = valid_cross, y = LLRpair, fill = valid_cross)
     legend.position = "none",
     plot.title = element_text(size = 14, face = "bold")
   )
+##### ---- ---- #####
+
+
+
+
+
 #################################################################################
+# To expand to the whole dataset, we need to know if/how the two functions differ
+# in either their number of assignments and their calculations of the LLR's...
 
-
-
-#################################################################################
+############ 1. Do n assignments or LLR's differ among functions? ###############
 # to do next: 
 # 1. validate the crosses from seq_test and plot LLR's. Compare to gmr_test
 # see module and complex test above. they're not super different. goal here is to
@@ -741,16 +745,12 @@ ggplot(llr_combined, aes(x = valid_cross, y = LLRpair, fill = method)) +
 # holds true no matter which function you are using. most of the TRUE valid crosses have
 # an LLR pair that is about 18. Most FALSE valid crosses have an LLRpair that's lower, around 11.
 
-#################################################################################
+##### ---- ---- #####
 
 
 
 
-
-
-
-
-#################################################################################
+############ 2. Does this change when we mess with the module or complex arguments? ###############
 # 2. THEN, we want to take the module and complex settings and change them to what
 # we'll use for the whole dataset, see how THAT differs...
 
@@ -875,24 +875,25 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
 # a bit. the medians are offset, sure, but there is considerable overlap. what happens
 # if you get a pairLLR of 15. is it a true or false positive?
 
-#################################################################################
+##### ---- ---- #####
 
 
 
-
-#################################################################################
 # SUMMARY SO FAR:
 # tests that have been completed so far:
 # individual parent LLR scores for test (parsimp)
 # parent pair LLR scores for test (parsimp)
-# parent pair LLR scores for test sequoia vs gmr
+
+# parent pair LLR scores for test sequoia vs gmr (parsimp)
   # i.e., do the number of relationships or the LLR's depend on the function? no.
+
 # individual parent LLR's for test using sequoia() par/simp vs ped/full
   # i.e., do the number of relationships or the LLR's depend on the modules? no.
-#################################################################################
 
 
 
+############# 3. Since we know function and arguments don't matter for the test,
+# what happens when we expand to the whole dataset? #############
 
 # 3. and FINALLY, then take those settings, apply them to the whole dataset, Module = "ped"
 # and complex = "full", and we want to see how those stack up to what we set for gmr_test,
@@ -913,6 +914,7 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
 dim(check_thin100K_all) # 1030 inds
 dim(LH_All) # 1060 inds (have not been filtered for md/ind... does this matter?)
 
+# here's the whole dataset (overlapping generations, pedfull)
 seq_all <- sequoia(GenoM = check_thin100K_all,
                    LifeHistData = LH_All,
                    Module = "ped",
@@ -935,6 +937,11 @@ head(seq_ped_all)
 # so now I'm going to subset to have datasets with all of the combinations and try
 # to run sequoia() on just those. 
 
+
+
+
+
+##### ---- sequoia() on pairwise discrete generations ---- #####
 # suppose first i should make the LH datasets for each, and then filter the GenoM
 # to include each of those combinations. then use discrete ages for each combination.
 
@@ -1027,8 +1034,10 @@ table(inds_all$Group)
 # upped maxageparent to 2
 # ✔ assigned 65 dams and 61 sires to 704 + 57 individuals (real + dummy) 
 
+##### ---- ---- #####
   
-  
+
+# whole dataset (discrete genrations, pedfull)
 seq_all <- sequoia(GenoM = check_thin100K_all,
                    LifeHistData = LH_All,
                    args.AP=list(Discrete = TRUE),
@@ -1053,15 +1062,127 @@ colnames(seq_all)
 
 summary <- SummarySeq(SeqList = seq_all)
 
-# alright, so see the $SibSize data and the plot. There are sibships here. How do
+# alright, so see the $SibSize data and the plots. There are sibships here. How do
 # we check them from the sequoia output if they aren't stored in the seq_all[["Pedigree"]]?
+# pretty sure to do that we need to run gmr, conditional on those pedigrees.
 
-# i think the next thing that we'll try here is 
+# but first, i want to run gmr on those pairwise gens. see if it picks out PO
+# duos/trios JUST from the genetic data, since we know that should work
 
 
+##### ---- GetMaybeRel() on pairwise gens, w/ and w/o pedigree/ageprior inp ---- #####
+
+# to run: gmr on all inds, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior
+# gmr on f0_f1, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior
+# gmr on f1_f2, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior
+# gmr on f0_f2, w/ and w/o pedigree input, w/ LH, w/ and w/o AgePrior
+
+
+# all inds, with pedigree, with ageprior
+gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
+                       SeqList = seq_all,
+                       AgePrior = seq_all[["AgePriors"]],
+                       Err = errM,
+                       Module = "ped",
+                       Complex = "full",
+                       LifeHistData = LH_All,
+                       quiet = FALSE,
+                       Tfilter = -2,
+                       Tassign = 1.0,
+                       MaxPairs = 7 * nrow(check_thin100K_all))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ℹ using Pedigree in SeqList
+# ℹ using LifeHist in SeqList
+# ℹ using AgePriors in SeqList
+# ✔ Genotype matrix looks OK! There are  1030  individuals and  943  SNPs.
+# ℹ Conditioning on pedigree with 1101 individuals, 106 dams and 102 sires
+# ℹ settings in SeqList$Specs will overrule input parameters
+# Transferring input pedigree ...
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ************************WARNING - reached max for maybe-rel, truncated!
+#   
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 29 likely parent-offspring pairs, and 768, other non-assigned pairs of possible relatives
+
+
+# all inds, with pedigree, without ageprior
+gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
+                       SeqList = seq_all,
+                       Err = errM,
+                       Module = "ped",
+                       Complex = "full",
+                       LifeHistData = LH_All,
+                       quiet = FALSE,
+                       Tfilter = -2,
+                       Tassign = 1.0,
+                       MaxPairs = 7 * nrow(check_thin100K_all))
+# this code just pulls the ageprior from seq_all, so this option won't work unless
+# we pull the pedigree from a separately created dataframe. not going to mess w
+# that right now.
+
+# all inds, without pedigree, with ageprior
+gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
+                       AgePrior = seq_all[["AgePriors"]],
+                       Err = errM,
+                       Module = "ped",
+                       Complex = "full",
+                       LifeHistData = LH_All,
+                       quiet = FALSE,
+                       Tfilter = -2,
+                       Tassign = 1.0,
+                       MaxPairs = 7 * nrow(check_thin100K_all))
+# ℹ Searching for non-assigned relative pairs ... (Module = ped)
+# ✔ Genotype matrix looks OK! There are  1030  individuals and  943  SNPs.
+# ℹ Not conditioning on any pedigree
+# Counting opposing homozygous loci between all individuals ...
+# Checking for non-assigned relatives ...
+# 0   10  20  30  40  50  60  70  80  90  100% 
+# |   |   |   |   |   |   |   |   |   |   |
+#   ***********************WARNING - reached max for maybe-rel, truncated!
+#   
+#   Checking for Parent-Parent-Offspring trios ...
+# ✔ Found 89 likely parent-offspring pairs, and 798, other non-assigned pairs of possible relatives
+# ✔ Found 14 parent-parent-offspring trios
+
+# did this again. i mean, that's 1060900 pairs.
+
+# all inds, without pedigree, without ageprior
+gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
+                       AgePrior = seq_all[["AgePriors"]],
+                       Err = errM,
+                       Module = "ped",
+                       Complex = "full",
+                       LifeHistData = LH_All,
+                       quiet = FALSE,
+                       Tfilter = -2,
+                       Tassign = 1.0,
+                       MaxPairs = 7 * nrow(check_thin100K_all))
+# not going to mess with this. going to have to subset to pairwise generations and
+# just go from there.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##### ---- ---- #####
 #################################################################################
 
-##### ----- ---- #####
+
 
 ##### ----- Notes ---- #####
 
