@@ -28,6 +28,10 @@
 # for both duos and trios assigned here, and map it against the dist of those for
 # the test group. first step is to get both genomats in here together. starting here:
 
+# NOTE: AS OF 111125, ALL OF THIS WORK SO FAR HAS BEEN DONE ON VERSION 3.0.3
+# STARTING 111125, I AM INVESTIGATING THE NEWLY RELEASED 3.1.2 WHICH SHOULD HELP
+# ACCORDING TO JISCA
+
 ## libraries
 ################################################################################
 
@@ -560,7 +564,7 @@ head(trios_test_long)
 
 
 
-######### Can we differentiate assignments in GMR using the LLR's? #############
+######### Can we differentiate true/false assignments in gmr using the LLR's? #############
 # Stats and Plots for GMR Test
 # Assign: 89/95 (93.68%) Accuracy: 79/89 (88.76%) Composite: 83.158
 ggplot(trios_test_long, aes(x = valid_cross, y = LLR, fill = valid_cross)) +
@@ -1468,10 +1472,23 @@ gmr_f0_f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
 # overlap across outputs?
 
 # then how can we validate using LLR, given what we found with the test group? given
-# the overlap in those distributions of the T/F valid_cross?
+# the overlap in those distributions of the T/F valid_cross?s
 
 #################################################################################
 
+# work 111125: jisca says we should give the newest version a shot. 3.1.2. install
+# sequoia_3.1.2.tar.gz. fixed a few bugs there. also see the new LL2Probs function
+# she says interpreting the LLRs is not really straightforward/intuitive.
+
+# here's where i'm going to start that:
+save.image("~/Desktop/sequoia_workspace_111125.RData")
+.rs.restartR()
+load("~/Desktop/sequoia_workspace_111125.RData")
+install.packages("~/Documents/sequoia_3.1.2.tar.gz",
+                 repos = NULL,
+                 type = "source")
+library(sequoia)
+packageVersion("sequoia")
 
 
 ##### ----- Notes ---- #####
