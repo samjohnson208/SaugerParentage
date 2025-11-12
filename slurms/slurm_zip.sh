@@ -11,7 +11,9 @@
 #SBATCH --account=ysctrout
 #SBATCH --time=1-00:00:00
 #SBATCH --mem=10G
+#SBATCH --mail-type=ALL
 
+gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq
+gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugOdds.fastq
 
-gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1Saug*.fastq
 

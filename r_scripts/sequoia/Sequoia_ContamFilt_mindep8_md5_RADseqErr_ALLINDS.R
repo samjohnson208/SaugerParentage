@@ -1484,11 +1484,129 @@ gmr_f0_f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
 save.image("~/Desktop/sequoia_workspace_111125.RData")
 .rs.restartR()
 load("~/Desktop/sequoia_workspace_111125.RData")
-install.packages("~/Documents/sequoia_3.1.2.tar.gz",
-                 repos = NULL,
-                 type = "source")
+install.packages(
+  "~/Documents/Sauger_102325/sequoia_versions/sequoia_3.1.2.tar.gz",
+  repos = NULL,
+  type = "source",
+  INSTALL_opts = "--no-multiarch --no-byte-compile"
+)
 library(sequoia)
 packageVersion("sequoia")
+# what a mess that was. redownloading and installing fortran compilers... don't
+# really know how that worked. but i suppose it did. 
+
+# alright, this just didn't work at all. trying to now resort to the regular cran
+# version, which is 3.0.3 at this point.
+
+install.packages("remotes")
+remotes::install_github("JiscaH/sequoia", type = "source", dependencies = TRUE)
+
+# now we explore the radseq error matrix on this new version.
+##### ---- RADseq Error Matrix Exploration ---- #####
+
+# create vectors of e0 and e1 values
+e0_vals <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+e1_vals <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5)
+
+# create empty dfs to display
+assign_rate_mat <- matrix(NA, nrow = length(e1_vals), ncol = length(e0_vals),
+                          dimnames = list(paste0("e1_", e1_vals),
+                                          paste0("e0_", e0_vals)))
+acc_rate_mat <- assign_rate_mat  # same structure
+
+# total number of offspring
+n_offspring <- 95
+
+# read in cross lookup table
+cross_lookup <- read.csv(file = "true_cross_lookup.csv", header = TRUE)
+cross_lookup <- cross_lookup[,-1]
+
+# nested loop for all combinations:
+for (i in seq_along(e1_vals)) {
+  for (j in seq_along(e0_vals)) {
+    
+    e1_val <- e1_vals[i]
+    e0_val <- e0_vals[j]
+    
+    # print text to display each combination, track progress
+    cat("Running GetMaybeRel for E0 =", e0_val, "and E1 =", e1_val, "\n")
+    
+    # create the error matrix for that combination
+    errM <- Err_RADseq(E0 = e0_val, E1 = e1_val, Return = 'matrix')
+    
+    # run gmr (change dataset here only! how great is that?!)
+    gmr <- GetMaybeRel(GenoM = check_thin100K_test,
+                       Err = errM,
+                       Module = "par",
+                       Complex = "simp",
+                       LifeHistData = LH_Test,
+                       quiet = TRUE,
+                       Tassign = 1.0,
+                       MaxPairs = 7 * nrow(check_thin100K_test))
+    
+    # if there are no trios found, place 0 in that place for assign, NA for accuracy
+    if (is.null(gmr[["MaybeTrio"]]) || nrow(gmr[["MaybeTrio"]]) == 0) {
+      cat("   No trios found for this combination. Skipping...\n")
+      assign_rate_mat[i, j] <- 0
+      acc_rate_mat[i, j] <- NA
+      next
+    }
+    
+    # how many unique test f1's were assigned to parents?
+    assigned_ids <- unique(gmr[["MaybeTrio"]]$id[grepl("^SAR_15_67", gmr[["MaybeTrio"]]$id)])
+    n_assigned <- length(assigned_ids) # define it as an object
+    
+    # use that object to calculate assignment rate
+    assign_rate <- (n_assigned / n_offspring) * 100 
+    
+    # make trios an object, create the pair entry, check it against the lookup...
+    trios <- gmr[["MaybeTrio"]] %>%
+      mutate(pair = paste(pmin(parent1, parent2), pmax(parent1, parent2), sep = "_")) %>%
+      left_join(cross_lookup %>%
+                  select(pair) %>%
+                  distinct() %>%
+                  mutate(valid_cross = TRUE),
+                by = "pair") %>%
+      mutate(valid_cross = ifelse(is.na(valid_cross), FALSE, valid_cross)) %>%
+      # ...and filter out any placeholders. 
+      filter(!LLRparent1 %in% c(555, -555),
+             !LLRparent2 %in% c(555, -555),
+             !LLRpair    %in% c(555, -555))
+    
+    # if we have assigned individuals, grab the number of valid crosses and calculate
+    # the accuracy rate by dividing it by the number of unique test f1's that got assigned
+    if (n_assigned > 0) {
+      valid_ids <- unique(trios$id[trios$valid_cross])
+      n_valid <- length(valid_ids)
+      acc_rate <- (n_valid / n_assigned) * 100
+    } else {
+      acc_rate <- NA
+    }
+    
+    # place those values in the correct cell of each summary table.
+    assign_rate_mat[i, j] <- assign_rate
+    acc_rate_mat[i, j] <- acc_rate
+  }
+}
+
+
+# print results, round to three decimal places
+cat("\nAssignment rate matrix (%):\n")
+print(round(assign_rate_mat, 3))
+
+cat("\nAccuracy rate matrix (%):\n")
+print(round(acc_rate_mat, 3))
+
+# create composite score matrix
+composite_mat <- (assign_rate_mat * acc_rate_mat) / 100
+
+# use the same row and column names as the other two result tables
+dimnames(composite_mat) <- dimnames(assign_rate_mat)
+
+# print results, round to three decimal places
+cat("\nComposite score matrix (%):\n")
+print(round(composite_mat, 3))
+
 
 
 ##### ----- Notes ---- #####
@@ -1513,3 +1631,7 @@ packageVersion("sequoia")
   # 2 indivs genotyped for < 5 % of snps
   # should be fixed now.
 
+
+
+
+remotes::install_github("JiscaH/sequoia", type = "source", dependencies = TRUE)
