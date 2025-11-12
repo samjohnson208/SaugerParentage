@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
 #SBATCH --time=1-00:00:00
-#SBATCH --mem=10G
+#SBATCH --mem=64G
 #SBATCH --mail-type=ALL
 
 gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1SaugEvens.fastq
