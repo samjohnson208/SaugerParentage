@@ -10,8 +10,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --account=ysctrout
 #SBATCH --time=1-00:00:00
-#SBATCH --mem=1G
+#SBATCH --mem=10G
 
 
-gunzip /project/ysctrout/hatchsauger/1Saug/rawreads/1Saug*.fastq.gz
+gzip /project/ysctrout/hatchsauger/1Saug/rawreads/1Saug*.fastq
 
