@@ -441,6 +441,7 @@ seq_test <- sequoia(GenoM = check_thin100K_test,
                    DummyPrefix = c("F", "M"),
                    Tfilter = -2,
                    Tassign = 1.0)
+
 # Complex = full for both modules
 # Module = "ped"
 # ✔ assigned 94 dams and 95 sires to 206 + 3 individuals (real + dummy)
@@ -622,18 +623,18 @@ ggplot(trios_test_checked, aes(x = valid_cross, y = LLRpair, fill = valid_cross)
 gmr_trios_test_checked <- trios_test_checked
 # just to make sure that the names are absolutely clear
 
-# > seq_test <- sequoia(GenoM = check_thin100K_test,
-#                       +                    LifeHistData = LH_Test,
-#                       +                    Module = "par",
-#                       +                    Err = errM,
-#                       +                    Complex = "simp",
-#                       +                    Herm = "no",
-#                       +                    UseAge = "yes",
-#                       +                    CalcLLR = TRUE,
-#                       +                    StrictGenoCheck = TRUE,
-#                       +                    DummyPrefix = c("F", "M"),
-#                       +                    Tfilter = -2,
-#                       +                    Tassign = 1.0)
+seq_test <- sequoia(GenoM = check_thin100K_test,
+                    LifeHistData = LH_Test,
+                    Module = "par",
+                    Err = errM,
+                    Complex = "simp",
+                    Herm = "no",
+                    UseAge = "yes",
+                    CalcLLR = TRUE,
+                    StrictGenoCheck = TRUE,
+                    DummyPrefix = c("F", "M"),
+                    Tfilter = -2,
+                    Tassign = 1.0)
 # ✔ assigned 91 dams and 90 sires to 206 individuals 
 
 # so we've got a few cases here with seq_test
@@ -950,6 +951,7 @@ head(seq_ped_all)
 
 
 
+
 ##### ---- sequoia() on pairwise discrete generations ---- #####
 # suppose first i should make the LH datasets for each, and then filter the GenoM
 # to include each of those combinations. then use discrete ages for each combination.
@@ -1045,7 +1047,7 @@ table(inds_all$Group)
 
 ##### ---- ---- #####
   
-  
+##### ---- sequoia() on the whole dataset --- #####
 # whole dataset (discrete genrations, pedfull)
 seq_all <- sequoia(GenoM = check_thin100K_all,
                    LifeHistData = LH_All,
@@ -1078,6 +1080,7 @@ summary <- SummarySeq(SeqList = seq_all)
 # but first, i want to run gmr on those pairwise gens. see if it picks out PO
 # duos/trios JUST from the genetic data, since we know that should work
 
+##### ---- ---- ##### 
 
 ##### ---- GetMaybeRel() on pairwise gens, w/ and w/o pedigree/ageprior inp ---- #####
 
@@ -1485,26 +1488,13 @@ gmr_f0_f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
 # sequoia_3.1.2.tar.gz. fixed a few bugs there. also see the new LL2Probs function
 # she says interpreting the LLRs is not really straightforward/intuitive.
 
-# here's where i'm going to start that:
-save.image("~/Desktop/sequoia_workspace_111125.RData")
-.rs.restartR()
-load("~/Desktop/sequoia_workspace_111125.RData")
-install.packages(
-  "~/Documents/Sauger_102325/sequoia_versions/sequoia_3.1.2.tar.gz",
-  repos = NULL,
-  type = "source",
-  INSTALL_opts = "--no-multiarch --no-byte-compile"
-)
-library(sequoia)
-packageVersion("sequoia")
-# what a mess that was. redownloading and installing fortran compilers... don't
-# really know how that worked. but i suppose it did. 
 
-# alright, this just didn't work at all. trying to now resort to the regular cran
-# version, which is 3.0.3 at this point.
-
-install.packages("remotes")
-remotes::install_github("JiscaH/sequoia", type = "source", dependencies = TRUE)
+# work 112425: hey that didn't work at all. binaries are now on cran. 
+# got 3.1.3 downloaded and installed. things to do are to check out the 3 scores
+# (assignment, accuracy, composite) on the test group and see what error matrix
+# performs best. then we look at the assignments for valid cross true and false
+# for the tests and we do LLtoProb on those. THEN we go back and expand to the 
+# rest of the dataset and see what those probabilities look like!!!
 
 # now we explore the radseq error matrix on this new version.
 ##### ---- RADseq Error Matrix Exploration ---- #####
@@ -1612,6 +1602,66 @@ dimnames(composite_mat) <- dimnames(assign_rate_mat)
 cat("\nComposite score matrix (%):\n")
 print(round(composite_mat, 3))
 
+# alright, looks like those same pattens hold. the same error params maximize the
+# composite score in the test group, that's E0 = 0.075 and E1 = 0.025
+# errM <- Err_RADseq(E0 = 0.075, E1 = 0.025, Return = 'matrix')
+
+##### ---- ---- #####
+
+# work 112425: restored plots and refreshed knowledge on everything i've done already
+# looks like this: we've got these overlapping dists of parent LLRs and pair LLRs
+# for valid cross T/F for gmr, sequoia, and for both regardless of what arguments
+# are used module = par/ped; complex = simp/full. so the LLRs don't tell us anything
+# we asked jisca: i get the same numbers of relationships and individuals in the 
+# returned relationships from gmr and sequoia. am i using gmr right? what's it for?
+# she says they pick up the same, but gmr might not choose one assignment that's
+# the most likely for that focal ind. that's what goes to sequoia.
+# i also asked how i can interpret the LLRs once i expand to the full dataset.
+# how do i tell which crosses are true and false. she pointed me to the new version
+# specifically the LLtoProbs function. she also recommended that i retry the test
+# group with combinations of E0/E1 for the radseq error matrix. that didn't do anything.
+# same combination gave me the same composite score for the test group and this 
+# error matrix (check_thin100K_test)
+
+# now that we have that stuff sorted, we want to see what the probabilities are
+# from the valid cross T/F ones that come out of gmr for the test group. we have
+# data frames established that contain each parent LLR and each pairLLR for the
+# trios that come out of gmr. that's this code (above)
+
+    # # create a vector and histogram of the LLRs for each duo and trio
+    # head(trios_test_checked)
+    # table(is.na(trios_test_checked$LLRparent1)) # no na's
+    # table(is.na(trios_test_checked$LLRparent2)) # no na's
+    # 
+    # library(dplyr)
+    # library(tidyr)
+    # library(ggplot2)
+    # 
+    # # create a dataframe that's pivoted so that we have each parent LLR in a row for 
+    # # each individual (2 rows per unique offspring)
+    # trios_test_long <- trios_test_checked %>%
+    #   pivot_longer(cols = c(LLRparent1, LLRparent2),
+    #                names_to = "ParentNum",
+    #                values_to = "LLR"
+    #   )
+    # head(trios_test_long)
+
+colnames(trios_test_long)
+table(trios_test_long$valid_cross)
+# remember, 89 assigned, 79 accurate, so you've got 20 false sets of parent LLR's,
+# 10 false pair LLR's, 158 true sets of parent LLR's, and 79 true pair LLR's.
+
+trios_test_long <- trios_test_long %>% 
+    mutate(pairprob = LLtoProb(LLRpair)) %>% 
+    mutate(parentprob = LLtoProb(LLR))
+# only the negative parent LLR's are getting a probability, and the positive parent 
+# LLRs and pair LLRs are all NA. why is this?
+
+# PICK UP HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
 
 
 ##### ----- Notes ---- #####
@@ -1639,4 +1689,8 @@ print(round(composite_mat, 3))
 
 
 
-remotes::install_github("JiscaH/sequoia", type = "source", dependencies = TRUE)
+
+
+
+
+
