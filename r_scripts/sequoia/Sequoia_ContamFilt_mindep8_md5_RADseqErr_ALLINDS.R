@@ -46,6 +46,7 @@ library(dplyr)
 ################################################################################
 
 setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/Sequoia/Sequoia_Inp/contam_fastp_svit_mem/firstfilt_hardfilt_thinned/mindep8_maf30/geno_mat")
+getwd()
 
 ################################################################################
 
@@ -258,7 +259,7 @@ dim(check_thin100K_test) # 206 inds
 errM <- Err_RADseq(E0 = 0.075, E1 = 0.025, Return = 'matrix')
 errM
 
-seq <- sequoia(GenoM = check_thin100K, 
+seq <- sequoia(GenoM = check_thin100K_all, 
                LifeHistData = LH_All, 
                Module = "ped", 
                Err = errM,
@@ -282,7 +283,7 @@ seq <- sequoia(GenoM = check_thin100K,
 # 10/26/25, trying to mess with age stuff. let's see how we can assign parents with
 # discrete generations on the most recent check_thin100K, which had inds with high md
 # removed from it. dim(check_thin100K) = 1030 943
-seq <- sequoia(GenoM = check_thin100K_10, 
+seq <- sequoia(GenoM = check_thin100K_90, 
                LifeHistData = LH_All, 
                Module = "ped",
                Err = errM,
@@ -300,32 +301,32 @@ seq <- sequoia(GenoM = check_thin100K_10,
 
 # so now we need to start subsampling loci, see if that has an effect...
 # subsample to 90%, 80%, 70%, so on...
-samp_loci_90 <- sample(ncol(check_thin100K), 849)
-check_thin100K_90 <- check_thin100K[, samp_loci_90]
+samp_loci_90 <- sample(ncol(check_thin100K_all), 849)
+check_thin100K_90 <- check_thin100K_all[, samp_loci_90]
 
-samp_loci_80 <- sample(ncol(check_thin100K), 754)
-check_thin100K_80 <- check_thin100K[, samp_loci_80]
+samp_loci_80 <- sample(ncol(check_thin100K_all), 754)
+check_thin100K_80 <- check_thin100K_all[, samp_loci_80]
 
-samp_loci_70 <- sample(ncol(check_thin100K), 660)
-check_thin100K_70 <- check_thin100K[, samp_loci_70]
+samp_loci_70 <- sample(ncol(check_thin100K_all), 660)
+check_thin100K_70 <- check_thin100K_all[, samp_loci_70]
 
-samp_loci_60 <- sample(ncol(check_thin100K), 566)
-check_thin100K_60 <- check_thin100K[, samp_loci_60]
+samp_loci_60 <- sample(ncol(check_thin100K_all), 566)
+check_thin100K_60 <- check_thin100K_all[, samp_loci_60]
 
-samp_loci_50 <- sample(ncol(check_thin100K), 472)
-check_thin100K_50 <- check_thin100K[, samp_loci_50]
+samp_loci_50 <- sample(ncol(check_thin100K_all), 472)
+check_thin100K_50 <- check_thin100K_all[, samp_loci_50]
 
-samp_loci_40 <- sample(ncol(check_thin100K), 377)
-check_thin100K_40 <- check_thin100K[, samp_loci_40]
+samp_loci_40 <- sample(ncol(check_thin100K_all), 377)
+check_thin100K_40 <- check_thin100K_all[, samp_loci_40]
 
-samp_loci_30 <- sample(ncol(check_thin100K), 283)
-check_thin100K_30 <- check_thin100K[, samp_loci_30]
+samp_loci_30 <- sample(ncol(check_thin100K_all), 283)
+check_thin100K_30 <- check_thin100K_all[, samp_loci_30]
 
-samp_loci_20 <- sample(ncol(check_thin100K), 189)
-check_thin100K_20 <- check_thin100K[, samp_loci_20]
+samp_loci_20 <- sample(ncol(check_thin100K_all), 189)
+check_thin100K_20 <- check_thin100K_all[, samp_loci_20]
 
-samp_loci_10 <- sample(ncol(check_thin100K), 94)
-check_thin100K_10 <- check_thin100K[, samp_loci_10]
+samp_loci_10 <- sample(ncol(check_thin100K_all), 94)
+check_thin100K_10 <- check_thin100K_all[, samp_loci_10]
 
 dim(check_thin100K_90)
 dim(check_thin100K_80)
@@ -366,7 +367,7 @@ dim(check_thin100K_10)
 # consistently losing assignments with fewer loci. 
 
 
-gmr <- GetMaybeRel(GenoM = check_thin100K,
+gmr <- GetMaybeRel(GenoM = check_thin100K_all,
                    Err = errM,
                    Module = "ped",
                    Complex = "full",
@@ -374,7 +375,7 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
                    quiet = TRUE,
                    Tfilter = -2,
                    Tassign = 1.0,
-                   MaxPairs = 7 * nrow(check_thin100K))
+                   MaxPairs = 7 * nrow(check_thin100K_all))
 
 # work 102725: I'm becoming very interested in using the LLRs to my advantage:
 
@@ -407,7 +408,12 @@ gmr <- GetMaybeRel(GenoM = check_thin100K,
 dim(check_thin100K_all) # 1030 inds
 dim(check_thin100K_test) # 206 inds
 dim(LH_All) # 1060 inds (have not been filtered for md/ind... does this matter)
+LH_All <- LH_All %>% 
+  filter(ID %in% rownames(check_thin100K_all))
 dim(LH_Test) # 208 inds (same here...)
+LH_Test <- LH_Test %>% 
+    filter(ID %in% rownames(check_thin100K_test))
+# fixed 111525
 
 seq_all <- sequoia(GenoM = check_thin100K_all,
                   LifeHistData = LH_All,
@@ -896,8 +902,7 @@ ggplot(llr_combined_seq, aes(x = valid_cross, y = LLRpair, fill = method)) +
 
 
 
-############# 3. Since we know function and arguments don't matter for the test,
-# what happens when we expand to the whole dataset? #############
+############# 3. Since we know function and arguments don't matter for the test, what happens when we expand to the whole dataset? #############
 
 # 3. and FINALLY, then take those settings, apply them to the whole dataset, Module = "ped"
 # and complex = "full", and we want to see how those stack up to what we set for gmr_test,
