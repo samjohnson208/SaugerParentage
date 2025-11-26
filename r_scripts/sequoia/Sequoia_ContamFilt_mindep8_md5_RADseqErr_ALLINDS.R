@@ -1657,10 +1657,47 @@ trios_test_long <- trios_test_long %>%
 # only the negative parent LLR's are getting a probability, and the positive parent 
 # LLRs and pair LLRs are all NA. why is this?
 
-# PICK UP HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+##### ----- Work 112525 - CalcPairLL() and LLtoProb() ---- #####
+# emailed jisca, she says what we're looking for can be achieved by using CalcPairLL()
+# and using that output in LLtoProb(). Then you get, for each focal pair of individuals
+# the probability that their relationship is each of the five first order relationships.
 
+# first thing to do is to understand what we need for CalcPairLL(), that is:
+# the df pairs, (all combinations of test inds, need to figure out how to put sexes in,
+# agedif
+# genoM
+# Pedigree (field pedigree with specified relationships that will be conditioned upon)
+# LHData (use normal LH_test)
+# age prior (grab from sequoia output)
+# SeqList is previous sequoia output, use seqlist$PedigreePar when we want to condition on it.
+      # if we do that, it also grabs LHData, AgePriors, and ErrM, overrides input params
+      # if not, then we need to specify those elsewhere
+# Module = par
+# Complex = simp
+# Herm = no
+# InclDup... eh... idk?
+# Err = ErrM
+# Tassign = new default for sequoia is 0.5, no longer 1.0
+      # (doesn't make a difference for sequoia for test group, i tested it today)
+      # still the same number of relationships recovered for this 100K dataset
+      # still have the same composite score as normal. don't sweat this.
+# Tfilter = -2. Stick w the default. has to be twice as likely to be related than
+      # unrelated. think this is fine.
+# quiet = FALSE, i want the output messages.
+# plot = TRUE
 
+# okay. got the arch. of the command mapped out. question now is, do we give it
+# ONLY the combinations of F1-F1, F1-F0 to work with, so we can identify sibships,
+# but not make it search all of pedigree space, or do we give it ALL of the combinations,
+# and let it do things like identify F0-F0 FS relationships. do we want to just give it
+# the combinations to assign PO for F1-F0?
 
+# idk dude. i think we need to give it all of the combinations. let it search pedigree
+# space. let it filter out the ones that don't make sense given the age prior. make
+# damn sure that we aren't getting FS for F1 to F0. The age prior we set up for the
+# test set alread SHOULDN'T let that happen. i'd figure out how to make that pairs df
+# and let it fly.
+##### ----- ---- #####
 
 
 
