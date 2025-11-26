@@ -1672,8 +1672,8 @@ trios_test_long <- trios_test_long %>%
 # SeqList is previous sequoia output, use seqlist$PedigreePar when we want to condition on it.
       # if we do that, it also grabs LHData, AgePriors, and ErrM, overrides input params
       # if not, then we need to specify those elsewhere
-# Module = par
-# Complex = simp
+# Module = ped
+# Complex = full
 # Herm = no
 # InclDup... eh... idk?
 # Err = ErrM
@@ -1697,6 +1697,46 @@ trios_test_long <- trios_test_long %>%
 # damn sure that we aren't getting FS for F1 to F0. The age prior we set up for the
 # test set alread SHOULDN'T let that happen. i'd figure out how to make that pairs df
 # and let it fly.
+
+# creating the Pairs df
+library(tidyr)
+IDs <- rownames(check_thin100K_test)
+Pairs <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs
+) |> 
+  dplyr::filter(ID1 != ID2)
+
+Pairs <- Pairs |>
+  left_join(LH_Test |> select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) |>
+  rename(Sex1 = Sex, BY1 = BirthYear) |>
+  
+  left_join(LH_Test |> select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) |>
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs$AgeDif <- Pairs$BY2 - Pairs$BY1
+
+Pairs$focal <- "U"
+
+PairLL <- CalcPairLL(Pairs = Pairs,
+                     GenoM = check_thin100K_test,
+                     LifeHistData = LH_Test,
+                     AgePrior = seq_test[["AgePriors"]],
+                     Module = "ped",
+                     Complex = "full",
+                     Herm = 'no',
+                     InclDup = FALSE,
+                     Err = errM,
+                     Tassign = 0.5,
+                     Tfilter = -2,
+                     quiet = FALSE,
+                     Plot = TRUE)
+prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_ids <- cbind(PairLL[, c("ID1", "ID2")], prob_pairs)
+head(prob_pairs_ids)
+
 ##### ----- ---- #####
 
 
