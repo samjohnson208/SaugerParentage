@@ -1610,8 +1610,9 @@ print(round(composite_mat, 3))
 
 # work 112425: restored plots and refreshed knowledge on everything i've done already
 # looks like this: we've got these overlapping dists of parent LLRs and pair LLRs
-# for valid cross T/F for gmr, sequoia, and for both regardless of what arguments
-# are used module = par/ped; complex = simp/full. so the LLRs don't tell us anything
+# for valid cross T/F for gmr, gmr vs sequoia, and for both in sequoia regardless 
+# of what arguments are used module = par/ped; complex = simp/full. so the LLRs 
+# don't tell us anything.
 # we asked jisca: i get the same numbers of relationships and individuals in the 
 # returned relationships from gmr and sequoia. am i using gmr right? what's it for?
 # she says they pick up the same, but gmr might not choose one assignment that's
@@ -1621,7 +1622,7 @@ print(round(composite_mat, 3))
 # specifically the LLtoProbs function. she also recommended that i retry the test
 # group with combinations of E0/E1 for the radseq error matrix. that didn't do anything.
 # same combination gave me the same composite score for the test group and this 
-# error matrix (check_thin100K_test)
+# error matrix (check_thin100K_test) see above.
 
 # now that we have that stuff sorted, we want to see what the probabilities are
 # from the valid cross T/F ones that come out of gmr for the test group. we have
@@ -1695,25 +1696,26 @@ trios_test_long <- trios_test_long %>%
 # idk dude. i think we need to give it all of the combinations. let it search pedigree
 # space. let it filter out the ones that don't make sense given the age prior. make
 # damn sure that we aren't getting FS for F1 to F0. The age prior we set up for the
-# test set alread SHOULDN'T let that happen. i'd figure out how to make that pairs df
+# test set already SHOULDN'T let that happen. i'd figure out how to make that pairs df
 # and let it fly.
 
-# creating the Pairs df
+# creating the pairs df: create all combinations of id1 and 2, remove rows where they're the same
 library(tidyr)
 IDs <- rownames(check_thin100K_test)
 Pairs <- expand_grid(
   ID1 = IDs,
   ID2 = IDs
-) |> 
+) %>%  
   dplyr::filter(ID1 != ID2)
 
-Pairs <- Pairs |>
-  left_join(LH_Test |> select(ID, Sex, BirthYear),
-            by = c("ID1" = "ID")) |>
-  rename(Sex1 = Sex, BY1 = BirthYear) |>
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs <- Pairs %>% 
+  left_join(LH_Test %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
   
-  left_join(LH_Test |> select(ID, Sex, BirthYear),
-            by = c("ID2" = "ID")) |>
+  left_join(LH_Test %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
   rename(Sex2 = Sex, BY2 = BirthYear)
 
 Pairs$AgeDif <- Pairs$BY2 - Pairs$BY1
@@ -1734,8 +1736,151 @@ PairLL <- CalcPairLL(Pairs = Pairs,
                      quiet = FALSE,
                      Plot = TRUE)
 prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
-prob_pairs_ids <- cbind(PairLL[, c("ID1", "ID2")], prob_pairs)
+prob_pairs_ids <- cbind(PairLL[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs)
 head(prob_pairs_ids)
+table(prob_pairs_ids$AgeDif)
+
+# now we've got to come up with ways to summarize this information.
+
+# two main goals:
+# 1. plot the dists of probs for relationships for f0-f0, f0-f1, f1-f1
+    # violin plot those. color code by group membership.
+# 2. find the trios (valid T/F), extract those pairs, pull the probs for PO.
+    # those pairs from trios_checked_long. 178 rows. 79 * 2 true. 10 * 2 false.
+    # take those pairs, join with prob_pairs_ids (make a pair col using paste)
+    # get a df that has pair (they're all f0-f1), valid cross, and all probs.
+    # so i guess you'll join with the trios checked long.
+    # violin plot that. 
+
+# main goal 1: plot the dists of probs for relationships for f0-f0, f0-f1, f1-f1
+head(prob_pairs_ids)
+dim(prob_pairs_ids) # 42230, 10
+# alright, so we need a group membership column.
+prob_pairs_ids$Group1 <- ifelse(grepl("^SAR_15_6(4|5)", prob_pairs_ids$ID1), "F0",
+                            ifelse(grepl("^SAR_15_67", prob_pairs_ids$ID1), "F1-Test", NA))
+prob_pairs_ids$Group2 <- ifelse(grepl("^SAR_15_6(4|5)", prob_pairs_ids$ID2), "F0",
+                            ifelse(grepl("^SAR_15_67", prob_pairs_ids$ID2), "F1-Test", NA))
+prob_pairs_ids$RelType <- with(prob_pairs_ids, case_when(
+  Group1 == "F0" & Group2 == "F0" & AgeDif == 0 ~ "F0-F0",
+  Group1 == "F1-Test" & Group2 == "F1-Test" & AgeDif == 0 ~ "F1-F1",
+  Group1 == "F0" & Group2 == "F1-Test" ~ "F0-F1",
+  Group1 == "F1-Test" & Group2 == "F0" ~ "F1-F0",
+  TRUE ~ "Other"
+))
+
+# okay, we have cases now where the AgeDif is -1, where it's F1 in ID1 and F0 in ID2
+# the probabilities are the same no matter the order, which is good. so we need to
+# just remove those rows where the AgeDif is -1
+
+prob_pairs_ids <- prob_pairs_ids %>% 
+    filter(AgeDif != -1)
+dim(prob_pairs_ids)
+
+# > dim(prob_pairs_ids)
+# [1] 31685    14
+# 
+# > table(prob_pairs_ids$AgeDif)
+# -1     0     1 
+# 10545 21140 10545
+# 
+# > 42230 - 10545 
+# [1] 31685
+
+# to plot here: 
+# 1a. dists of relationship probs by group (full)
+
+# to plot the prob for each relationship category for each pair (and grab the RelType)
+# we need to pivot so we have one prob, per one RelType, per pair.
+
+prob_long <- prob_pairs_ids %>%
+  select(ID1, ID2, RelType, PO, FS, HS, HA, FA, U, AgeDif, TopRel, Group1, Group2) %>%
+  pivot_longer(
+    cols = c(PO, FS, HS, HA, FA, U),
+    names_to = "Relationship",
+    values_to = "Probability"
+  )
+
+# set the relationship types as a factor so that they appear in this desired order
+prob_long$RelType <- factor(
+  prob_long$RelType,
+  levels = c("F0-F0", "F0-F1", "F1-F1"))
+
+prob_long <- prob_long %>% 
+    mutate(TopRel = ifelse(TopRel == "??", "Amb", TopRel))
+
+# plot probs for all pairs for all relationship cats, panels represent rel type
+ggplot(prob_long, aes(x = Relationship, y = Probability, fill = Relationship)) +
+  geom_violin(trim = FALSE, alpha = 0.8) +
+  geom_jitter(
+    aes(color = Relationship),
+        width = 0.15, 
+        height = 0, 
+        alpha = 0.2, 
+        size = 0.9) +
+  facet_wrap(~ RelType) +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(size = 12, face = "bold"),
+  ) +
+  labs(
+    x = "Relationship Category",
+    y = "Probability",
+    title = "Probability of each relationship occurring, for all pairs of test inds."
+  )
+
+# 1b. dists of toprel probs, for each pair, panels represent reltype
+
+toprel_df <- prob_pairs_ids %>%
+  rowwise() %>%
+  mutate(
+    TopProb = case_when(
+      TopRel == "PO" ~ PO,
+      TopRel == "FS" ~ FS,
+      TopRel == "HS" ~ HS,
+      TopRel == "HA" ~ HA,
+      TopRel == "U"  ~ U,
+      TopRel == "FA" ~ FA,
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  ungroup()
+
+toprel_df$RelType <- factor(toprel_df$RelType, levels = c("F0-F0", "F0-F1", "F1-F1"))
+
+toprel_df <- toprel_df %>%
+  mutate(TopRel = ifelse(TopRel == "??", "Amb", TopRel)) %>% 
+  filter(TopRel != "Amb")
+
+ggplot(toprel_df, aes(x = TopRel, y = TopProb, fill = TopRel)) +
+  geom_violin(trim = FALSE, alpha = 0.8) +
+  geom_jitter(
+    aes(color = TopRel),   # <-- color points by relationship category
+    width = 0.25,
+    height = 0,
+    alpha = 0.9,
+    size = 0.9
+  ) +
+  facet_wrap(~ RelType) +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(size = 12, face = "bold")
+  ) +
+  labs(
+    x = "Top Relationship Category",
+    y = "Probability of Top Relationship",
+    title = "Probability of the top relationship, for all pairs of test inds."
+  )
+
+# now for main goal 2, plot the probabilities of PO for the pairs that we know to 
+# be valid cross true and false. 
+
+
+
+
+
+
 
 ##### ----- ---- #####
 
