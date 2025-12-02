@@ -1704,9 +1704,8 @@ library(tidyr)
 IDs <- rownames(check_thin100K_test)
 Pairs <- expand_grid(
   ID1 = IDs,
-  ID2 = IDs
-) %>%  
-  dplyr::filter(ID1 != ID2)
+  ID2 = IDs) %>%  
+dplyr::filter(ID1 != ID2)
 
 # now join that with the LH_Data so you can get the birth years, sex, 
 Pairs <- Pairs %>% 
@@ -1745,12 +1744,10 @@ table(prob_pairs_ids$AgeDif)
 # two main goals:
 # 1. plot the dists of probs for relationships for f0-f0, f0-f1, f1-f1
     # violin plot those. color code by group membership.
-# 2. find the trios (valid T/F), extract those pairs, pull the probs for PO.
-    # those pairs from trios_checked_long. 178 rows. 79 * 2 true. 10 * 2 false.
-    # take those pairs, join with prob_pairs_ids (make a pair col using paste)
-    # get a df that has pair (they're all f0-f1), valid cross, and all probs.
-    # so i guess you'll join with the trios checked long.
-    # violin plot that. 
+# 2. find the trios (valid T/F), extract those pairs, pull the toprels and topprobs
+    # for valid T/F and for the other F0-F1 combinations that weren't inferred by
+    # GetMaybeRel()
+
 
 # main goal 1: plot the dists of probs for relationships for f0-f0, f0-f1, f1-f1
 head(prob_pairs_ids)
@@ -1765,8 +1762,7 @@ prob_pairs_ids$RelType <- with(prob_pairs_ids, case_when(
   Group1 == "F1-Test" & Group2 == "F1-Test" & AgeDif == 0 ~ "F1-F1",
   Group1 == "F0" & Group2 == "F1-Test" ~ "F0-F1",
   Group1 == "F1-Test" & Group2 == "F0" ~ "F1-F0",
-  TRUE ~ "Other"
-))
+  TRUE ~ "Other"))
 
 # okay, we have cases now where the AgeDif is -1, where it's F1 in ID1 and F0 in ID2
 # the probabilities are the same no matter the order, which is good. so we need to
@@ -1787,18 +1783,18 @@ dim(prob_pairs_ids)
 # [1] 31685
 
 # to plot here: 
-# 1a. dists of relationship probs by group (full)
+# 1a. dists of relationship probs by group (all relationships for each pair)
 
 # to plot the prob for each relationship category for each pair (and grab the RelType)
-# we need to pivot so we have one prob, per one RelType, per pair.
+# we need to pivot_longer() so we have one prob, per one relationship category, per pair.
 
+# reminder: relationship category is PO, FS, HS, etc., relationship type is F0-F0, F0-F1, F1-F1
 prob_long <- prob_pairs_ids %>%
   select(ID1, ID2, RelType, PO, FS, HS, HA, FA, U, AgeDif, TopRel, Group1, Group2) %>%
   pivot_longer(
     cols = c(PO, FS, HS, HA, FA, U),
     names_to = "Relationship",
-    values_to = "Probability"
-  )
+    values_to = "Probability")
 
 # set the relationship types as a factor so that they appear in this desired order
 prob_long$RelType <- factor(
@@ -1821,16 +1817,16 @@ ggplot(prob_long, aes(x = Relationship, y = Probability, fill = Relationship)) +
   theme_bw() +
   theme(
     legend.position = "none",
-    strip.text = element_text(size = 12, face = "bold"),
-  ) +
+    strip.text = element_text(size = 12, face = "bold")) +
   labs(
     x = "Relationship Category",
     y = "Probability",
-    title = "Probability of each relationship occurring, for all pairs of test inds."
-  )
+    title = "Probability of each relationship occurring, for all pairs of test inds.")
 
-# 1b. dists of toprel probs, for each pair, panels represent reltype
+# 1b. plot dists of toprel probs, for each pair, panels represent reltype
 
+# this code creates a new column to get the topprob, and goes row by row to grab
+# the probability from whatever column is represented by the TopRel
 toprel_df <- prob_pairs_ids %>%
   rowwise() %>%
   mutate(
@@ -1841,17 +1837,20 @@ toprel_df <- prob_pairs_ids %>%
       TopRel == "HA" ~ HA,
       TopRel == "U"  ~ U,
       TopRel == "FA" ~ FA,
-      TRUE ~ NA_real_
-    )
-  ) %>%
+      TRUE ~ NA_real_)) %>%
   ungroup()
 
+# organize the reltype factor levels so that they appear correctly in the plot
 toprel_df$RelType <- factor(toprel_df$RelType, levels = c("F0-F0", "F0-F1", "F1-F1"))
 
+# filter out cases where the toprel is ambiguous. this messes with the coloring
+# scheme since Amb doesn't get a prob in the previous setup and is not plotted for
+# goal 1a.
 toprel_df <- toprel_df %>%
   mutate(TopRel = ifelse(TopRel == "??", "Amb", TopRel)) %>% 
   filter(TopRel != "Amb")
 
+# plot the topprob for the toprel for each pair, panels represent rel type
 ggplot(toprel_df, aes(x = TopRel, y = TopProb, fill = TopRel)) +
   geom_violin(trim = FALSE, alpha = 0.8) +
   geom_jitter(
@@ -1859,28 +1858,113 @@ ggplot(toprel_df, aes(x = TopRel, y = TopProb, fill = TopRel)) +
     width = 0.25,
     height = 0,
     alpha = 0.9,
-    size = 0.9
-  ) +
+    size = 0.9) +
   facet_wrap(~ RelType) +
   theme_bw() +
   theme(
     legend.position = "none",
-    strip.text = element_text(size = 12, face = "bold")
-  ) +
+    strip.text = element_text(size = 12, face = "bold")) +
   labs(
     x = "Top Relationship Category",
     y = "Probability of Top Relationship",
-    title = "Probability of the top relationship, for all pairs of test inds."
-  )
+    title = "Probability of the top relationship, for all pairs of test inds.")
 
 # now for main goal 2, plot the probabilities of PO for the pairs that we know to 
 # be valid cross true and false. 
 
+# questions are: how many of those pairs got po as the top rel
+# of those, what are the probs for those po relationships
+# of the ones that were FALSE, but got assigned, what are the toprels, and the probs
+# how does that compare to the numbers and probs for the remaining F0-F1 combinations?
 
+# first step is to extract the parent-offspring duos FROM trios_test_checked
 
+duos_from_trios <- trios_test_checked %>%
+  select(id, parent1, parent2, valid_cross) %>%
+  
+  # use pivot_longer() to get one row per parent–offspring duo
+  pivot_longer(
+    cols = c(parent1, parent2),
+    names_to = "parent_role",
+    values_to = "parent") %>%
+  
+  rename(offspring = id) %>%
+  
+  # make the pairkey column to merge with toprel_df
+  mutate(
+    pairkey = paste(pmin(offspring, parent), pmax(offspring, parent), sep = "_"),
+    crosscategory = ifelse(valid_cross, "Valid", "Invalid")) %>%
+  
+  select(pairkey, offspring, parent, crosscategory)
 
+head(duos_from_trios)
+dim(duos_from_trios) # 178 rows, 89 trios * 2 for PO duos
+table(duos_from_trios$crosscategory) # 20 invalid, 158 valid. makes sense.
+    # we had 79 trios where valid_cross = TRUE, 10 where valid_cross = FALSE
 
+# now we have to make the same pairkey from toprel_df
 
+pairs_all <- toprel_df %>% 
+    mutate(pairkey = paste(pmin(ID1,ID2), pmax(ID1, ID2), sep = "_"))
+head(pairs_all)
+
+# now we have to mark all of the pairs in pairs_all as 1. appear in duos_from_trios
+# and are from a valid_cross, 2. appear in duos_from_trios and are NOT from a valid_cross
+# or 3. don't appear in duos_from_trios
+
+# take pairs_all, which is ALL combinations + pairkey, and join it with duos_from_trios,
+# but keep only pairkey and crosscategory from duos_from_trios, and join by pairkey
+# and create a new column in pairsall that puts NotAssigned in the crosscategory
+# column if that pair was not inferred by gmr (and therefore is not in duso_from_trios),
+# and if it WAS, i.e., if crosscategory is NOT NA, keep the existing crosscategory value
+pairs_all <- pairs_all %>%
+  left_join(duos_from_trios %>% select(pairkey, crosscategory), by = "pairkey") %>%
+  mutate(crosscategory = ifelse(is.na(crosscategory), "NotAssigned", crosscategory))
+
+# now we need to filter pairs_all for ONLY F0-F1 pairs.
+dim(pairs_all)
+pairs_po <- pairs_all %>% 
+    filter(RelType == "F0-F1")
+dim(pairs_po) # 10525 17
+
+# need to make crosscategory a factor
+pairs_po$crosscategory <- factor(pairs_po$crosscategory, levels = c("Valid", "Invalid", "NotAssigned"))
+table(pairs_po$crosscategory)
+
+ggplot(pairs_po, aes(x = TopRel, y = TopProb, fill = TopRel))+
+  geom_violin(trim = FALSE, alpha = 0.8, drop = FALSE)+
+  geom_jitter(
+    aes(color = TopRel),
+    width = 0.25, 
+    height = 0,
+    alpha = 0.9,
+    size = 0.9,
+    drop = FALSE)+
+  facet_wrap(~ crosscategory)+
+  theme_bw()+
+  theme(legend.position = "none",
+        strip.text = element_text(size = 12, face = "bold")) +
+  labs(x = "Top Relationship Category",
+       y = "Probability of Top Relationship",
+       title = "Probability of the top relationship for F0-F1 Test Pairs, inferred and non-inferred by GetMaybeRel()")
+
+# you want to see the following in each panel:
+# Valid: dominance of PO as toprel, high topprobs.
+    # we see both of these!
+# Invalid: fewer points, hopefully lower probs?
+    # definitely fewer points (20 vs 158), but all high probs
+    # possibly contamination and unintentional, undocumented crosses?
+# NotAssigned: few pairs with toprel PO, lots of pairs with toprel as something else,
+  # and with high probabilities for those other things.
+    # we only see three points for PO, high probs. some points HA, makes sense with
+    # a low diversity system and small pop size, lots of somewhat related inds.,
+    # a few full avuncular with reasonably high probs, but also, we see a TON that
+    # that are unrelated with various probs ranging from 50 to 100%. this is GREAT!
+
+# make sure to put in the slides the pipeline and whole narrative, but also what
+# goes into creating the LLRs and probs. these are determined by the genetic data,
+# the age data and age priors, the sex data, the number of snps, the genotyping
+# error matrix.
 
 ##### ----- ---- #####
 
