@@ -1966,6 +1966,9 @@ ggplot(pairs_po, aes(x = TopRel, y = TopProb, fill = TopRel))+
 # the age data and age priors, the sex data, the number of snps, the genotyping
 # error matrix.
 
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "EOD_120125.RData")
+
 ##### ----- ---- #####
 
 
