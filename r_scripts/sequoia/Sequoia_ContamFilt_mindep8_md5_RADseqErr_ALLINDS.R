@@ -1699,7 +1699,8 @@ trios_test_long <- trios_test_long %>%
 # test set already SHOULDN'T let that happen. i'd figure out how to make that pairs df
 # and let it fly.
 
-# creating the pairs df: create all combinations of id1 and 2, remove rows where they're the same
+# creating the pairs df: create all combinations of id1 and 2, remove rows where 
+# they're the same
 library(tidyr)
 IDs <- rownames(check_thin100K_test)
 Pairs <- expand_grid(

@@ -138,6 +138,7 @@ seq_f0 <- sequoia(GenoM = check_thin100K_f0,
                   Tassign = 1.0)
 
 gmr_f0 <- GetMaybeRel(GenoM = check_thin100K_f0,
+                      SeqList = seq_f0,
                       AgePrior = seq_f0[["AgePriors"]],
                       Err = errM,
                       Module = "ped",
@@ -177,16 +178,17 @@ seq_f0f1 <- sequoia(GenoM = check_thin100K_f0f1,
                     Tassign = 1.0)
 
 gmr_f0f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
-                      AgePrior = seq_f0f1[["AgePriors"]],
-                      Err = errM,
-                      Module = "ped",
-                      Complex = "full",
-                      LifeHistData = LH_f0f1,
-                      Herm = "no",
-                      quiet = FALSE,
-                      Tfilter = -2,
-                      Tassign = 1.0,
-                      MaxPairs = 7 * nrow(check_thin100K_f0f1))
+                        SeqList = seq_f0f1,
+                        AgePrior = seq_f0f1[["AgePriors"]],
+                        Err = errM,
+                        Module = "ped",
+                        Complex = "full",
+                        LifeHistData = LH_f0f1,
+                        Herm = "no",
+                        quiet = FALSE,
+                        Tfilter = -2,
+                        Tassign = 1.0,
+                        MaxPairs = 7 * nrow(check_thin100K_f0f1))
 
 relm_f0f1 <- GetRelM(Pedigree = seq_f0f1[["Pedigree"]],
                    GenBack = 1, 
@@ -217,6 +219,7 @@ seq_f1 <- sequoia(GenoM = check_thin100K_f1,
                   Tassign = 1.0)
 
 gmr_f1 <- GetMaybeRel(GenoM = check_thin100K_f1,
+                      SeqList = seq_f1,
                       AgePrior = seq_f1[["AgePriors"]],
                       Err = errM,
                       Module = "ped",
@@ -257,6 +260,7 @@ seq_f1f2 <- sequoia(GenoM = check_thin100K_f1f2,
                     Tassign = 1.0)
 
 gmr_f1f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
+                        SeqList = seq_f1f2,
                         AgePrior = seq_f1f2[["AgePriors"]],
                         Err = errM,
                         Module = "ped",
@@ -291,7 +295,7 @@ seq_f2 <- sequoia(GenoM = check_thin100K_f2,
                   Herm = "no",
                   UseAge = "yes",
                   args.AP=list(Discrete = TRUE, 
-                               MinAgeParent = 2, MaxAgeParent = 2),
+                               MinAgeParent = 1, MaxAgeParent = 1),
                   CalcLLR = TRUE,
                   StrictGenoCheck = TRUE,
                   DummyPrefix = c("F", "M"),
@@ -299,6 +303,7 @@ seq_f2 <- sequoia(GenoM = check_thin100K_f2,
                   Tassign = 1.0)
 
 gmr_f2 <- GetMaybeRel(GenoM = check_thin100K_f2,
+                      SeqList = seq_f2,
                       AgePrior = seq_f2[["AgePriors"]],
                       Err = errM,
                       Module = "ped",
@@ -338,6 +343,7 @@ seq_f0f2 <- sequoia(GenoM = check_thin100K_f0f2,
                     Tassign = 1.0)
 
 gmr_f0f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
+                        SeqList = seq_f0f2,
                         AgePrior = seq_f0f2[["AgePriors"]],
                         Err = errM,
                         Module = "ped",
@@ -380,12 +386,172 @@ seq_f0f2_summary <- SummarySeq(SeqList = seq_f0f2)
 # so here's the set of steps.
 # 1. make sure that the gmr outputs condition on the pedigrees from above
 # then, that output is gonna be ready to compare to the CalcPairLL()/LLtoProb()
-# outputs.
+# outputs. DONE.
+
+      # gmr_f0
+      # gmr_f0f1
+      # gmr_f1
+      # gmr_f1f2
+      # gmr_f2
+      # gmr_f0f2
 
 # create Pairs df for all six runs
   # start with LH dfs
 
+##### ---- Pairs_f0 ---- #####
+# creating the pairs df: create all combinations of id1 and 2, remove rows where 
+# they're the same
+library(tidyr)
+IDs <- rownames(check_thin100K_f0)
+length(IDs)
+Pairs_f0 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f0 <- Pairs_f0 %>% 
+  left_join(LH_f0 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f0 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f0$AgeDif <- Pairs_f0$BY2 - Pairs_f0$BY1
+
+Pairs_f0$focal <- "U"
+
+dim(Pairs_f0)
+
+
+##### ---- Pairs_f0f1 ---- #####
+# creating the pairs df: create all combinations of id1 and 2, remove rows where 
+# they're the same
+IDs <- rownames(check_thin100K_f0f1)
+length(IDs)
+Pairs_f0f1 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f0f1 <- Pairs_f0f1 %>% 
+  left_join(LH_f0f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f0f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f0f1$AgeDif <- Pairs_f0f1$BY2 - Pairs_f0f1$BY1
+
+Pairs_f0f1$focal <- "U"
+
+dim(Pairs_f0f1)
+
+##### ---- Pairs_f1 ---- #####
+IDs <- rownames(check_thin100K_f1)
+length(IDs)
+Pairs_f1 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f1 <- Pairs_f1 %>% 
+  left_join(LH_f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f1$AgeDif <- Pairs_f1$BY2 - Pairs_f1$BY1
+
+Pairs_f1$focal <- "U"
+
+dim(Pairs_f1)
+
+##### ---- Pairs_f1f2 ---- #####
+IDs <- rownames(check_thin100K_f1f2)
+length(IDs)
+Pairs_f1f2 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f1f2 <- Pairs_f1f2 %>% 
+  left_join(LH_f1f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f1f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f1f2$AgeDif <- Pairs_f1f2$BY2 - Pairs_f1f2$BY1
+
+Pairs_f1f2$focal <- "U"
+
+dim(Pairs_f1f2)
+
+##### ---- Pairs_f2---- #####
+IDs <- rownames(check_thin100K_f2)
+length(IDs)
+Pairs_f2 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f2 <- Pairs_f2 %>% 
+  left_join(LH_f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f2$AgeDif <- Pairs_f2$BY2 - Pairs_f2$BY1
+
+Pairs_f2$focal <- "U"
+
+dim(Pairs_f2)
+
+##### ---- Pairs_f0f2 ---- #####
+IDs <- rownames(check_thin100K_f0f2)
+length(IDs)
+Pairs_f0f2 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f0f2 <- Pairs_f0f2 %>% 
+  left_join(LH_f0f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f0f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f0f2$AgeDif <- Pairs_f0f2$BY2 - Pairs_f0f2$BY1
+
+Pairs_f0f2$focal <- "U"
+
+dim(Pairs_f0f2)
+
+##### ---- Getting LLRs and probs for all relationships ---- #####
+
 # run CalcPairLL for all six runs
+  # REMEMBER TO INCREASE Tassign!!
 
 # run LLtoProb on all six runs
   # all pairwise combs with probs
