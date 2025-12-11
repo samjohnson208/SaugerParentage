@@ -135,7 +135,8 @@ seq_f0 <- sequoia(GenoM = check_thin100K_f0,
                   StrictGenoCheck = TRUE,
                   DummyPrefix = c("F", "M"),
                   Tfilter = -2,
-                  Tassign = 1.0)
+                  Tassign = 0.5)
+# assigned 28 dams and 28 sires to 250 + 28 individuals (real + dummy)
 
 gmr_f0 <- GetMaybeRel(GenoM = check_thin100K_f0,
                       SeqList = seq_f0,
@@ -147,17 +148,23 @@ gmr_f0 <- GetMaybeRel(GenoM = check_thin100K_f0,
                       Herm = "no",
                       quiet = FALSE,
                       Tfilter = -2,
-                      Tassign = 1.0,
+                      Tassign = 0.5,
                       MaxPairs = 7 * nrow(check_thin100K_f0))
+# Found 0 likely parent-offspring pairs, and 127, other non-assigned pairs of possible relatives
 
 relm_f0 <- GetRelM(Pedigree = seq_f0[["Pedigree"]],
+                   Pairs = gmr_f0$MaybeRel,
                    GenBack = 1, 
                    patmat = FALSE,
                    directed = TRUE,
                    Return = 'Matrix')
 table(unique(relm_f0))
 
-relmf0_plot <- PlotRelPairs(RelM = relm_f0, pch.symbols = TRUE)
+relmf0_plot <- PlotRelPairs(RelM = relm_f0, 
+                            drop.U = TRUE, 
+                            pch.symbols = TRUE,
+                            cex.axis = 0.3,
+                            mar = c(5, 5, 1, 8))
 
 seq_f0_summary <- SummarySeq(SeqList = seq_f0)
 
@@ -175,7 +182,8 @@ seq_f0f1 <- sequoia(GenoM = check_thin100K_f0f1,
                     StrictGenoCheck = TRUE,
                     DummyPrefix = c("F", "M"),
                     Tfilter = -2,
-                    Tassign = 1.0)
+                    Tassign = 0.5)
+# assigned 78 dams and 73 sires to 576 + 44 individuals (real + dummy)
 
 gmr_f0f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
                         SeqList = seq_f0f1,
@@ -187,17 +195,24 @@ gmr_f0f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
                         Herm = "no",
                         quiet = FALSE,
                         Tfilter = -2,
-                        Tassign = 1.0,
+                        Tassign = 0.5,
                         MaxPairs = 7 * nrow(check_thin100K_f0f1))
+# Found 3 likely parent-offspring pairs, and 422, other non-assigned pairs of possible relatives
 
 relm_f0f1 <- GetRelM(Pedigree = seq_f0f1[["Pedigree"]],
-                   GenBack = 1, 
-                   patmat = FALSE,
-                   directed = TRUE,
-                   Return = 'Matrix')
+                     Pairs = gmr_f0f1$MaybeRel,
+                     GenBack = 1, 
+                     patmat = FALSE,
+                     directed = TRUE,
+                     Return = 'Matrix')
 table(unique(relm_f0f1))
 
-relmf0f1_plot <- PlotRelPairs(RelM = relm_f0f1, drop.U = TRUE, pch.symbols = FALSE)
+relmf0f1_plot <- PlotRelPairs(RelM = relm_f0f1, 
+                              drop.U = TRUE, 
+                              pch.symbols = TRUE,
+                              cex.axis = 0.3,
+                              mar = c(5, 5, 1, 8))
+# no way are these plots useful if there are this many inds on each axis.
 
 seq_f0f1_summary <- SummarySeq(SeqList = seq_f0f1)
 
@@ -216,7 +231,8 @@ seq_f1 <- sequoia(GenoM = check_thin100K_f1,
                   StrictGenoCheck = TRUE,
                   DummyPrefix = c("F", "M"),
                   Tfilter = -2,
-                  Tassign = 1.0)
+                  Tassign = 0.5)
+# assigned 20 dams and 20 sires to 326 + 18 individuals (real + dummy)
 
 gmr_f1 <- GetMaybeRel(GenoM = check_thin100K_f1,
                       SeqList = seq_f1,
@@ -228,17 +244,23 @@ gmr_f1 <- GetMaybeRel(GenoM = check_thin100K_f1,
                       Herm = "no",
                       quiet = FALSE,
                       Tfilter = -2,
-                      Tassign = 1.0,
+                      Tassign = 0.5,
                       MaxPairs = 7 * nrow(check_thin100K_f1))
+# Found 0 likely parent-offspring pairs, and 170, other non-assigned pairs of possible relatives
 
 relm_f1 <- GetRelM(Pedigree = seq_f1[["Pedigree"]],
+                   Pairs = gmr_f1$MaybeRel,
                    GenBack = 1, 
                    patmat = FALSE,
                    directed = TRUE,
                    Return = 'Matrix')
 table(unique(relm_f1))
 
-relmf1_plot <- PlotRelPairs(RelM = relm_f1, pch.symbols = TRUE)
+relmf1_plot <- PlotRelPairs(RelM = relm_f1, 
+                            drop.U = TRUE,
+                            pch.symbols = TRUE,
+                            cex.axis = 0.3,
+                            mar = c(5, 5, 1, 8))
 
 seq_f1_summary <- SummarySeq(SeqList = seq_f1)
 
@@ -257,7 +279,8 @@ seq_f1f2 <- sequoia(GenoM = check_thin100K_f1f2,
                     StrictGenoCheck = TRUE,
                     DummyPrefix = c("F", "M"),
                     Tfilter = -2,
-                    Tassign = 1.0)
+                    Tassign = 0.5)
+# assigned 61 dams and 61 sires to 780 + 56 individuals (real + dummy) 
 
 gmr_f1f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
                         SeqList = seq_f1f2,
@@ -269,17 +292,24 @@ gmr_f1f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
                         Herm = "no",
                         quiet = FALSE,
                         Tfilter = -2,
-                        Tassign = 1.0,
+                        Tassign = 0.5,
                         MaxPairs = 7 * nrow(check_thin100K_f1f2))
+# Found 43 likely parent-offspring pairs, and 552, other non-assigned pairs of possible relatives
+# Found 1 parent-parent-offspring trios
 
 relm_f1f2 <- GetRelM(Pedigree = seq_f1f2[["Pedigree"]],
+                     Pairs = gmr_f1f2$MaybeRel,
                      GenBack = 1, 
                      patmat = FALSE,
                      directed = TRUE,
                      Return = 'Matrix')
 table(unique(relm_f1f2))
 
-relmf1f2_plot <- PlotRelPairs(RelM = relm_f1f2, drop.U = TRUE, pch.symbols = FALSE)
+relmf1f2_plot <- PlotRelPairs(RelM = relm_f1f2, 
+                              drop.U = TRUE, 
+                              pch.symbols = TRUE,
+                              cex.axis = 0.3,
+                              mar = c(5, 5, 1, 8))
 
 seq_f1f2_summary <- SummarySeq(SeqList = seq_f1f2)
 
@@ -300,7 +330,9 @@ seq_f2 <- sequoia(GenoM = check_thin100K_f2,
                   StrictGenoCheck = TRUE,
                   DummyPrefix = c("F", "M"),
                   Tfilter = -2,
-                  Tassign = 1.0)
+                  Tassign = 0.5)
+# assigned 39 dams and 39 sires to 454 + 36 individuals (real + dummy) 
+
 
 gmr_f2 <- GetMaybeRel(GenoM = check_thin100K_f2,
                       SeqList = seq_f2,
@@ -312,17 +344,24 @@ gmr_f2 <- GetMaybeRel(GenoM = check_thin100K_f2,
                       Herm = "no",
                       quiet = FALSE,
                       Tfilter = -2,
-                      Tassign = 1.0,
+                      Tassign = 0.5,
                       MaxPairs = 7 * nrow(check_thin100K_f2))
+# Found 0 likely parent-offspring pairs, and 253, other non-assigned pairs of possible relatives
+
 
 relm_f2 <- GetRelM(Pedigree = seq_f2[["Pedigree"]],
+                   Pairs = gmr_f2$MaybeRel,
                    GenBack = 1, 
                    patmat = FALSE,
                    directed = TRUE,
                    Return = 'Matrix')
 table(unique(relm_f2))
 
-relmf2_plot <- PlotRelPairs(RelM = relm_f2, pch.symbols = TRUE)
+relmf2_plot <- PlotRelPairs(RelM = relm_f2, 
+                            drop.U = TRUE,
+                            pch.symbols = TRUE,
+                            cex.axis = 0.3,
+                            mar = c(5, 5, 1, 8))
 
 seq_f2_summary <- SummarySeq(SeqList = seq_f2)
 
@@ -340,7 +379,9 @@ seq_f0f2 <- sequoia(GenoM = check_thin100K_f0f2,
                     StrictGenoCheck = TRUE,
                     DummyPrefix = c("F", "M"),
                     Tfilter = -2,
-                    Tassign = 1.0)
+                    Tassign = 0.5)
+# assigned 78 dams and 74 sires to 704 + 65 individuals (real + dummy) 
+
 
 gmr_f0f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
                         SeqList = seq_f0f2,
@@ -352,20 +393,26 @@ gmr_f0f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
                         Herm = "no",
                         quiet = FALSE,
                         Tfilter = -2,
-                        Tassign = 1.0,
+                        Tassign = 0.5,
                         MaxPairs = 7 * nrow(check_thin100K_f0f2))
+# Found 1 likely parent-offspring pairs, and 531, other non-assigned pairs of possible relatives
 
 relm_f0f2 <- GetRelM(Pedigree = seq_f0f2[["Pedigree"]],
+                     Pairs = gmr_f0f2$MaybeRel,
                      GenBack = 1, 
                      patmat = FALSE,
                      directed = TRUE,
                      Return = 'Matrix')
 table(unique(relm_f0f2))
 
-relmf0f2_plot <- PlotRelPairs(RelM = relm_f0f2, drop.U = TRUE, pch.symbols = FALSE)
+relmf0f2_plot <- PlotRelPairs(RelM = relm_f0f2, 
+                              drop.U = TRUE, 
+                              pch.symbols = TRUE,
+                              cex.axis = 0.3,
+                              mar = c(5, 5, 1, 8))
 
 seq_f0f2_summary <- SummarySeq(SeqList = seq_f0f2)
-
+# looks like a few PO duos between f0 and f2. crazy.
 
 
 
@@ -551,14 +598,63 @@ dim(Pairs_f0f2)
 ##### ---- Getting LLRs and probs for all relationships ---- #####
 
 # run CalcPairLL for all six runs
-  # REMEMBER TO INCREASE Tassign!!
+  # DON'T CONDITION ON A PEDIGREE, THESE ARE ALL POSSIBLE PAIRS
+  # THEN WE SAY, HERE ARE THE ONES THAT ACTUALLY GOT PULLED FROM seq, gmr()
 
-# run LLtoProb on all six runs
-  # all pairwise combs with probs
+##### ---- PairLL_f0 -> prob_pairs_f0  ---- #####
+
+PairLL_f0 <- CalcPairLL(Pairs = Pairs_f0,
+                        GenoM = check_thin100K_f0,
+                        LifeHistData = LH_f0,
+                        AgePrior = seq_f0[["AgePriors"]],
+                        Module = "ped",
+                        Complex = "full",
+                        Herm = 'no',
+                        InclDup = FALSE,
+                        Err = errM,
+                        Tassign = 1.0,
+                        Tfilter = -2,
+                        quiet = FALSE,
+                        Plot = TRUE)
+prob_pairs_f0 <- plyr::aaply(as.matrix(PairLL_f0[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f0 <- cbind(PairLL_f0[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0)
+
+##### ---- PairLL_f0f1 -> prob_pairs_f0f1 ---- #####
+
+PairLL_f0f1 <- CalcPairLL(Pairs = Pairs_f0f1,
+                          GenoM = check_thin100K_f0f1,
+                          LifeHistData = LH_f0f1,
+                          AgePrior = seq_f0f1[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 1.0,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_f0f1 <- plyr::aaply(as.matrix(PairLL_f0f1[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f0f1 <- cbind(PairLL_f0f1[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f1)
+
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "EOD_121025.RData")
+
+# first thing tomorrow. continue with setting up these PairLL_gen dataframes.
 
 # validate the toprel for each method for the pairs in the gmr output using a for loop
+  # remember, we're going to have to remove the dummy inds from those relatedness matrices
 
+# answer this question. are the toprels in each the same? are the likelihoods the same?
+# pairs represent the rows, have the toprel from each method, have the LLR from each, 
+# then you want columns that tell you T/F for toprel and LLR being the same
+
+# depending on that... decide on what's gonna go on with this stuff below.
 # if all is clear, plot the probs of all the pairwise ones, plot the assigned ones.
+  # remember, going to have to filter out the agedif = 0 pairs from the prob_pairs
+  # dfs that span generations, since we'll have already plotted those. i think?
+
+
 
 ##### ---- cross check the assignments with the TopRel from CalcPairLL() ---- #####
 
@@ -580,6 +676,76 @@ dim(Pairs_f0f2)
 
 
 
+
+##### ---- a quick check on the thresholds and test group ---- ##### 
+
+# alright, as a refresher, the Tfilter is the first step, which allows relationships
+# to even be considered or not. a STRICTER Tfilter is MORE negative than the default,
+# which is -2. Tassign decides BETWEEN relationships for a given individual (e.g., 
+# between two closely related candidate parents). this value needs to be positive.
+# a STRICTER Tassign is MORE positive, (i.e., there needs to be a larger difference 
+# in the likelihoods between two relationsihps for one of them to be chosen). that
+# is to say, a lower Tassign is LESS conservative/strict.
+
+# why any of this is the case? i don't know. i don't know how these are calculated,
+# i don't know how the "ratio" comes into play, since it seems like these thresholds
+# are differences rather than ratios. I'm not sure how this filtering process works
+# when deciding relationships that get displayed by either sequoia() OR GetMaybeRel()
+
+seq_test <- sequoia(GenoM = check_thin100K_test,
+                    LifeHistData = LH_Test,
+                    args.AP=list(Discrete = TRUE),
+                    UseAge = "yes",
+                    Module = "ped",
+                    Complex = "full",
+                    Err = errM,
+                    Herm = "no",
+                    CalcLLR = TRUE,
+                    StrictGenoCheck = TRUE,
+                    DummyPrefix = c("F", "M"),
+                    Tfilter = -2,
+                    Tassign = 0.5)
+# Tfilter = -2, -3, -4, -5, Tassign = 0.5
+# assigned 98 dams and 98 sires to 206 + 6 individuals (real + dummy)
+
+# Tfilter = -2, -3, -4, -5, Tassign = 1.0
+# assigned 94 dams and 95 sires to 206 + 3 individuals (real + dummy) 
+
+gmr_test <- GetMaybeRel(GenoM = check_thin100K_test,                    
+                        LifeHistData = LH_Test,
+                        SeqList = seq_test,
+                        Err = errM,                                   
+                        Module = "ped",
+                        Complex = "full",
+                        AgePrior = seq_test[["AgePriors"]],
+                        quiet = FALSE,
+                        Tassign = 0.5,
+                        Tfilter = -2,
+                        Herm = "no",
+                        MaxPairs = 7*nrow(check_thin100K_test)) 
+
+# assignment and filtering threshold changes don't do anything to the output.
+# also ran gmr_test with Tfilter as -2, Tassign as 0.5 and 1.0. does not change
+# the amount of relationships that are output.
+
+relm_test <- GetRelM(Pedigree = seq_test[["Pedigree"]],
+                     Pairs = gmr_test$MaybeRel,
+                     GenBack = 1, 
+                     patmat = FALSE,
+                     directed = TRUE,
+                     Return = 'Matrix')
+table(unique(relm_test))
+
+relmtest_plot <- PlotRelPairs(RelM = relm_test,
+                              pch.symbols = TRUE,
+                              mar = c(5, 5, 1, 8))
+
+seq_test_summary <- SummarySeq(SeqList = seq_test)
+
+
+
+
+##### ---- ---- #####
 
 
 
