@@ -1535,8 +1535,12 @@ for (i in seq_along(e1_vals)) {
                        Module = "par",
                        Complex = "simp",
                        LifeHistData = LH_Test,
+                       AgePrior = seq_test[["AgePriors"]],
                        quiet = TRUE,
-                       Tassign = 1.0,
+                       # Tassign = 1.0,
+                       Tassign = 0.5,
+                       Tfilter = -2,
+                       Herm = "no",
                        MaxPairs = 7 * nrow(check_thin100K_test))
     
     # if there are no trios found, place 0 in that place for assign, NA for accuracy
