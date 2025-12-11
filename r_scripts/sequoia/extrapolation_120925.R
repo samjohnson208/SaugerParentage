@@ -612,7 +612,7 @@ PairLL_f0 <- CalcPairLL(Pairs = Pairs_f0,
                         Herm = 'no',
                         InclDup = FALSE,
                         Err = errM,
-                        Tassign = 1.0,
+                        Tassign = 0.5,
                         Tfilter = -2,
                         quiet = FALSE,
                         Plot = TRUE)
@@ -630,15 +630,71 @@ PairLL_f0f1 <- CalcPairLL(Pairs = Pairs_f0f1,
                           Herm = 'no',
                           InclDup = FALSE,
                           Err = errM,
-                          Tassign = 1.0,
+                          Tassign = 0.5,
                           Tfilter = -2,
                           quiet = FALSE,
                           Plot = TRUE)
 prob_pairs_f0f1 <- plyr::aaply(as.matrix(PairLL_f0f1[,10:16]), .margin = 1, LLtoProb)
 prob_pairs_f0f1 <- cbind(PairLL_f0f1[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f1)
 
-setwd("/Users/samjohnson/Desktop/")
-save.image(file = "EOD_121025.RData")
+# setwd("/Users/samjohnson/Desktop/")
+# save.image(file = "EOD_121025.RData")
+
+##### ---- PairLL_f1 -> prob_pairs_f1 ---- #####
+
+PairLL_f1 <- CalcPairLL(Pairs = Pairs_f1,
+                        GenoM = check_thin100K_f1,
+                        LifeHistData = LH_f1,
+                        AgePrior = seq_f1[["AgePriors"]],
+                        Module = "ped",
+                        Complex = "full",
+                        Herm = 'no',
+                        InclDup = FALSE,
+                        Err = errM,
+                        Tassign = 0.5,
+                        Tfilter = -2,
+                        quiet = FALSE,
+                        Plot = TRUE)
+prob_pairs_f1 <- plyr::aaply(as.matrix(PairLL_f1[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f1 <- cbind(PairLL_f1[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f1)
+
+
+##### ---- PairLL_f1f2 -> prob_pairs_f1f2 ---- #####
+
+PairLL_f1f2 <- CalcPairLL(Pairs = Pairs_f1f2,
+                          GenoM = check_thin100K_f1f2,
+                          LifeHistData = LH_f1f2,
+                          AgePrior = seq_f1f2[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 0.5,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_f1f2 <- plyr::aaply(as.matrix(PairLL_f1f2[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f1f2 <- cbind(PairLL_f1f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f1f2)
+
+##### ---- PairLL_f2 -> prob_pairs_f2 ---- #####
+
+PairLL_f2 <- CalcPairLL(Pairs = Pairs_f2,
+                        GenoM = check_thin100K_f2,
+                        LifeHistData = LH_f2,
+                        AgePrior = seq_f2[["AgePriors"]],
+                        Module = "ped",
+                        Complex = "full",
+                        Herm = 'no',
+                        InclDup = FALSE,
+                        Err = errM,
+                        Tassign = 0.5,
+                        Tfilter = -2,
+                        quiet = FALSE,
+                        Plot = TRUE)
+prob_pairs_f2 <- plyr::aaply(as.matrix(PairLL_f2[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f2 <- cbind(PairLL_f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f2)
+
 
 # first thing tomorrow. continue with setting up these PairLL_gen dataframes.
 
@@ -646,14 +702,45 @@ save.image(file = "EOD_121025.RData")
   # remember, we're going to have to remove the dummy inds from those relatedness matrices
 
 # answer this question. are the toprels in each the same? are the likelihoods the same?
-# pairs represent the rows, have the toprel from each method, have the LLR from each, 
-# then you want columns that tell you T/F for toprel and LLR being the same
+# pairs represent the rows, have the toprel from each method, have the LLR from each,
+# and the prob from method 2, then you want columns that tell you T/F for toprel 
+# and LLR being the same between the two methods.
+
+# do the join where you have na's for the pairs that didn't get assigned, and then
+# you can subset that dataframe for is.na(TopRel_M1) == FALSE to get the cases
+# where the relationships got assigned.
+
+# that way you can work with that whole joined df to generate the only plot you need
 
 # depending on that... decide on what's gonna go on with this stuff below.
 # if all is clear, plot the probs of all the pairwise ones, plot the assigned ones.
   # remember, going to have to filter out the agedif = 0 pairs from the prob_pairs
   # dfs that span generations, since we'll have already plotted those. i think?
 
+
+
+##### ---- PairLL_f0f2 -> prob_pairs_f0f2 ---- #####
+
+PairLL_f0f2 <- CalcPairLL(Pairs = Pairs_f0f2,
+                          GenoM = check_thin100K_f0f2,
+                          LifeHistData = LH_f0f2,
+                          AgePrior = seq_f0f2[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 0.5,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_f0f2 <- plyr::aaply(as.matrix(PairLL_f0f2[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f0f2 <- cbind(PairLL_f0f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f2)
+
+##### ---- after creating those... ---- #####
+
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "M1M2_completed_121125.RData")
 
 
 ##### ---- cross check the assignments with the TopRel from CalcPairLL() ---- #####
