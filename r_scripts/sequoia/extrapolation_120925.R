@@ -595,6 +595,31 @@ Pairs_f0f2$focal <- "U"
 
 dim(Pairs_f0f2)
 
+##### ---- Pairs_Test ---- #####
+IDs <- rownames(check_thin100K_test)
+Pairs_test <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_test <- Pairs_test %>% 
+  left_join(LH_Test %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_Test %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_test$AgeDif <- Pairs_test$BY2 - Pairs_test$BY1
+
+Pairs$focal <- "U"
+
+dim(Pairs_test)
+##### ---- ---- #####
+
+
 ##### ---- Getting LLRs and probs for all relationships ---- #####
 
 # run CalcPairLL for all six runs
@@ -737,6 +762,30 @@ PairLL_f0f2 <- CalcPairLL(Pairs = Pairs_f0f2,
 prob_pairs_f0f2 <- plyr::aaply(as.matrix(PairLL_f0f2[,10:16]), .margin = 1, LLtoProb)
 prob_pairs_f0f2 <- cbind(PairLL_f0f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f2)
 
+##### ---- PairLL_test <- prob_pairs_test ---- #####
+
+
+# IMPORTANT NOTE: I did the test group AFTER all the rest of the combinations in
+# this script, seq_test, gmr_test, and relm_test were all made below in the "a quick 
+# check on the thresholds and test group" section
+
+PairLL_test <- CalcPairLL(Pairs = Pairs_test,
+                          GenoM = check_thin100K_test,
+                          LifeHistData = LH_Test,
+                          AgePrior = seq_test[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 0.5,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_test <- plyr::aaply(as.matrix(PairLL_test[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_test <- cbind(PairLL_test[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_test)
+
+
 ##### ---- after creating those... ---- #####
 
 setwd("/Users/samjohnson/Desktop/")
@@ -775,9 +824,23 @@ true_inds <- rownames(relm_f0f1)[str_starts(rownames(relm_f0f1), "SAR")]
 length(true_inds) # make sure it's the correct length
 relm_f0f1_nodum <- relm_f0f1[true_inds, true_inds]
 
+# step 1.5: we need to clean the relatedness matrix so that when we merge, we can
+# get the probabilities for the relationships predicted by method 1
+clean_seq_matrix <- function(mat) {
+  mat <- as.matrix(mat)  # ensure it's a matrix
+  mat[mat %in% c("FA?", "FA")] <- "FA"
+  mat[mat %in% c("FS?", "FS")] <- "FS"
+  mat[mat %in% c("HS?", "HS")] <- "HS"
+  mat[mat %in% c("O", "PO?", "PO")] <- "PO"
+  mat[mat %in% c("Q?", "Q")] <- "??"
+  return(mat)
+}
+
+relm_f0f1_clean <- clean_seq_matrix(relm_f0f1_nodum)
+
 # step 2: convert the relatedness matrix to a dataframe, long format with unique, sorted pairs
 
-relm_f0f1_long <- relm_f0f1_nodum %>%
+relm_f0f1_long <- relm_f0f1_clean %>%
     as.data.frame() %>% # turn to df
     tibble::rownames_to_column("ID1") %>% # set up the first col as id1
     pivot_longer(cols = -ID1, # then pivot so you set up everything else around id1
@@ -878,9 +941,14 @@ true_inds <- rownames(relm_f1f2)[str_starts(rownames(relm_f1f2), "SAR")]
 length(true_inds) # make sure it's the correct length
 relm_f1f2_nodum <- relm_f1f2[true_inds, true_inds]
 
+# step 1.5: we need to clean the relatedness matrix so that when we merge, we can
+# get the probabilities for the relationships predicted by method 1
+
+relm_f1f2_clean <- clean_seq_matrix(relm_f1f2_nodum)
+
 # step 2: convert the relatedness matrix to a dataframe, long format with unique, sorted pairs
 
-relm_f1f2_long <- relm_f1f2_nodum %>%
+relm_f1f2_long <- relm_f1f2_clean %>%
   as.data.frame() %>% # turn to df
   tibble::rownames_to_column("ID1") %>% # set up the first col as id1
   pivot_longer(cols = -ID1, # then pivot so you set up everything else around id1
@@ -980,9 +1048,14 @@ true_inds <- rownames(relm_f0f2)[str_starts(rownames(relm_f0f2), "SAR")]
 length(true_inds) # make sure it's the correct length
 relm_f0f2_nodum <- relm_f0f2[true_inds, true_inds]
 
+# step 1.5: we need to clean the relatedness matrix so that when we merge, we can
+# get the probabilities for the relationships predicted by method 1
+
+relm_f0f2_clean <- clean_seq_matrix(relm_f0f2_nodum)
+
 # step 2: convert the relatedness matrix to a dataframe, long format with unique, sorted pairs
 
-relm_f0f2_long <- relm_f0f2_nodum %>%
+relm_f0f2_long <- relm_f0f2_clean %>%
   as.data.frame() %>% # turn to df
   tibble::rownames_to_column("ID1") %>% # set up the first col as id1
   pivot_longer(cols = -ID1, # then pivot so you set up everything else around id1
@@ -1076,6 +1149,114 @@ dim(resultstoplot_f0f2) # double check the dim
 
 ##### ---- ---- #####
 
+##### ---- generating results: test ---- #####
+
+# step 1: remove dummy individuals from the relatedness matrix
+
+true_inds <- rownames(relm_test)[str_starts(rownames(relm_test), "SAR")]
+length(true_inds) # make sure it's the correct length
+relm_test_nodum <- relm_test[true_inds, true_inds]
+
+# step 1.5: we need to clean the relatedness matrix so that when we merge, we can
+# get the probabilities for the relationships predicted by method 1
+
+relm_test_clean <- clean_seq_matrix(relm_test_nodum)
+
+# step 2: convert the relatedness matrix to a dataframe, long format with unique, sorted pairs
+
+relm_test_long <- relm_test_clean %>%
+  as.data.frame() %>% # turn to df
+  tibble::rownames_to_column("ID1") %>% # set up the first col as id1
+  pivot_longer(cols = -ID1, # then pivot so you set up everything else around id1
+               names_to = "ID2",
+               values_to = "TopRel_seq") %>% 
+  # now you have the pairs and their relationship from this method in 3 columns
+  # remove self comparisons
+  filter(ID1 != ID2) %>%
+  # create sorted pair IDs so duplicates collapse
+  mutate(ind1 = pmin(ID1, ID2),
+         ind2 = pmax(ID1, ID2)) %>%
+  distinct(ind1, ind2, .keep_all = TRUE) %>% # make sure you keep the relationship col
+  select(ind1, ind2, TopRel_seq) # and place them in this order, if they're not already
+
+# step 3: prepare the prob_pairs df for merging. keep only distinct, sorted pairs
+
+prob_long <- prob_pairs_test %>%
+  # create sorted pair IDs so it matches the matrix, same scheme as above
+  mutate(ind1 = pmin(ID1, ID2),
+         ind2 = pmax(ID1, ID2)) %>%
+  distinct(ind1, ind2, .keep_all = TRUE) # make sure to keep everything else
+
+# check your dims to make sure these are ready for the merge
+dim(prob_long) 
+dim(relm_test_long)
+
+# step 4: perform the merge
+
+merged <- relm_test_long %>%
+  left_join(prob_long,
+            by = c("ind1", "ind2")) # join them by each unique pair
+
+# step 5: add the generation to each individual
+
+# set up the assign_gen function for use later
+assign_gen <- function(x) {
+  case_when(
+    x %in% f0_inds$ID ~ "F0",
+    x %in% f1_inds$ID ~ "F1",
+    x %in% f2_inds$ID ~ "F2",
+    TRUE ~ NA_character_ # shouldn't be the case, but put an NA if an ind isn't there
+  )
+}
+
+# now run assign_gen on all inds in the merged df
+merged2 <- merged %>%
+  mutate(group_ind1 = assign_gen(ind1),
+         group_ind2 = assign_gen(ind2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+# step 6: do the TopRel's agree? extract the probability of the TopRel_pairwise,
+# and extract the probability of the TopRel_seq
+merged3 <- merged2 %>%
+  mutate(TopRel_pairwise = TopRel,      # rename the pairwise one for clarity first
+         TopRel_agree = TopRel_seq == TopRel_pairwise) %>% # do the TopRel's agree? 
+  # now go row by row, pull the TopRel from each method, and give me it's probability
+  # in columns that correspond to each method
+  rowwise() %>%
+  mutate(Prob_pairwise = case_when(
+    TopRel_pairwise == "PO" ~ PO,
+    TopRel_pairwise == "FS" ~ FS,
+    TopRel_pairwise == "HS" ~ HS,
+    TopRel_pairwise == "GP" ~ GP,
+    TopRel_pairwise == "FA" ~ FA,
+    TopRel_pairwise == "HA" ~ HA,
+    TopRel_pairwise == "U"  ~ U,
+    TRUE ~ NA_real_)) %>%
+  mutate(Prob_seq = case_when(
+    TopRel_seq == "PO" ~ PO,
+    TopRel_seq == "FS" ~ FS,
+    TopRel_seq == "HS" ~ HS,
+    TopRel_seq == "GP" ~ GP,
+    TopRel_seq == "FA" ~ FA,
+    TopRel_seq == "HA" ~ HA,
+    TopRel_seq == "U"  ~ U,
+    TRUE ~ NA_real_)) %>% 
+  ungroup()
+
+# step 7: reorder the columns to make it visually navigable
+
+resultstoplot_test <- merged3 %>%
+  select(ind1, ind2, group_ind1, group_ind2, group_pair, TopRel_agree, 
+         TopRel_seq, TopRel_pairwise, Prob_seq, Prob_pairwise, everything()) %>% 
+  select(-ID1, -ID2, -TopRel)
+
+dim(resultstoplot_test) # double check the dim
+
+##### ---- ---- #####
+
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultstoplot_121125.RData")
 
@@ -1085,6 +1266,7 @@ save.image(file = "resultstoplot_121125.RData")
 table(resultstoplot_f0f1$TopRel_agree)
 table(resultstoplot_f1f2$TopRel_agree)
 table(resultstoplot_f0f2$TopRel_agree)
+table(resultstoplot_test$TopRel_agree)
 
 # how many times do disagreements happen because the GetMaybeRel() relationships have "?" at the end?
 table(resultstoplot_f0f1$TopRel_seq)
@@ -1095,6 +1277,9 @@ table(resultstoplot_f1f2$TopRel_pairwise)
 
 table(resultstoplot_f0f2$TopRel_seq)
 table(resultstoplot_f0f2$TopRel_pairwise)
+
+table(resultstoplot_test$TopRel_seq)
+table(resultstoplot_test$TopRel_pairwise)
 ##### ---- ---- #####
 
 ##### ---- removing the U/U scenario ---- #####
@@ -1111,7 +1296,13 @@ resultstoplot_f1f2_cleanUU <- resultstoplot_f1f2 %>%
 resultstoplot_f0f2_cleanUU <- resultstoplot_f0f2 %>% 
   filter(!(TopRel_seq == "U" & TopRel_pairwise == "U"))
 
+table(resultstoplot_f0f1$TopRel_seq)
+table(resultstoplot_f0f1$TopRel_pairwise)
+
 ##### ---- ---- #####
+# ^ I AM TEMPORARILY BYPASSING THIS TO SEE IF I CAN MAKE THE BOXPLOTS WITH THE U/U
+# SCENARIOS. I THINK REMOVING THEM WOULD BE MISLEADING.
+
 
 ##### ---- removing the question marks after inferred relationships ---- #####
 
@@ -1149,6 +1340,11 @@ toplot_f0f2_cleanUU_noQM <- clean_seq_relationships(resultstoplot_f0f2_cleanUU)
 # didn't realize the "??" originated from the pairwise method. now just need to
 # filter for cases where NEITHER of the two methods generate a pair with "??"
 
+##### ---- ---- #####
+# ^ I AM ALSO BYPASSING THIS, SINCE I MOVED THIS FUNCTIONALITY TO STEP 1.5 ABOVE
+
+
+##### ---- remove the unknowns ("??")---- ####
 remove_unknowns <- function(df) {
   df %>%
     filter(
@@ -1157,12 +1353,24 @@ remove_unknowns <- function(df) {
     )
 }
 
-toplot_f0f1_cleanUU_noQM <- remove_unknowns(toplot_f0f1_cleanUU_noQM)
-toplot_f1f2_cleanUU_noQM <- remove_unknowns(toplot_f1f2_cleanUU_noQM)
-toplot_f0f2_cleanUU_noQM <- remove_unknowns(toplot_f0f2_cleanUU_noQM)
+toplot_f0f1_noQM <- remove_unknowns(resultstoplot_f0f1)
+table(toplot_f0f1_noQM$TopRel_pairwise)
+table(toplot_f0f1_noQM$TopRel_seq)
 
+toplot_f1f2_noQM <- remove_unknowns(resultstoplot_f1f2)
+table(toplot_f1f2_noQM$TopRel_pairwise)
+table(toplot_f1f2_noQM$TopRel_seq)
+
+toplot_f0f2_noQM <- remove_unknowns(resultstoplot_f0f2)
+table(toplot_f0f2_noQM$TopRel_pairwise)
+table(toplot_f0f2_noQM$TopRel_seq)
+
+toplot_test_noQM <- remove_unknowns(resultstoplot_test)
+table(toplot_test_noQM$TopRel_pairwise)
+table(toplot_test_noQM$TopRel_seq)
 
 ##### ---- ---- #####
+# ^ HOWEVER, WE DO STILL NEED TO DO THIS TO GET RID OF THE "??" SCENARIO
 
 ##### ---- pivot and prep the resultstoplot_ ---- #####
 # we've got to pivot longer for the facet wrap in ggplot to work, so here's a repeatable
@@ -1189,22 +1397,27 @@ prep_plot_data <- function(df) {
                                   TopRel_seq)
     # ^ lastly, we need to place the relationships in a corresponding "Relationship"
     # column, so if the method's pairwise, put the TopRel_pairwise in there. if
-    # if ain't, put the sequoia in there, which will correspond to Method == "Sequoia"
+    # it ain't, put the sequoia in there, which will correspond to Method == "Sequoia"
     )
 }
 
 # pivot the resultstoplot_ dataframes, they should double in length
-toplot_f0f1_cleanUU_noQM_piv <- prep_plot_data(toplot_f0f1_cleanUU_noQM)
-toplot_f1f2_cleanUU_noQM_piv <- prep_plot_data(toplot_f1f2_cleanUU_noQM)
-toplot_f0f2_cleanUU_noQM_piv <- prep_plot_data(toplot_f0f2_cleanUU_noQM)
+toplot_f0f1_noQM_piv <- prep_plot_data(toplot_f0f1_noQM)
+toplot_f1f2_noQM_piv <- prep_plot_data(toplot_f1f2_noQM)
+toplot_f0f2_noQM_piv <- prep_plot_data(toplot_f0f2_noQM)
+toplot_test_noQM_piv <- prep_plot_data(toplot_test_noQM)
+
 
 # okay so it's in the correct format now, but the problem is that EARLIER in the
 # big 7 step process there were still PO? and stuff in the relatedness matrices
 # and ?? in the pairwise dataframes. need to go do these filtering steps earlier
 # in the pipeline.
-
-
+# ^ THIS HAS BEEN RECONCILED, ANYTHING IN THE "plotting results" SECTION IS GOOD
 ##### ---- ---- #####
+
+# pre-plot data save
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "resultstoplot_121125.RData")
 
 ##### ---- plotting results ---- ##### 
 
@@ -1243,12 +1456,24 @@ plot_rel_boxpoints <- function(plotdata, title = NULL) {
     )
 }
 
-plotf0f1 <- plot_rel_boxpoints(toplot_f0f1_cleanUU_prepped_noQM,
-                               "F0–F1: Relationship Probabilities by Method")
-plotf0f1
+plot_f0f1 <- plot_rel_boxpoints(toplot_f0f1_noQM_piv, "F0–F1: Relationship Probabilities by Method")
+plot_f0f1
 
+plot_f1f2 <- plot_rel_boxpoints(toplot_f1f2_noQM_piv, "F1–F2: Relationship Probabilities by Method")
+plot_f1f2
 
+plot_f0f2 <- plot_rel_boxpoints(toplot_f0f2_noQM_piv, "F0–F2: Relationship Probabilities by Method")
+plot_f0f2
 
+plot_test <- plot_rel_boxpoints(toplot_test_noQM_piv, "Test Group: Relationship Probabilities by Method")
+plot_test
+##### ---- ---- #####
+
+# post-plotting data save
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "resultsplotted_EOD_121125.RData")
+
+##### ----  unsuccessful plotting functions and plot types ---- #####
 
 plot_rel_violin <- function(plotdata, title = NULL) {
   
@@ -1320,15 +1545,6 @@ dim(toplot_f1f2_cleanUU_prepped)
 plotf0f2 <- plot_rel_violin_large(toplot_f0f2_cleanUU_prepped, title = "F0-F2 Relationships and Probabilities by Method")
 plotf0f2
 dim(toplot_f0f2_cleanUU_prepped)
-
-
-
-
-
-
-
-
-
 ##### ---- ---- #####
 
 ##### ---- a quick check on the thresholds and test group ---- ##### 
