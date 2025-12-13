@@ -1419,7 +1419,7 @@ toplot_test_noQM_piv <- prep_plot_data(toplot_test_noQM)
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultstoplot_121125.RData")
 
-##### ---- plotting results ---- ##### 
+##### ---- plotting results and getting summary tables ---- ##### 
 
 plot_rel_boxpoints <- function(plotdata, title = NULL) {
 
@@ -1467,11 +1467,117 @@ plot_f0f2
 
 plot_test <- plot_rel_boxpoints(toplot_test_noQM_piv, "Test Group: Relationship Probabilities by Method")
 plot_test
+
+table_f0f1 <- toplot_f0f1_noQM_piv %>%
+  group_by(Method, Relationship) %>%
+  summarise(
+    n_pairs = n(),
+    mean_prob = mean(Probability, na.rm = TRUE),
+    median_prob = median(Probability, na.rm = TRUE),
+    min_prob = min(Probability, na.rm = TRUE),
+    max_prob = max(Probability, na.rm = TRUE),
+    .groups = "drop"
+  )
+table_f0f1
+
+table_f1f2 <- toplot_f1f2_noQM_piv %>%
+  group_by(Method, Relationship) %>%
+  summarise(
+    n_pairs = n(),
+    mean_prob = mean(Probability, na.rm = TRUE),
+    median_prob = median(Probability, na.rm = TRUE),
+    min_prob = min(Probability, na.rm = TRUE),
+    max_prob = max(Probability, na.rm = TRUE),
+    .groups = "drop"
+  )
+table_f1f2
+
+table_f0f2 <- toplot_f0f2_noQM_piv %>%
+  group_by(Method, Relationship) %>%
+  summarise(
+    n_pairs = n(),
+    mean_prob = mean(Probability, na.rm = TRUE),
+    median_prob = median(Probability, na.rm = TRUE),
+    min_prob = min(Probability, na.rm = TRUE),
+    max_prob = max(Probability, na.rm = TRUE),
+    .groups = "drop"
+  )
+table_f0f2
+
+table_test <- toplot_test_noQM_piv %>%
+  group_by(Method, Relationship) %>%
+  summarise(
+    n_pairs = n(),
+    mean_prob = mean(Probability, na.rm = TRUE),
+    median_prob = median(Probability, na.rm = TRUE),
+    min_prob = min(Probability, na.rm = TRUE),
+    max_prob = max(Probability, na.rm = TRUE),
+    .groups = "drop"
+  )
+table_test
 ##### ---- ---- #####
 
 # post-plotting data save
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultsplotted_EOD_121125.RData")
+
+##### ---- plotting po probabilities for all four groups ---- #####
+# we're mostly interested in the PO relationships over everything else, go ahead
+# and plot those and the probabilities for each of the gen pairs
+po_all <- bind_rows(toplot_f0f1_noQM_piv %>% mutate(GenGroup = "F0–F1"),
+                    toplot_f1f2_noQM_piv %>% mutate(GenGroup = "F1–F2"),
+                    toplot_f0f2_noQM_piv %>% mutate(GenGroup = "F0–F2"),
+                    toplot_test_noQM_piv %>% mutate(GenGroup = "Test")) %>% 
+          filter(Relationship == "PO")
+
+plot_PO_by_gen <- function(df, method_name, title = NULL) {
+  
+  # keep PO as the purple from viridis
+  purple <- viridis::viridis(1)
+  
+  # filter by method name to create each type of plot
+  plot_df <- df %>%
+    filter(Method == method_name) %>%
+    mutate(GenGroup = factor(GenGroup, levels = c("Test", "F0–F1", "F1–F2", "F0–F2")))
+  
+  # count number of PO relationships per generation pair 
+  counts <- plot_df %>%
+    group_by(GenGroup) %>%
+    summarise(n = n(), .groups = "drop")
+  
+  ggplot(plot_df, aes(x = GenGroup, y = Probability)) +
+    geom_boxplot(fill = purple, color = "black",
+                 alpha = 0.7, outlier.shape = NA) +
+    geom_jitter(color = purple, width = 0.15,
+                height = 0.005, size = 0.9,
+                alpha = 0.8) +
+    geom_text(data = counts, aes(x = GenGroup, y = 1.03,
+              label = paste0("n = ", n)), inherit.aes = FALSE,
+              size = 3.5, fontface = "bold") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(x = "Generation Pair", y = "Probability of PO", title = title)
+}
+
+plot_PO_pairwise <- plot_PO_by_gen(po_all, 
+                                   method_name = "Pairwise",
+                                   title = "Probability of Parent–Offspring (PO) Relationships Across Generations (Pairwise)")
+
+plot_PO_sequoia <- plot_PO_by_gen(po_all,
+                                  method_name = "Sequoia",
+                                  title = "Probability of Parent–Offspring (PO) Relationships Across Generations (Sequoia)")
+
+plot_PO_pairwise
+plot_PO_sequoia
+
+# post-plotting data save, again
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "resultsplotted_EOD_121225.RData")
+
+# plots are saved to desktop, this resultsplotted_EOD_121225.RData file is the most recent
+##### ---- ---- #####
+
+
 
 ##### ----  unsuccessful plotting functions and plot types ---- #####
 
