@@ -434,13 +434,13 @@ seq_all <- sequoia(GenoM = check_thin100K_all,
                     Herm = "no",
                     UseAge = "yes",
                     args.AP=list(Discrete = TRUE, 
-                                 MinAgeParent = 1, MaxAgeParent = 2),
+                                 MinAgeParent = 1, MaxAgeParent = 1), # notice here! won't assign F0-F2 PO
                     CalcLLR = TRUE,
                     StrictGenoCheck = TRUE,
                     DummyPrefix = c("F", "M"),
                     Tfilter = -2,
                     Tassign = 0.5)
-# assigned 100 dams and 95 sires to 1030 + 85 individuals (real + dummy)
+# assigned 117 dams and 115 sires to 1030 + 81 individuals (real + dummy) 
 
 
 gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
@@ -455,7 +455,8 @@ gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
                         Tfilter = -2,
                         Tassign = 0.5,
                         MaxPairs = 20 * nrow(check_thin100K_all)) # needed to increase
-# Found 1 likely parent-offspring pairs, and 729, other non-assigned pairs of possible relatives
+# Found 46 likely parent-offspring pairs, and 1128, other non-assigned pairs of possible relatives
+# Found 1 parent-parent-offspring trios
 
 relm_all <- GetRelM(Pedigree = seq_all[["Pedigree"]],
                      Pairs = gmr_all$MaybeRel,
@@ -696,7 +697,8 @@ Pairs_all$focal <- "U"
 dim(Pairs_all)
 ##### ---- ---- #####
 
-
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "pre_PairLL_all_attempt2.RData")
 
 ##### ---- Getting LLRs and probs for all relationships ---- #####
 
