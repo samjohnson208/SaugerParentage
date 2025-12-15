@@ -421,6 +421,59 @@ seq_f0f2_summary <- SummarySeq(SeqList = seq_f0f2)
 
 
 
+##### ---- all_gens ---- #####
+dim(check_thin100K_all)
+dim(LH_All)
+table(LH_All$BirthYear)
+
+seq_all <- sequoia(GenoM = check_thin100K_all,
+                    LifeHistData = LH_All,
+                    Module = "ped",
+                    Err = errM,
+                    Complex = "full",
+                    Herm = "no",
+                    UseAge = "yes",
+                    args.AP=list(Discrete = TRUE, 
+                                 MinAgeParent = 1, MaxAgeParent = 2),
+                    CalcLLR = TRUE,
+                    StrictGenoCheck = TRUE,
+                    DummyPrefix = c("F", "M"),
+                    Tfilter = -2,
+                    Tassign = 0.5)
+# assigned 100 dams and 95 sires to 1030 + 85 individuals (real + dummy)
+
+
+gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
+                        SeqList = seq_all,
+                        AgePrior = seq_all[["AgePriors"]],
+                        Err = errM,
+                        Module = "ped",
+                        Complex = "full",
+                        LifeHistData = LH_All,
+                        Herm = "no",
+                        quiet = FALSE,
+                        Tfilter = -2,
+                        Tassign = 0.5,
+                        MaxPairs = 20 * nrow(check_thin100K_all)) # needed to increase
+# Found 1 likely parent-offspring pairs, and 729, other non-assigned pairs of possible relatives
+
+relm_all <- GetRelM(Pedigree = seq_all[["Pedigree"]],
+                     Pairs = gmr_all$MaybeRel,
+                     GenBack = 2, 
+                     patmat = FALSE,
+                     directed = FALSE, # CHANGED HERE: all good, will require less cleaning down the road...
+                     Return = 'Matrix')
+table(unique(relm_all))
+
+relmall_plot <- PlotRelPairs(RelM = relm_all, 
+                              drop.U = TRUE, 
+                              pch.symbols = TRUE,
+                              cex.axis = 0.3,
+                              mar = c(5, 5, 1, 8)) # weird. can't plot it with two gens back...
+
+seq_all_summary <- SummarySeq(SeqList = seq_all)
+
+
 ##### ---- get likelihoods/probs for all pairs of gens ---- #####
 
 # look, we should be using gmr to our advantage. it adds probable assignments that
@@ -441,6 +494,8 @@ seq_f0f2_summary <- SummarySeq(SeqList = seq_f0f2)
       # gmr_f1f2
       # gmr_f2
       # gmr_f0f2
+      # gmr_test (done below)
+      # gmr_all
 
 # create Pairs df for all six runs
   # start with LH dfs
@@ -595,7 +650,7 @@ Pairs_f0f2$focal <- "U"
 
 dim(Pairs_f0f2)
 
-##### ---- Pairs_Test ---- #####
+##### ---- Pairs_test ---- #####
 IDs <- rownames(check_thin100K_test)
 Pairs_test <- expand_grid(
   ID1 = IDs,
@@ -614,10 +669,33 @@ Pairs_test <- Pairs_test %>%
 
 Pairs_test$AgeDif <- Pairs_test$BY2 - Pairs_test$BY1
 
-Pairs$focal <- "U"
+Pairs_test$focal <- "U"
 
 dim(Pairs_test)
+##### ---- Pairs_all ---- #####
+IDs <- rownames(check_thin100K_all)
+Pairs_all <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_all <- Pairs_all %>% 
+  left_join(LH_All %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_All %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_all$AgeDif <- Pairs_all$BY2 - Pairs_all$BY1
+
+Pairs_all$focal <- "U"
+
+dim(Pairs_all)
 ##### ---- ---- #####
+
 
 
 ##### ---- Getting LLRs and probs for all relationships ---- #####
@@ -625,6 +703,10 @@ dim(Pairs_test)
 # run CalcPairLL for all six runs
   # DON'T CONDITION ON A PEDIGREE, THESE ARE ALL POSSIBLE PAIRS
   # THEN WE SAY, HERE ARE THE ONES THAT ACTUALLY GOT PULLED FROM seq, gmr()
+
+# ATTENTION: BROKE HERE ON 1214525 WHEN CONSTRUCTING PairLL_all. HAD TO TERMINATE
+# AND LOAD resultsplotted_EOD121225.RData. Rerun everything to establish the Pairs_all
+# object and try this CalcPairLL() line again.
 
 ##### ---- PairLL_f0 -> prob_pairs_f0  ---- #####
 
@@ -762,7 +844,7 @@ PairLL_f0f2 <- CalcPairLL(Pairs = Pairs_f0f2,
 prob_pairs_f0f2 <- plyr::aaply(as.matrix(PairLL_f0f2[,10:16]), .margin = 1, LLtoProb)
 prob_pairs_f0f2 <- cbind(PairLL_f0f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f2)
 
-##### ---- PairLL_test <- prob_pairs_test ---- #####
+##### ---- PairLL_test -> prob_pairs_test ---- #####
 
 
 # IMPORTANT NOTE: I did the test group AFTER all the rest of the combinations in
@@ -785,6 +867,24 @@ PairLL_test <- CalcPairLL(Pairs = Pairs_test,
 prob_pairs_test <- plyr::aaply(as.matrix(PairLL_test[,10:16]), .margin = 1, LLtoProb)
 prob_pairs_test <- cbind(PairLL_test[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_test)
 
+
+##### ---- PairLL_all -> prob_pairs_all ---- #####
+
+PairLL_all <- CalcPairLL(Pairs = Pairs_all,
+                         GenoM = check_thin100K_all,
+                         LifeHistData = LH_All,
+                         AgePrior = seq_all[["AgePriors"]],
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = 'no',
+                         InclDup = FALSE,
+                         Err = errM,
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = TRUE)
+prob_pairs_all <- plyr::aaply(as.matrix(PairLL_all[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_all <- cbind(PairLL_all[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_all)
 
 ##### ---- after creating those... ---- #####
 
@@ -1282,6 +1382,8 @@ table(resultstoplot_test$TopRel_seq)
 table(resultstoplot_test$TopRel_pairwise)
 ##### ---- ---- #####
 
+################################################################################
+
 ##### ---- removing the U/U scenario ---- #####
 
 # there are TONS of cases in each dataframe where both methods agree that the inds
@@ -1302,7 +1404,6 @@ table(resultstoplot_f0f1$TopRel_pairwise)
 ##### ---- ---- #####
 # ^ I AM TEMPORARILY BYPASSING THIS TO SEE IF I CAN MAKE THE BOXPLOTS WITH THE U/U
 # SCENARIOS. I THINK REMOVING THEM WOULD BE MISLEADING.
-
 
 ##### ---- removing the question marks after inferred relationships ---- #####
 
@@ -1343,6 +1444,7 @@ toplot_f0f2_cleanUU_noQM <- clean_seq_relationships(resultstoplot_f0f2_cleanUU)
 ##### ---- ---- #####
 # ^ I AM ALSO BYPASSING THIS, SINCE I MOVED THIS FUNCTIONALITY TO STEP 1.5 ABOVE
 
+################################################################################
 
 ##### ---- remove the unknowns ("??")---- ####
 remove_unknowns <- function(df) {
@@ -1576,6 +1678,13 @@ save.image(file = "resultsplotted_EOD_121225.RData")
 
 # plots are saved to desktop, this resultsplotted_EOD_121225.RData file is the most recent
 ##### ---- ---- #####
+
+
+
+
+
+
+
 
 
 
