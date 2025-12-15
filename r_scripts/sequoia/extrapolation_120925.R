@@ -888,6 +888,9 @@ PairLL_all <- CalcPairLL(Pairs = Pairs_all,
 prob_pairs_all <- plyr::aaply(as.matrix(PairLL_all[,10:16]), .margin = 1, LLtoProb)
 prob_pairs_all <- cbind(PairLL_all[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_all)
 
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "withPairLL_all_EOD121425.RData")
+
 ##### ---- after creating those... ---- #####
 
 setwd("/Users/samjohnson/Desktop/")
