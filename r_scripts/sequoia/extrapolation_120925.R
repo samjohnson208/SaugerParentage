@@ -1864,7 +1864,8 @@ plot_GP_by_method <- function(df, title = NULL) {
 plot_GP <- plot_GP_by_method(gp_all, title = "Probability of F0-F2 Grandparent–Grandoffspring (GP) Relationships by Method")
 plot_GP
 
-
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "resultsplotted_EOD_121525.RData")
 
 ##### ---- ---- #####
 
