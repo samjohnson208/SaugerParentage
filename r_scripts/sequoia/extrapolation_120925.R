@@ -912,9 +912,12 @@ save.image(file = "M1M2_completed_121125.RData")
 # i can only assume that, if it's not intentional, then it's one of the unavoidable
 # reasons why the LLRs are not interpretable. 
 
+# final approach, need to set up boxplots, facet wrapped by method, that show the
+# numbers and probabilities of each relationship
+
 # so we need to create a df that has the following columns
 
-# ind1 ind2 pair group_ind1 group_ind2 group_pair TopRel_seq TopRel_pairwise TopRel_agree Prob_pairwise
+# ind1 ind2 pair group_ind1 group_ind2 group_pair TopRel_seq Prob_seq TopRel_pairwise TopRel_agree Prob_pairwise
 
 library(dplyr)
 library(tidyr)
@@ -1365,6 +1368,131 @@ dim(resultstoplot_test) # double check the dim
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultstoplot_121125.RData")
 
+##### ---- generating results: all ---- #####
+
+# step 1: remove dummy individuals from the relatedness matrix
+
+true_inds <- rownames(relm_all)[str_starts(rownames(relm_all), "SAR")]
+length(true_inds) # make sure it's the correct length
+relm_all_nodum <- relm_all[true_inds, true_inds]
+
+# step 1.5: we need to clean the relatedness matrix so that when we merge, we can
+# get the probabilities for the relationships predicted by method 1
+
+# need to create a new function to clean this new matrix since it's got GP in it
+clean_seq_matrix_all <- function(mat) {
+  mat <- as.matrix(mat)  # ensure it's a matrix
+  mat[mat %in% c("FA?", "FA", "FNA")] <- "FA"
+  mat[mat %in% c("FS?", "FS")] <- "FS"
+  mat[mat %in% c("GP", "GPO", "GP?")] <- "GP"
+  mat[mat %in% c("HS?", "HS")] <- "HS"
+  mat[mat %in% c("O", "PO?", "PO")] <- "PO"
+  mat[mat %in% c("Q?", "Q")] <- "??"
+  return(mat)
+}
+
+relm_all_clean <- clean_seq_matrix_all(relm_all_nodum)
+
+# step 2: convert the relatedness matrix to a dataframe, long format with unique, sorted pairs
+
+relm_all_long <- relm_all_clean %>%
+  as.data.frame() %>% # turn to df
+  tibble::rownames_to_column("ID1") %>% # set up the first col as id1
+  pivot_longer(cols = -ID1, # then pivot so you set up everything else around id1
+               names_to = "ID2",
+               values_to = "TopRel_seq") %>% 
+  # now you have the pairs and their relationship from this method in 3 columns
+  # remove self comparisons
+  filter(ID1 != ID2) %>%
+  # create sorted pair IDs so duplicates collapse
+  mutate(ind1 = pmin(ID1, ID2),
+         ind2 = pmax(ID1, ID2)) %>%
+  distinct(ind1, ind2, .keep_all = TRUE) %>% # make sure you keep the relationship col
+  select(ind1, ind2, TopRel_seq) # and place them in this order, if they're not already
+
+# step 3: prepare the prob_pairs df for merging. keep only distinct, sorted pairs
+
+prob_long <- prob_pairs_all %>%
+  # create sorted pair IDs so it matches the matrix, same scheme as above
+  mutate(ind1 = pmin(ID1, ID2),
+         ind2 = pmax(ID1, ID2)) %>%
+  distinct(ind1, ind2, .keep_all = TRUE) # make sure to keep everything else
+
+# check your dims to make sure these are ready for the merge
+dim(prob_long) 
+dim(relm_all_long)
+
+# step 4: perform the merge
+
+merged <- relm_all_long %>%
+  left_join(prob_long,
+            by = c("ind1", "ind2")) # join them by each unique pair
+
+# step 5: add the generation to each individual
+
+# set up the assign_gen function for use later
+assign_gen <- function(x) {
+  case_when(
+    x %in% f0_inds$ID ~ "F0",
+    x %in% f1_inds$ID ~ "F1",
+    x %in% f2_inds$ID ~ "F2",
+    TRUE ~ NA_character_ # shouldn't be the case, but put an NA if an ind isn't there
+  )
+}
+
+# now run assign_gen on all inds in the merged df
+merged2 <- merged %>%
+  mutate(group_ind1 = assign_gen(ind1),
+         group_ind2 = assign_gen(ind2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+# step 6: do the TopRel's agree? extract the probability of the TopRel_pairwise,
+# and extract the probability of the TopRel_seq
+
+head(merged2)
+
+merged3 <- merged2 %>%
+  mutate(TopRel_pairwise = TopRel,      # rename the pairwise one for clarity first
+         TopRel_agree = TopRel_seq == TopRel_pairwise) %>% # do the TopRel's agree? 
+  # now go row by row, pull the TopRel from each method, and give me it's probability
+  # in columns that correspond to each method
+  rowwise() %>%
+  mutate(Prob_pairwise = case_when(
+    TopRel_pairwise == "PO" ~ PO,
+    TopRel_pairwise == "FS" ~ FS,
+    TopRel_pairwise == "HS" ~ HS,
+    TopRel_pairwise == "GP" ~ GP,
+    TopRel_pairwise == "FA" ~ FA,
+    TopRel_pairwise == "HA" ~ HA,
+    TopRel_pairwise == "U"  ~ U,
+    TRUE ~ NA_real_)) %>%
+  mutate(Prob_seq = case_when(
+    TopRel_seq == "PO" ~ PO,
+    TopRel_seq == "FS" ~ FS,
+    TopRel_seq == "HS" ~ HS,
+    TopRel_seq == "GP" ~ GP,
+    TopRel_seq == "FA" ~ FA,
+    TopRel_seq == "HA" ~ HA,
+    TopRel_seq == "U"  ~ U,
+    TRUE ~ NA_real_)) %>% 
+  ungroup()
+
+# step 7: reorder the columns to make it visually navigable
+
+resultstoplot_all <- merged3 %>%
+  select(ind1, ind2, group_ind1, group_ind2, group_pair, TopRel_agree, 
+         TopRel_seq, TopRel_pairwise, Prob_seq, Prob_pairwise, everything()) %>% 
+  select(-ID1, -ID2, -TopRel)
+
+dim(resultstoplot_all) # double check the dim
+
+##### ---- ---- #####
+
+
+
 
 ##### ---- exploring the output ---- #####
 # how many times do the relationships disagree/agree among the methods?
@@ -1372,6 +1500,7 @@ table(resultstoplot_f0f1$TopRel_agree)
 table(resultstoplot_f1f2$TopRel_agree)
 table(resultstoplot_f0f2$TopRel_agree)
 table(resultstoplot_test$TopRel_agree)
+table(resultstoplot_all$TopRel_agree)
 
 # how many times do disagreements happen because the GetMaybeRel() relationships have "?" at the end?
 table(resultstoplot_f0f1$TopRel_seq)
@@ -1385,6 +1514,9 @@ table(resultstoplot_f0f2$TopRel_pairwise)
 
 table(resultstoplot_test$TopRel_seq)
 table(resultstoplot_test$TopRel_pairwise)
+
+table(resultstoplot_all$TopRel_seq)
+table(resultstoplot_all$TopRel_pairwise)
 ##### ---- ---- #####
 
 ################################################################################
@@ -1476,6 +1608,11 @@ toplot_test_noQM <- remove_unknowns(resultstoplot_test)
 table(toplot_test_noQM$TopRel_pairwise)
 table(toplot_test_noQM$TopRel_seq)
 
+toplot_all_noQM <- remove_unknowns(resultstoplot_all)
+table(toplot_all_noQM$TopRel_pairwise)
+table(toplot_all_noQM$TopRel_seq)
+
+
 ##### ---- ---- #####
 # ^ HOWEVER, WE DO STILL NEED TO DO THIS TO GET RID OF THE "??" SCENARIO
 
@@ -1483,9 +1620,11 @@ table(toplot_test_noQM$TopRel_seq)
 # we've got to pivot longer for the facet wrap in ggplot to work, so here's a repeatable
 # function that we can use for all three of the dataframes
 
+# note 121525, had to change this function to include the group_pair column. not
+# sure why i got rid of it before, but i re-added it to pivot the toprep_all_noQM df
 prep_plot_data <- function(df) {
   df %>%
-    select(ind1, ind2, TopRel_pairwise, TopRel_seq, Prob_pairwise, Prob_seq) %>% 
+    select(ind1, ind2, group_pair, TopRel_pairwise, TopRel_seq, Prob_pairwise, Prob_seq) %>% 
     # keep only these few columns
     tidyr::pivot_longer(cols = c(Prob_pairwise, Prob_seq),
                         names_to = "Method",
@@ -1513,6 +1652,7 @@ toplot_f0f1_noQM_piv <- prep_plot_data(toplot_f0f1_noQM)
 toplot_f1f2_noQM_piv <- prep_plot_data(toplot_f1f2_noQM)
 toplot_f0f2_noQM_piv <- prep_plot_data(toplot_f0f2_noQM)
 toplot_test_noQM_piv <- prep_plot_data(toplot_test_noQM)
+toplot_all_noQM_piv <- prep_plot_data(toplot_all_noQM)
 
 
 # okay so it's in the correct format now, but the problem is that EARLIER in the
@@ -1684,10 +1824,49 @@ save.image(file = "resultsplotted_EOD_121225.RData")
 # plots are saved to desktop, this resultsplotted_EOD_121225.RData file is the most recent
 ##### ---- ---- #####
 
+##### ---- plotting GP for all inds---- #####
+# filter this pivoted dataframe so that we only retain rows where one of the two
+# methods inferred the pair as GP
+gp_all <- toplot_all_noQM_piv %>% 
+  filter(Relationship == "GP")
+
+# how many times did that happen for each method?
+gp_all %>%
+  count(Method, Relationship)
+
+# make sure the ageprior worked. yes indeed.
+table(gp_all$group_pair)
+
+# create plotting function
+plot_GP_by_method <- function(df, title = NULL) {
+  # count the gp's per method for the n's on the plot
+  counts <- df %>%
+    group_by(Method) %>%
+    summarise(n = n(), .groups = "drop") # drop the grouping after, for ease in ggplot
+  
+  ggplot(df, aes(x = Method, y = Probability)) +
+    geom_boxplot(fill = viridis::plasma(256)[180], color = "black",
+                 alpha = 0.7, outlier.shape = NA) +
+    geom_jitter(color = viridis::plasma(256)[140], width = 0.15,
+                height = 0.005, size = 0.9, 
+                alpha = 0.8) +
+    geom_text(data = counts, aes(x = Method, y = 1.03, 
+                                 label = paste0("n = ", n)),
+              inherit.aes = FALSE, fontface = "bold",
+              size = 3.5) +
+    theme_bw() +
+    theme(axis.text.x = element_text(face = "bold"),
+          plot.title = element_text(face = "plain")) +
+    labs(x = "Method", y = "Probability of GP Relationship",
+         title = title)
+}
+
+plot_GP <- plot_GP_by_method(gp_all, title = "Probability of F0-F2 Grandparent–Grandoffspring (GP) Relationships by Method")
+plot_GP
 
 
 
-
+##### ---- ---- #####
 
 
 
