@@ -1870,14 +1870,22 @@ save.image(file = "resultsplotted_EOD_121525.RData")
 ##### ---- ---- #####
 
 
+##### ---- confusion matrix for all inds ---- #####
+# goal is to take toplot_all_noQM and generate a table that shows when the two methods
+# do and don't agree, and what the relationship types are in those situations...
+rel_levels <- c("PO", "GP", "FA", "HA", "FS", "HS", "U")
+confusion <- table(Pairwise = factor(toplot_all_noQM$TopRel_pairwise, levels = rel_levels),
+                   Sequoia  = factor(toplot_all_noQM$TopRel_seq,      levels = rel_levels))
+confusion
 
+##### ---- ---- #####
 
 
 ##### ----  unsuccessful plotting functions and plot types ---- #####
 
 plot_rel_violin <- function(plotdata, title = NULL) {
   
-  # Ensure Relationship is a factor for consistent coloring
+  # make sure that relationship factor levels are correct so that coloring is consistent
   plotdata <- plotdata %>%
     mutate(Relationship = factor(Relationship,
                                  levels = c("??", "FA", "FA?", "FS", "FS?", "HA", "HS", "HS?", "O", "PO", "PO?", "Q?", "U")))
