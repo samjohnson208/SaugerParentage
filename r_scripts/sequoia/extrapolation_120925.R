@@ -37,6 +37,10 @@ table(inds_all$Group)
 
 ##### ---- run sequoia() for all pairs of gens ---- #####
 
+# note 010226: to be clear, the code that generates the genom here is found in
+# Sequoia_ContamFilt_mindep8_md5_RADseqErr_ALLINDS.R, in the first few sections,
+# before "sequoia() and GetMaybeRel()
+
 # filter genotype matrix for all six runs
   # should have the code for this already. find those lh dfs.
 dim(check_thin100K_all) #1030 inds. 943 snps.
@@ -885,6 +889,8 @@ PairLL_all <- CalcPairLL(Pairs = Pairs_all,
                          Tfilter = -2,
                          quiet = FALSE,
                          Plot = TRUE)
+# here, you're applying LLtoProb (row by row) to the 10th t0 16th columns of the 
+# PairLL_all, (see help for that function, that's where )
 prob_pairs_all <- plyr::aaply(as.matrix(PairLL_all[,10:16]), .margin = 1, LLtoProb)
 prob_pairs_all <- cbind(PairLL_all[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_all)
 
@@ -1878,7 +1884,14 @@ confusion <- table(Pairwise = factor(toplot_all_noQM$TopRel_pairwise, levels = r
                    Sequoia  = factor(toplot_all_noQM$TopRel_seq,      levels = rel_levels))
 confusion
 
+rel_levels_noHA <- c("PO", "GP", "FA", "FS", "HS", "U")
+confusion_noHA <- table(Pairwise = factor(toplot_all_noQM$TopRel_pairwise, levels = rel_levels_noHA),
+                        Sequoia  = factor(toplot_all_noQM$TopRel_seq,      levels = rel_levels_noHA))
+confusion_noHA
+write.table(confusion_noHA, file = "confusion_noHA.txt")
+
 ##### ---- ---- #####
+
 
 
 ##### ----  unsuccessful plotting functions and plot types ---- #####
