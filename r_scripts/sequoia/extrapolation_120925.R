@@ -1873,6 +1873,9 @@ plot_GP
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultsplotted_EOD_121525.RData")
 
+# last loaded 012426.
+load("/Users/samjohnson/Desktop/SequoiaResults_F25/RData_Backups/MOST_RECENT/resultsplotted_EOD_121525.RData")
+
 ##### ---- ---- #####
 
 
