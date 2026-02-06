@@ -1774,13 +1774,13 @@ table_test
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultsplotted_EOD_121125.RData")
 
-##### ---- plotting po probabilities for all four groups ---- #####
+##### ---- plotting po probabilities for all four groups (from split runs of pairwise gens) ---- #####
 # we're mostly interested in the PO relationships over everything else, go ahead
 # and plot those and the probabilities for each of the gen pairs
-po_all <- bind_rows(toplot_f0f1_noQM_piv %>% mutate(GenGroup = "F0–F1"),
-                    toplot_f1f2_noQM_piv %>% mutate(GenGroup = "F1–F2"),
-                    toplot_f0f2_noQM_piv %>% mutate(GenGroup = "F0–F2"),
-                    toplot_test_noQM_piv %>% mutate(GenGroup = "Test")) %>% 
+po_all_bind <- bind_rows(toplot_f0f1_noQM_piv %>% mutate(GenGroup = "F0–F1"),
+                         toplot_f1f2_noQM_piv %>% mutate(GenGroup = "F1–F2"),
+                         toplot_f0f2_noQM_piv %>% mutate(GenGroup = "F0–F2"),
+                         toplot_test_noQM_piv %>% mutate(GenGroup = "Test")) %>% 
           filter(Relationship == "PO")
 
 plot_PO_by_gen <- function(df, method_name, title = NULL) {
@@ -1812,11 +1812,11 @@ plot_PO_by_gen <- function(df, method_name, title = NULL) {
     labs(x = "Generation Pair", y = "Probability of PO", title = title)
 }
 
-plot_PO_pairwise <- plot_PO_by_gen(po_all, 
+plot_PO_pairwise <- plot_PO_by_gen(po_all_bind, 
                                    method_name = "Pairwise",
                                    title = "Probability of Parent–Offspring (PO) Relationships Across Generations (Pairwise)")
 
-plot_PO_sequoia <- plot_PO_by_gen(po_all,
+plot_PO_sequoia <- plot_PO_by_gen(po_all_bind,
                                   method_name = "Sequoia",
                                   title = "Probability of Parent–Offspring (PO) Relationships Across Generations (Sequoia)")
 
@@ -1830,7 +1830,138 @@ save.image(file = "resultsplotted_EOD_121225.RData")
 # plots are saved to desktop, this resultsplotted_EOD_121225.RData file is the most recent
 ##### ---- ---- #####
 
-##### ---- plotting GP for all inds---- #####
+##### ---- plotting po probabilities for all four groups (from a single run on everyone at once) ---- #####
+# filter this pivoted dataframe so that we only retain rows where one of the two
+# methods inferred the pair as PO
+po_all <- toplot_all_noQM_piv %>% 
+  filter(Relationship == "PO")
+
+# how many times did that happen for each method?
+po_all %>%
+  count(Method, Relationship)
+
+# make sure the ageprior worked. yes indeed.
+table(po_all$group_pair)
+
+# check methods
+table(po_all$Method)
+
+plot_PO_all <- function(df, method_name, title = NULL) {
+  
+  # keep PO as the purple from viridis
+  purple <- viridis::viridis(1)
+  
+  # filter by method name to create each type of plot
+  plot_df <- df %>%
+    filter(Method == method_name) %>%
+    mutate(group_pair = factor(group_pair, levels = c("F0_F1", "F1_F2")))
+  
+  # count number of PO relationships per generation pair 
+  counts <- plot_df %>%
+    group_by(group_pair) %>%
+    summarise(n = n(), .groups = "drop")
+  
+  ggplot(plot_df, aes(x = group_pair, y = Probability)) +
+    geom_boxplot(fill = purple, color = "black",
+                 alpha = 0.7, outlier.shape = NA) +
+    geom_jitter(color = purple, width = 0.15,
+                height = 0.005, size = 0.9,
+                alpha = 0.8) +
+    geom_text(data = counts, aes(x = group_pair, y = 1.03,
+                                 label = paste0("n = ", n)), inherit.aes = FALSE,
+              size = 3.5, fontface = "bold") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(x = "Generation Pair", y = "Probability of PO", title = title)
+}
+
+plot_PO_pairwise <- plot_PO_all(po_all, 
+                                method_name = "Pairwise",
+                                title = "Probability of Parent–Offspring (PO) Relationships Across Generations (Pairwise)")
+
+plot_PO_sequoia <- plot_PO_all(po_all,
+                               method_name = "Sequoia",
+                               title = "Probability of Parent–Offspring (PO) Relationships Across Generations (Sequoia)")
+
+plot_PO_pairwise
+plot_PO_sequoia
+
+# post-plotting data save, again
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "resultsplotted_EOD_020426.RData")
+
+
+##### ---- ---- #####
+
+##### ---- plotting po assignments with hatching based on test group accuracy rate ---- #####
+library(tidyverse)
+library(ggplot2)
+library(ggpattern)
+
+accuracy <- 0.88764
+error_rate <- 1 - accuracy
+
+# sequoia prep
+po_assign_seq <- tibble(generation = c("Test", "F0_F1", "F1_F2", "F0_F2"),
+                        n_assignments = c(180, 60, 43, 14))
+plot_po_assign_seq <- po_assign_seq %>%
+  mutate(correct = n_assignments * accuracy,
+        erroneous = n_assignments * error_rate) %>%
+  pivot_longer(cols = c(correct, erroneous),
+               names_to = "assignment_type",
+               values_to = "count")
+plot_po_assign_seq$assignment_type <- factor(plot_po_assign_seq$assignment_type,
+                                             levels = c("erroneous", "correct"))
+plot_po_assign_seq$generation <- factor(plot_po_assign_seq$generation,
+                                        levels = c("Test", "F0_F1", "F1_F2", "F0_F2"))
+
+# pairwise prep
+po_assign_pair <- tibble(generation = c("Test", "F0_F1", "F1_F2", "F0_F2"),
+                         n_assignments = c(182, 64, 42, 10))
+plot_po_assign_pair <- po_assign_pair %>%
+  mutate(correct = n_assignments * accuracy,
+         erroneous = n_assignments * error_rate) %>%
+  pivot_longer(cols = c(correct, erroneous),
+               names_to = "assignment_type",
+               values_to = "count")
+plot_po_assign_pair$assignment_type <- factor(plot_po_assign_pair$assignment_type,
+                                             levels = c("erroneous", "correct"))
+plot_po_assign_pair$generation <- factor(plot_po_assign_pair$generation,
+                                        levels = c("Test", "F0_F1", "F1_F2", "F0_F2"))
+
+
+# plot sequoia
+ggplot(plot_po_assign_seq, aes(x = generation, y = count, fill = assignment_type,
+                              pattern = assignment_type)) +
+  geom_col_pattern(colour = "black", linewidth = 0.5, alpha = 0.9, pattern_angle = 45, 
+                   pattern_density = 0.3, pattern_spacing = 0.04, pattern_fill = "black") +
+  scale_fill_manual(values = c(correct   = viridis::viridis(1), erroneous = viridis::viridis(1)),
+                    labels = c(correct   = "Correct Assignments", erroneous = "Potentially Erroneous Assignments")) +
+  scale_pattern_manual(values = c(correct   = "none", erroneous = "stripe")) +
+  guides(fill = guide_legend(override.aes = list(pattern = c("stripe", "none"), 
+                                                 alpha = 0.9)),
+         pattern = "none")+
+  labs(x = "Generation", y = "Number of parentage assignments", fill = NULL) +
+  theme_classic()
+
+# plot pairwise
+ggplot(plot_po_assign_pair, aes(x = generation, y = count, fill = assignment_type,
+                               pattern = assignment_type)) +
+  geom_col_pattern(colour = "black", linewidth = 0.5, alpha = 0.9, pattern_angle = 45, 
+                   pattern_density = 0.3, pattern_spacing = 0.04, pattern_fill = "black") +
+  scale_fill_manual(values = c(correct   = viridis::viridis(1), erroneous = viridis::viridis(1)),
+                    labels = c(correct   = "Correct Assignments", erroneous = "Potentially Erroneous Assignments")) +
+  scale_pattern_manual(values = c(correct   = "none", erroneous = "stripe")) +
+  guides(fill = guide_legend(override.aes = list(pattern = c("stripe", "none"), 
+                                                 alpha = 0.9)),
+         pattern = "none")+
+  labs(x = "Generation", y = "Number of parentage assignments", fill = NULL) +
+  theme_classic()
+
+
+##### ---- ---- #####
+
+##### ---- plotting GP for all inds run together---- #####
 # filter this pivoted dataframe so that we only retain rows where one of the two
 # methods inferred the pair as GP
 gp_all <- toplot_all_noQM_piv %>% 
@@ -1869,6 +2000,9 @@ plot_GP_by_method <- function(df, title = NULL) {
 
 plot_GP <- plot_GP_by_method(gp_all, title = "Probability of F0-F2 Grandparent–Grandoffspring (GP) Relationships by Method")
 plot_GP
+
+##### ---- Most Recent Save (as of 02/04/26) ---- #####
+
 
 setwd("/Users/samjohnson/Desktop/")
 save.image(file = "resultsplotted_EOD_121525.RData")
