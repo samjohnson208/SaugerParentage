@@ -2000,6 +2000,7 @@ plot_GP_by_method <- function(df, title = NULL) {
 
 plot_GP <- plot_GP_by_method(gp_all, title = "Probability of F0-F2 Grandparent–Grandoffspring (GP) Relationships by Method")
 plot_GP
+##### ---- ---- #####
 
 ##### ---- Most Recent Save (as of 02/04/26) ---- #####
 
@@ -2010,6 +2011,7 @@ save.image(file = "resultsplotted_EOD_121525.RData")
 # last loaded 012426.
 load("/Users/samjohnson/Desktop/SequoiaResults_F25/RData_Backups/MOST_RECENT/resultsplotted_EOD_121525.RData")
 
+save.image(file = "resultsplotted_EOD_020426.RData")
 ##### ---- ---- #####
 
 
