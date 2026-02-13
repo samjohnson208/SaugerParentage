@@ -1155,8 +1155,42 @@ Counting SNP's became very important for all of this, so to remain consistent, u
 grep -c "^scaff" filename.vcf or *.vcf
 ```
 
+# Sequoia Updates and Final Approach
 
+There has been a long line of sequoia scripts that we've been working with and each builds on the previous. Although all of the steps have been meticulously documented within the scripts, I figured I'd write a bit about each step and point to important scripts and breakthroughs in the process.
 
+I started experimenting with sequoia in Mar 2025, with Sequoia_Exp.R and Sequoia_Full.R. These were failures with respect to the number of assignments that I was extracting for the test group, so I moved to HipHop and used that for my AFS talk in May 2025. However, HipHop requires knowing the sex of all parents and ONLY relies on the HOTHIPHOP tests, doesn't use a rigorous ML framework, and doesn't display relationships other than PO, so I needed to return to sequoia.
 
+I was worried about the genotype matrices that I was using as input, so I tested whether using --vcf2geno or --012 changed the information within the matrices using check_geno_matrices.R. This didn't show anything, which was a nice reassurance.
 
+So then I wanted to see if the lack of assignments was driven by an overly-strict opposite homozygosity filtering step that was limiting the assignmetn rate. I built custom GetMaybeRel() and sequoia() functions with gmr_custom.R and sequoia_custom.R and this didn't help either.
 
+I figured that more loci would mean more genotyping error, and more OH mismathces for a given PO duo, so I tried running sequoia with the same parameters on the same indivs with fewer and fewer loci (just by taking random draws of the initial number that I brought in). This didn't really help either.
+
+At this point I reached out to Dr. Jisca Huisman who gave me an incredible set of tips (documented in Sequoia_JH_Tips.R). These certainly helped, but I wasn't all the way there. I hadn't done any comtaminant filtering on the raw reads at this point, so I did a TON filtering over the next week to try to hone the input data along various axes of missing data, depth, genotype quality, etc.
+
+At this point, I was gaining some traction and was trying to hone the genotyping error that sequoia allows when considering assignments, and this sparked a ton of iterations where I was runnning the test dataset and looking at the assignment rate (how many test F1's got assigned?), accuracy rate (were the proposed parents of those test F1's actually crossed?), and composite (assignment rate * accuracy rate / 100), and seeing how that changes with respect to n loci. Also checked the SFS for the input genotype matrices using sfs_sequoia_ready_datasets.R.
+
+Then Jisca mentioned to me that she had just added the Err_RADseq() which creates a genotyping error matrix based on the framework in (Bresadola et al., 2020, Molecular Ecology Resources, Table 1), as opposed to error rates that are specific to SNP chips. 
+
+Since then I've spend a lot of time honing those two parameters for hom and het genotying error rates using Sequoia_ContamFilt_mindep8_md5_RADseqErr.R, and have expanded that to Sequoia_ContamFilt_mindep8_md5_RADseqErr_ALLINDS.R to see what happens to the number of assignments for each generation (F1 -> F0, F2 -> F1, so on) using a given n loci, a given set of genotyping error params, and tweaking the complex and module arguments. During this time, Jisca explained to me that it would be really difficult to interpret the LLR's from the assignments for the test group, or to use those LLR's to provide a sense of confidence in the assignments for everyone else. At this point, she introduced me to the new LLtoProb() function, which converts LLR's to probabilities. This relies on the user running CalcPairLL() to get the LLR's for every pairwise combination of individuals, for every relationship type. This is important because in sequoia, the LLR's don't describe the likelihood that two inds are related vs unrelated, it's the likelihood that two inds are related in a certain way divided by the likelihood of them being related by the next most likely relationship type. So, you can't make among-pair comparisions, i.e., each LLR is pair-specific, and relationship-type-specific. So you've got a dataframe that has nrow = n inds x n inds, and a LLR for each relationship type. Then the LLtoProb() function takes the LLR's for each pair and turns them to probabilities that sum to one. Interpretation is "this pair has a 90% prob of being PO, 7.5% prob of being FS, and trace probs for every other relationship."
+
+I've still got the sequoia() and GetMaybeRel() approach, so I've been seeing how they compare with respect to the inferred relationships and their confidence in them. This was initially done on the test group, but was extrapolated to all of my individuals in extrapolation_120925.R. In this script, this two pronged approach really took off and I generated plots for the number of PO assignments, and the probabilities of PO/GP/FS/HS/FA/etc. assignments for the whole dataset. I also created a confusion matrix to describe the incongruence among methods for inferring each of the relationship types.
+
+### Week of 02/09/26
+
+Early in the week, I was trying to look at my cross lookup table, so that I could document (in my paper) the number of unique F0 crosses that were used to create the broodstock. This qickly spiraled out of control, as I found some sample labeling mistakes (see UT Env. St. Notebook for details) which were rectfified and the final cross loookup tables were created and counted iin unique_F0_crosses.R. I then wanted to make sure that the results for the test group didn't deastically change with the small number of crosses that I edited, so I did that in final_radseq_param_investigation.R. This coincided with wanting to make a heatmap of the values of e0 and e1 that maximize the assignment and accuracy rates and the composite score for the test group. The values remained the same at e0 = 0.075 and e1 = 0.025 for our check_thin100K dataset. I have become hesitant of the heatmap idea because I don't think it's the best idea for choosing the dataset. I think we want the dataset with the fewest loci (fewest opportunities for error) that produces the best composite score, and that's thinning by 100Kb, 940 snps.
+
+Next steps are to figure out how to write the methods and results by choosing one of the two methods (I think it should be the pairwise method). Put it together and show it to them.
+
+All sequoia scripts are stored in...
+
+```
+ .../SaugerParentage/r_scripts/sequoia
+```
+
+and the script used to investigate the F0 crosses is in
+
+```
+Documents/Sauger_102325/GeneticData/F0_CROSSES_021326
+```
