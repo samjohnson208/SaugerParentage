@@ -1806,9 +1806,13 @@ plot_PO_by_gen <- function(df, method_name, title = NULL) {
                 alpha = 0.8) +
     geom_text(data = counts, aes(x = GenGroup, y = 1.03,
               label = paste0("n = ", n)), inherit.aes = FALSE,
-              size = 3.5, fontface = "bold") +
+              size = 4.5, fontface = "bold") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14, face = "bold"),
+          axis.text.y  = element_text(size = 14),
+          axis.title.x = element_text(size = 16),
+          axis.title.y = element_text(size = 16),
+          plot.title   = element_text(size = 14, face = "plain")) +
     labs(x = "Generation Pair", y = "Probability of PO", title = title)
 }
 
@@ -1992,8 +1996,12 @@ plot_GP_by_method <- function(df, title = NULL) {
               inherit.aes = FALSE, fontface = "bold",
               size = 3.5) +
     theme_bw() +
-    theme(axis.text.x = element_text(face = "bold"),
-          plot.title = element_text(face = "plain")) +
+    theme(
+      axis.text.x  = element_text(size = 14, face = "bold"),
+      axis.text.y  = element_text(size = 14),
+      axis.title.x = element_text(size = 16),
+      axis.title.y = element_text(size = 16),
+      plot.title   = element_text(size = 18, face = "plain")) +
     labs(x = "Method", y = "Probability of GP Relationship",
          title = title)
 }
@@ -2031,6 +2039,33 @@ write.table(confusion_noHA, file = "confusion_noHA.txt")
 
 ##### ---- ---- #####
 
+##### ---- how many unique individuals were assigned in each gen? ---- ####
+finduniq_f0f1 <- toplot_f0f1_noQM_piv %>% 
+  filter(TopRel_pairwise == "PO") %>% 
+  filter(Method == "Pairwise")
+length(unique(finduniq_f0f1$ind2))
+
+finduniq_f1f2 <- toplot_f1f2_noQM_piv %>% 
+  filter(TopRel_pairwise == "PO") %>% 
+  filter(Method == "Pairwise")
+length(unique(finduniq_f1f2$ind2))
+# this one's weird because the years are overlapping, so the offspring aren't always
+# represented in the ind2 column. so we need to...
+# create a new object w both columns
+f1f2_assignedinds <- c(finduniq_f1f2$ind2, finduniq_f1f2$ind1) #length of this is 84, checks out.
+f2_assignedinds <- f1f2_assignedinds[f1f2_assignedinds %in% f2_inds$ID] # filter this for entries in f2_inds
+length(unique(f2_assignedinds)) # 41
+
+finduniq_f0f2 <- toplot_f0f2_noQM_piv %>% 
+filter(TopRel_pairwise == "PO") %>% 
+  filter(Method == "Pairwise")
+length(unique(finduniq_f0f2$ind2))
+
+finduniq_test <- toplot_test_noQM_piv %>% 
+  filter(TopRel_pairwise == "PO") %>% 
+  filter(Method == "Pairwise")
+length(unique(finduniq_test$ind2))
+##### ---- ---- #####
 
 
 ##### ----  unsuccessful plotting functions and plot types ---- #####
