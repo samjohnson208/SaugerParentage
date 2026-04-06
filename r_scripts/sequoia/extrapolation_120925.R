@@ -2039,7 +2039,7 @@ write.table(confusion_noHA, file = "confusion_noHA.txt")
 
 ##### ---- ---- #####
 
-##### ---- how many unique individuals were assigned in each gen? ---- ####
+#### ---- how many unique individuals were assigned in each gen? ---- ####
 finduniq_f0f1 <- toplot_f0f1_noQM_piv %>% 
   filter(TopRel_pairwise == "PO") %>% 
   filter(Method == "Pairwise")
@@ -2065,8 +2065,149 @@ finduniq_test <- toplot_test_noQM_piv %>%
   filter(TopRel_pairwise == "PO") %>% 
   filter(Method == "Pairwise")
 length(unique(finduniq_test$ind2))
+
+# use table here to see how many of the offspring were assigned to 2 vs 1 parent
+# (and then 0 by subtracting those from the total n inds sampled for that gen)
+# e.g., table(finduniq_test$ind2)
+
+# how about for GP's?
+gp_pairwise <- toplot_all_noQM_piv %>% 
+    filter(TopRel_pairwise == "GP") %>% 
+    filter(Method == "Pairwise")
+length(unique(gp_pairwise$ind2))
+table(gp_pairwise$ind2)
+table(table(gp_pairwise$ind2))
+
+# the f2's that got assigned to 4 f0's are: SAR_19_5972, SAR_20_6060, SAR_20_6090,  
+# and SAR_21_6353. wondering if the inferred grandparents actually got crossed together.
+
+# of these four, two of them had F0 grandparents that were validcross=TRUE, and 
+# of those two, only one of the crosses was true (i.e., two of the inferred grand
+# parents didn't actually get crossed together according to the records). could 
+# have been that they were a 15 and 16, or that they belonged to the same year,
+# but just didn't get crossed together. the probs were also not meaningful, because
+# in the cases where the F0's to crossed, the probabilities for GP between the
+# F2 and each F0 were 97 and 74, and 64 and 96 (see snoopy notebook 03/28/26).
+# i don't know how to interpret this. i don't know what to say. i also looked at
+# a few of the cases where the F2 got assigned to three, and rarely did i find
+# validcross=TRUE for the inferred F0 grandparents. dunno how to weave this into
+# the paper. let's try to write it, talk about how the GP assignments are soft,
+# how the false positive rate may be really high, and how we're not sure that 
+# there has been much contribution to this F2 generation from stocked fish.
+
+# that said, this could also be a geography and sampling issue. i can say that the
+# two cases where i had an f2 get assigned to f0's that were validcross=TRUE, that
+# F2 came from the wind river instead of anywhere else.
+
+# another thing i'll need to report
+inferred_parents_of_f1s <- finduniq_f0f1$ind1
+length(unique(inferred_parents_of_f1s))
+
 ##### ---- ---- #####
 
+##### ---- do the inferred parents of f2's get assigned to f0 parents? ---- #####
+
+# and how many situations do we have where we can span all three generations?
+inferred_parents_of_f2s <- f1f2_assignedinds[f1f2_assignedinds %in% f1_inds$ID]
+length(inferred_parents_of_f2s) # 42
+inferred_parents_of_f2s <- unique(inferred_parents_of_f2s)
+length(inferred_parents_of_f2s) # 39
+
+# alright, and how many of THOSE were offspring of F0's?
+inferred_offspring_of_f0s <- finduniq_f0f1$ind2
+length(inferred_offspring_of_f0s) # 64
+inferred_offspring_of_f0s <- unique(inferred_offspring_of_f0s)
+length(inferred_offspring_of_f0s) # 49
+
+
+# well it depends on the overlap of the individuals in these two objects, right?
+# looks like not many instances where you assign an F2 to an F1 parent, and that 
+# F1 parent gets assigned to two F0 parents. that would be the only way to know 
+# for sure.
+
+# alright, the way to do this is to say: give me the inferred f1 parents 
+inferred_parents_of_f2s # 39 of them
+# let's look and see how many of them were assigned to two broodstock parents,
+# according to...
+table(finduniq_f0f1$ind2)
+# and...
+length(inferred_offspring_of_f0s) # 49
+
+# first, see which inds were inferred as parents, and were also assigned to f0's
+inferred_par_of_f1s_also_inferred_off_of_f0s <- intersect(inferred_parents_of_f2s, 
+                                                          inferred_offspring_of_f0s)
+inferred_par_of_f1s_also_inferred_off_of_f0s
+# alright, there are only 9 of those. now we see how many were assigned to
+# two f0 parents
+
+f1s_to_tally <- finduniq_f0f1 %>% 
+  filter(ind2 %in% inferred_par_of_f1s_also_inferred_off_of_f0s)
+table(f1s_to_tally$ind2) # 9 f1's, only 2 of them were assigned to 2 f0 parents
+table(table(f1s_to_tally$ind2)) 
+
+# SAR_21_5706 and SAR_21_5826 were the ones assigned to two f0 parents.
+# the f0 parents for 5706 were valid cross = TRUE, but the ones for 5826 were not.
+
+##### ---- ---- #####
+
+##### ---- do the spawning f1's get assigned to f0's that were crossed? ---- #####
+# there were 13 spawning f1's that got assigned to two f0 parents, and one that
+# got assigned to three. were those f0 parents actually crossed together?
+# start here:
+table(finduniq_f0f1$ind2)
+# yknow what. i'm just gonna copy n paste em.
+f1s_with_twoplus_inferred_parents <- c("SAR_21_5537", "SAR_21_5584", "SAR_21_5668", 
+                                   "SAR_21_5670", "SAR_21_5695", "SAR_21_5706",
+                                   "SAR_21_5711", "SAR_21_5741", "SAR_21_5742",
+                                   "SAR_21_5767", "SAR_21_5786", "SAR_21_5815", 
+                                   "SAR_21_5826", "SAR_21_5830")
+f1s_with_twoplus_inferred_parents_df <- finduniq_f0f1 %>% 
+    filter(ind2 %in% f1s_with_twoplus_inferred_parents)
+
+# WOW. of the 13 that got assigned to 2+ f0 parents, 12 of them were valid cross!
+# also, all of the validcross=TRUE were high prob, and the FALSE was low prob.
+# this tells us that we can have confidence in the assignments, and that when you 
+# were assigned to 2 f0 parents, you're likely stocked. tells us that this method
+# is going to be good at picking up these cases and assigning them w high confidence
+# when they exist. problem is, there aren't many of these cases. 12/326 = 3.681%. 
+# also tells us that, because most of the f2's were not assigned to these inds, 
+# that the stocked fish are likely not having that much of a demographic input.
+# that said, we may have missed some more stocked fish on the spawning grounds,
+# or we could try sampling more f2's, but if the spawning cohort only contained
+# 3.681% stocked fish, then it's likely that the f2's will have come from wild-born
+# f1 parents.
+
+##### ---- ---- #####
+
+##### ---- grabbing mean probs of the PO assignments for each pairwise set of gens ---- #####
+PO_f0f1 <- toplot_f0f1_noQM_piv %>% 
+   filter(Method == "Pairwise") %>% 
+   filter(TopRel_pairwise == "PO")
+dim(PO_f0f1)
+mean(PO_f0f1$Probability) # 0.9784057
+sd(PO_f0f1$Probability) # 0.08957657
+
+PO_f1f2 <- toplot_f1f2_noQM_piv %>% 
+  filter(Method == "Pairwise") %>% 
+  filter(TopRel_pairwise == "PO")
+dim(PO_f1f2)
+mean(PO_f1f2$Probability) # 0.9766186
+sd(PO_f1f2$Probability) # 0.07928198
+
+PO_f0f2 <- toplot_f0f2_noQM_piv %>% 
+  filter(Method == "Pairwise") %>% 
+  filter(TopRel_pairwise == "PO")
+dim(PO_f0f2)
+mean(PO_f0f2$Probability) # 0.940421
+sd(PO_f0f2$Probability) # 0.1017594
+
+PO_test <- toplot_test_noQM_piv %>% 
+  filter(Method == "Pairwise") %>% 
+  filter(TopRel_pairwise == "PO")
+dim(PO_test)
+mean(PO_test$Probability) # 0.997926
+sd(PO_test$Probability) # 0.02067499
+##### ---- ---- #####
 
 ##### ----  unsuccessful plotting functions and plot types ---- #####
 
