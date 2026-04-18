@@ -1,4 +1,4 @@
-##### ---- FinalApproach.R by SPJ 022426 #####
+##### ---- FinalApproach.R created by SPJ 022426, edited 041726 #####
 ## PURPOSE: over the past few weeks, i have come up with this two-pronged approach 
 # that relies on 1. CalcPairLL() -> LLtoProb() and 2. sequoia() -> GetMaybeRel()
 # -> GetRelM() to 1. come up with probabilities that each pair of inds is related
@@ -9,7 +9,21 @@
 # results in a talk or paper format, we've decide it's best to combine the two approaches,
 # or to pick one of the two. it appears as though you can run CalcPairLL() conditional
 # on an inferred pedigree, so the plan is to do that on each of the groups and then
-# make the same plots as before. number of PO assignments, 
+# make the same plots as before. number of PO assignments. 
+
+# 04/17/26
+# okay, so THAT^ approach did not work. the pedigree that you use as your "conditional"
+# one needs to be from real, observational data. so combining the two approahces
+# (doing pairwise and conditioning on the pedigree output from sequoia() and GetMaybeRel())
+# wasn't feasible. we went with the approach in SaugerParentage/r_scripts/sequoia/
+# extrapolation_120925.R, and produced some figures from that, but we're no longer
+# satisfied with those, and we're looking for something more informative. in this
+# script, i'm starting with a CLEAN environment, and attempting to run things from
+# scratch to produce a stacked barplot and a big boxplot with all PO and GP stuff
+# on there. we start with the genotype matrix for all individuals.
+
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/Sequoia/Sequoia_Inp/contam_fastp_svit_mem/firstfilt_hardfilt_thinned/mindep8_maf30/geno_mat")
+getwd()
 
 ##### ---- packages #####
 library(sequoia)
@@ -51,10 +65,15 @@ colnames(mat_thin100K) <- pos100K$position
 
 ##### ----- ---- #####
 
-##### ---- adding Additional Data, Filtering Individuals #### 
+##### ---- adding Additional Data, Filtering Individuals (important!!) #### 
 
 # --- LH FOR ALL --- #
 # first i need to add LH data, so that I can filter the GenoM to these indivs.
+
+# IMPORTANT:  UNTIL NOW, I HAVE DONE THIS WITH SOME F0 INDIVIDUALS THAT WERE NOT
+# CROSSED. ADDITIONALLY, I WANT TO REMOVE THE JUVENILE F1'S. GOING TO DO BOTH OF
+# THOSE STEPS HERE.
+
 LH_All <- read.csv(file = "LH_F0_F1Spawn_F1Juv_F2.csv", header = TRUE)
 # change the F's to 1 and M's to 2, all others are 3's
 LH_All$Sex[LH_All$Sex == "M"] <- 2
@@ -63,22 +82,53 @@ LH_All$Sex <- as.numeric(LH_All$Sex)
 str(LH_All)
 dim(LH_All)
 
-table(LH_All$Sex)
-# Both 15 and 16 F0's
-# 134 males, 129 females
+# FILTERING FOR F0 INDS
+LH_F0 <- LH_All %>% 
+    filter(BirthYear == 0) # 263, all inds. need to filter down to just
+                           # the ones that were crossed.
 
+sar_2015_filt_split_pair <- read.csv(file = "sar_2015_filt_split_pair.csv") # 122
+# 53F + 59M, arranged into 61 unique crosses ( x2 is 122)
+sar_2016_filt_split_pair <- read.csv(file = "sar_2016_filt_split_pair.csv") # 112
+# 47F + 55M, arranged into 56 unique crosses ( x2 is 112)
+
+# checks out with info from Documents/Sauger_102325/GeneticData/F0_CROSSES_021326/unique_F0_crosses.R
+
+# okay great so now we filter for only those.
+f0s_that_were_crossed <- c(sar_2015_filt_split_pair$Sample_ID, sar_2016_filt_split_pair$Sample_ID) #234
+f0s_that_were_crossed <- unique(f0s_that_were_crossed) # 214 HOLY SHIT YES
+f0s_that_were_crossed <- data.frame(f0s_that_were_crossed)
+
+f0s_2015 <- f0s_that_were_crossed[1:112,]
+f0s_2016 <- f0s_that_were_crossed[113:nrow(f0s_that_were_crossed),]
+
+LH_F0_true <- LH_All %>% 
+  filter(ID %in% f0s_that_were_crossed$f0s_that_were_crossed) # 214
+
+# FILTERING FOR F1 INDS
+LH_F1 <- LH_All %>% 
+  filter(BirthYear == 1) %>%  # 334
+  filter(!grepl("SAR_15_", ID)) # 315, checks out w/ SAR_Data_021026
+
+LH_F2 <- LH_All %>% 
+  filter(BirthYear == 2) #480 # checks out w/ SAR_Data_021026
+
+LH_All <- bind_rows(LH_F0_true, LH_F1, LH_F2) # 1009 inds
 table(LH_All$Sex)
-# Both 15 and 16 F0's
-# 134 males, 129 females
+# 114 males, 100 females from both years.
+# 53 + 47 females = 100
+# 59 + 55 males = 114
+
+# --- --- # 
 
 table(LH_All$BirthYear)
-# 263 F0's (15 and 16), 6436 was not spawned, so it's not included here.
-# 334 F1's (juveniles from fall 15 and spawn agg fish from spring 21)
+# 214 F0's (15 and 16)
+# 315 F1's (spawning adults from 2021)
 # NO TEST F1's included
 # 480 F2's (19, 20, 21, all over)
-# = 1077
+# = 1009
 # note: will's samples excluded, possible hybrids excluded, WF fish excluded
-# THIS IS READY NOW FOR GETMAYBEREL (not yet...)
+
 
 
 
@@ -88,22 +138,19 @@ testsamp <- read.csv(file = "posampleids.csv", header = TRUE) # 210 samples, 114
 
 # read in lh data for test inds
 LH_Test <- read.csv(file = "testindivs_LH.csv", header = TRUE)
-# alright, what's going on here with the missing individual?
-
-missingind <- testsamp$sample[!testsamp$sample %in% LH_Test$ID]
-# first thing is to check the extractions, readme, and hiphop scripts.
-# i understand 6757 wasn't sequenced, but what's up with 6436. it's on the plate map!
-# 6436 wasn't spawned. guess i didn't catch that when i was prepping for sequencing.
-# test group is for sure 208 individuals. 113 F0 parents, 95 test F1's.
+LH_Test_Parents <- LH_Test %>% 
+    filter(ID %in% f0s_2015) # 112
+LH_Test_Offspring <- LH_Test[1:95,]
+LH_Test <- bind_rows(LH_Test_Parents, LH_Test_Offspring) # 207 inds. great.
 
 # change the F's to 1 and M's to 2
 LH_Test$Sex[LH_Test$Sex == "M"] <- 2
 LH_Test$Sex[LH_Test$Sex == "F"] <- 1
 LH_Test$Sex <- as.numeric(LH_Test$Sex)
 str(LH_Test)
-table(LH_Test$Sex) # 53 female F0, 60 male F0, 95 unknown sex test F1
-LH_Test$BirthYear[1:95] <- 1
-LH_Test$BirthYear[96:nrow(LH_Test)] <- 0
+table(LH_Test$Sex) # 53 female F0, 59 male F0, 95 unknown sex test F1
+LH_Test$BirthYear[1:112] <- 0
+LH_Test$BirthYear[113:nrow(LH_Test)] <- 1
 # THIS IS READY NOW FOR GETMAYBEREL
 
 
@@ -113,8 +160,8 @@ LH_Test$BirthYear[96:nrow(LH_Test)] <- 0
 # filter GenoM so it only includes ids from LH_All$ID
 dim(mat_thin100K) # 1184, 943
 mat_thin100K_all <- mat_thin100K[rownames(mat_thin100K) %in% LH_All$ID, , drop = FALSE]
-dim(mat_thin100K_all) # 1060 943
-dim(LH_All)       # 1077 3
+dim(mat_thin100K_all) # 992 943
+dim(LH_All)       # 1009 3
 
 # where did those other 17 inds go?
 missinginds <- LH_All$ID[!LH_All$ID %in% rownames(mat_thin100K)]
@@ -144,15 +191,15 @@ missinginds <- LH_All$ID[!LH_All$ID %in% rownames(mat_thin100K)]
 # filter out missing inds
 LH_All <- LH_All %>% 
   filter(ID %in% rownames(mat_thin100K_all))
-dim(mat_thin100K_all) # 1060 943
-dim(LH_All)       # 1060 3
+dim(mat_thin100K_all) # 992 943
+dim(LH_All)       # 992 3
 # okay, that's remedied. great.
 
 # filter GenoM so it only includes ids from LH_Test$ID
 dim(mat_thin100K) # 1184, 943
 mat_thin100K_test <- mat_thin100K[rownames(mat_thin100K) %in% LH_Test$ID, , drop = FALSE]
-dim(mat_thin100K_test) # 208 943
-dim(LH_Test)       # 208 3
+dim(mat_thin100K_test) # 207 943
+dim(LH_Test)       # 207 3
 
 # so now we're dealing with two pairs of objects: mat_thin100K_all with LH_All
 # and mat_thin100K_test with LH_Test
@@ -180,7 +227,7 @@ dim(mat_thin100K_all) # retained all
 check_thin100K_all <- CheckGeno(mat_thin100K_all, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
 # ✖ There are 2 individuals scored for <5% of SNPs, these WILL BE IGNORED
 # ✖ In addition, there are 6 individuals scored for <20% of SNPs, it is advised to treat their assignments with caution
-# ℹ After exclusion, There are  1058  individuals and  943  SNPs.
+# ℹ After exclusion, There are  990  individuals and  943  SNPs.
 
 
 
@@ -192,7 +239,7 @@ mat_thin100K_test <- mat_thin100K_test[, !all_ones_100_test]
 dim(mat_thin100K_test) # lost one
 
 check_thin100K_test <- CheckGeno(mat_thin100K_test, quiet = FALSE, Plot = TRUE, Return = "GenoM", Strict = TRUE, DumPrefix = c("F0", "M0"))
-# ✔ Genotype matrix looks OK! There are  208  individuals and  942  SNPs.
+# ✔ Genotype matrix looks OK! There are  207  individuals and  942  SNPs.
 ##### ----- ---- #####
 
 ##### ---- Missing Data per Individual #####
@@ -208,16 +255,16 @@ inds_to_discard <- miss_per_ind$INDV[miss_per_ind$F_MISS > 0.2]
 length(inds_to_keep) # 1154
 dim(miss_per_ind) # 1184, means 30 inds are filtered out...
 
-dim(check_thin100K_all) # 1058 samples from JUST the groups we're interested in (F0, F1Spawn, F1Juv, F2)
+dim(check_thin100K_all) # 990 samples from JUST the groups we're interested in (F0, F1Spawn, F2)
 check_thin100K_all <- check_thin100K_all[rownames(check_thin100K_all) %in% inds_to_keep, ]
-dim(check_thin100K_all) # 1030 samples remaining.
+dim(check_thin100K_all) # 969 samples remaining.
 
-dim(check_thin100K_test) # 208 inds
+dim(check_thin100K_test) # 207 inds
 check_thin100K_test <- check_thin100K_test[rownames(check_thin100K_test) %in% inds_to_keep, ]
 dim(check_thin100K_test) # lost two inds... somehow...
 
-dim(check_thin100K_all) # 1030 inds
-dim(check_thin100K_test) # 206 inds
+dim(check_thin100K_all) # 969 inds
+dim(check_thin100K_test) # 205 inds
 
 ##### ---- ---- #####
 

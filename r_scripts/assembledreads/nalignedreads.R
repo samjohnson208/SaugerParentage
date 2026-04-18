@@ -1,5 +1,5 @@
 getwd()
-setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/AssembledReads/n_aln_per_indiv/")
 
 ## Walleye Reference Genome ##
 alnwall <- read.table("assembled_per_ind_svit.txt", header = TRUE, sep = " ")
@@ -70,7 +70,7 @@ summary(alnype$per_aln)
 # now to add european perch (pfluv)
 
 getwd()
-setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/AssembledReads/n_aln_per_indiv/")
 
 euro <- read.table("assembled_per_ind_pfluv.txt", header = TRUE, sep = " ")
 
@@ -107,7 +107,7 @@ legend("topleft", legend=c("Walleye", "Yellow Perch", "European Perch"), fill=c(
 # checking out WR pflav
 
 getwd()
-setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/AssembledReads/n_aln_per_indiv/")
 
 ## WR YPE Reference Genome ##
 wrype <- read.table("assembled_per_ind_pflav_WR.txt", header = TRUE, sep = " ")
@@ -139,7 +139,7 @@ legend("topleft", legend=c("WR - YPE", "SJ - YPE"), fill=c("salmon", "skyblue"))
 
 # checking out BWA MEM output
 getwd()
-setwd("/Users/samjohnson/Documents/Sauger_102824/GeneticData/AssembledReads/n_aln_per_indiv/")
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/AssembledReads/n_aln_per_indiv/")
 
 wae <- read.table("assembled_per_ind_svit.txt", header = TRUE, sep = " ")
 ype <- read.table("assembled_per_ind_pflav.txt", header = TRUE, sep = " ")
@@ -187,8 +187,12 @@ legend("topleft", legend=c("WAE - aln/samse", "WAE - mem",
                            "YPE - aln/samse", "YPE - mem"), 
        fill=c("darkgreen", "springgreen2", "goldenrod2", "yellow2"))
 
-
-
-
-
-
+# count how many assembled reads for the 1030 inds we kept
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/AssembledReads/n_aln_per_indiv/")
+svitmem_aln <- read.table(file = "assembled_per_ind_svit_mem.txt", header = TRUE)
+head(svitmem_aln)       
+svitmem_aln_1030 <- svitmem_aln %>% 
+  filter(ind %in% LH_All$ID)
+dim(svitmem_aln_1030)
+mean(svitmem_aln_1030$assembled)
+sd(svitmem_aln_1030$assembled)
