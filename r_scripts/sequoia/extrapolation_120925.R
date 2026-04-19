@@ -2022,7 +2022,6 @@ load("/Users/samjohnson/Desktop/SequoiaResults_F25/RData_Backups/MOST_RECENT/res
 save.image(file = "resultsplotted_EOD_020426.RData")
 ##### ---- ---- #####
 
-
 ##### ---- confusion matrix for all inds ---- #####
 # goal is to take toplot_all_noQM and generate a table that shows when the two methods
 # do and don't agree, and what the relationship types are in those situations...

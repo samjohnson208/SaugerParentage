@@ -82,7 +82,7 @@ LH_All$Sex <- as.numeric(LH_All$Sex)
 str(LH_All)
 dim(LH_All)
 
-# FILTERING FOR F0 INDS
+# FILTERING FOR F0 INDS, keep only those that were crossed
 LH_F0 <- LH_All %>% 
     filter(BirthYear == 0) # 263, all inds. need to filter down to just
                            # the ones that were crossed.
@@ -105,7 +105,7 @@ f0s_2016 <- f0s_that_were_crossed[113:nrow(f0s_that_were_crossed),]
 LH_F0_true <- LH_All %>% 
   filter(ID %in% f0s_that_were_crossed$f0s_that_were_crossed) # 214
 
-# FILTERING FOR F1 INDS
+# FILTERING FOR F1 INDS, remove juvenile F1's sampled in fall of 2015
 LH_F1 <- LH_All %>% 
   filter(BirthYear == 1) %>%  # 334
   filter(!grepl("SAR_15_", ID)) # 315, checks out w/ SAR_Data_021026
@@ -128,8 +128,6 @@ table(LH_All$BirthYear)
 # 480 F2's (19, 20, 21, all over)
 # = 1009
 # note: will's samples excluded, possible hybrids excluded, WF fish excluded
-
-
 
 
 # --- LH FOR TEST --- #
@@ -265,67 +263,630 @@ dim(check_thin100K_test) # lost two inds... somehow...
 
 dim(check_thin100K_all) # 969 inds
 dim(check_thin100K_test) # 205 inds
+LH_All <- LH_All %>% 
+  filter(ID %in% rownames(check_thin100K_all))
+dim(LH_All) # 969
+LH_Test <- LH_Test %>% 
+  filter(ID %in% rownames(check_thin100K_test))
+dim(LH_Test) # 205
 
 ##### ---- ---- #####
 
 # see /Users/samjohnson/Documents/Sauger_102325/GeneticData/Sequoia/...
-# sequoia_params/radseq_errsequoia_params_radseq_FINAL.xlsx for data on
+# sequoia_params/radseq_err/sequoia_params_radseq_FINAL.xlsx for data on
 # optimizing the rad seq error parameters. here's what i landed on.
 errM <- Err_RADseq(E0 = 0.075, E1 = 0.025, Return = 'matrix')
 
-##### ---- sequoia() -> GetMaybeRel() #####
-dim(check_thin100K_test) # 206 942
-dim(LH_Test) # 208 3
-LH_Test <- LH_Test %>% 
-  filter(ID %in% rownames(check_thin100K_test))
-dim(LH_Test) # 206 3, needed to account for that 
-table(LH_Test$BirthYear) # 111 parents, 95 test offspring
+# STARTING DATAFRAMES
+dim(check_thin100K_all) # 969 inds, 943 snps
+dim(check_thin100K_test) # 205 inds, 942 snps
+dim(LH_All) # 969 inds
+dim(LH_Test) # 205 inds
 
-seq_test <- sequoia(GenoM = check_thin100K_test,
-                    LifeHistData = LH_Test,
-                    Module = 'ped',
+##### ---- make filtered LH dataframes ---- #####
+LH_f0 <- LH_All %>% 
+  filter(BirthYear == 0)
+dim(LH_f0) # 206
+
+LH_f1 <- LH_All %>% 
+  filter(BirthYear == 1)
+dim(LH_f1) # 309
+
+LH_f2 <- LH_All %>% 
+  filter(BirthYear == 2)
+dim(LH_f2) # 454
+
+LH_f0f1 <- rbind(LH_f0, LH_f1)
+dim(LH_f0f1) # 515
+
+LH_f1f2 <- rbind(LH_f1, LH_f2)
+dim(LH_f1f2) # 763
+
+LH_f0f2 <- rbind(LH_f0, LH_f2)
+dim(LH_f0f2) # 660
+
+##### ---- make filtered genotype matrices ---- #####
+f0_inds <- LH_f0$ID # 206
+f1_inds <- LH_f1$ID # 309
+f2_inds <- LH_f2$ID # 454
+f0f1_inds <- LH_f0f1$ID # 515
+f1f2_inds <- LH_f1f2$ID # 763
+f0f2_inds <- LH_f0f2$ID # 660
+
+# can't use filter because it's a matrix and not a dataframe...
+check_thin100K_f0 <- check_thin100K_all[rownames(check_thin100K_all) %in% f0_inds,] # 206 inds
+check_thin100K_f1 <- check_thin100K_all[rownames(check_thin100K_all) %in% f1_inds,] # 309 inds
+check_thin100K_f2 <- check_thin100K_all[rownames(check_thin100K_all) %in% f2_inds,] # 454 inds
+
+check_thin100K_f0f1 <- check_thin100K_all[rownames(check_thin100K_all) %in% f0f1_inds,] # 515 inds
+check_thin100K_f1f2 <- check_thin100K_all[rownames(check_thin100K_all) %in% f1f2_inds,] # 763 inds
+check_thin100K_f0f2 <- check_thin100K_all[rownames(check_thin100K_all) %in% f0f2_inds,] # 660 inds
+##### ---- ---- #####
+
+# THIS CODE PULLED FROM SaugerParentage/r_scripts/sequoia/extrapolation_120925.R
+# going to rerun everything that produces the dataframes with probabilities. (i.e.,
+# the output from the pairwise method). notice how i've commented out the use of 
+# GetRelM(), PlotRelPairs(), and SummarySeq(). then we need to find a way to convert 
+# those into the plots that we've drawn up. (see photos from 0417/041826)
+
+##### ---- run sequoia(), GetMaybeRel(), GetRelM(), PlotRelPairs() ---- #####
+##### ---- f0_f0 ---- #####
+seq_f0 <- sequoia(GenoM = check_thin100K_f0,
+                  LifeHistData = LH_f0,
+                  Module = "ped",
+                  Err = errM,
+                  Complex = "full",
+                  Herm = "no",
+                  UseAge = "yes",
+                  args.AP=list(Discrete = TRUE, 
+                               MinAgeParent = 1, MaxAgeParent = 1),
+                  CalcLLR = TRUE,
+                  StrictGenoCheck = TRUE,
+                  DummyPrefix = c("F", "M"),
+                  Tfilter = -2,
+                  Tassign = 0.5)
+# assigned 24 dams and 24 sires to 206 + 24 individuals (real + dummy)
+
+gmr_f0 <- GetMaybeRel(GenoM = check_thin100K_f0,
+                      SeqList = seq_f0,
+                      AgePrior = seq_f0[["AgePriors"]],
+                      Err = errM,
+                      Module = "ped",
+                      Complex = "full",
+                      LifeHistData = LH_f0,
+                      Herm = "no",
+                      quiet = FALSE,
+                      Tfilter = -2,
+                      Tassign = 0.5,
+                      MaxPairs = 7 * nrow(check_thin100K_f0))
+# Found 0 likely parent-offspring pairs, and 77, other non-assigned pairs of possible relatives
+
+# relm_f0 <- GetRelM(Pedigree = seq_f0[["Pedigree"]],
+#                    Pairs = gmr_f0$MaybeRel,
+#                    GenBack = 1, 
+#                    patmat = FALSE,
+#                    directed = TRUE,
+#                    Return = 'Matrix')
+# table(unique(relm_f0))
+# 
+# relmf0_plot <- PlotRelPairs(RelM = relm_f0, 
+#                             drop.U = TRUE, 
+#                             pch.symbols = TRUE,
+#                             cex.axis = 0.3,
+#                             mar = c(5, 5, 1, 8))
+# 
+# seq_f0_summary <- SummarySeq(SeqList = seq_f0)
+##### ---- f0_f1 ---- #####
+seq_f0f1 <- sequoia(GenoM = check_thin100K_f0f1,
+                    LifeHistData = LH_f0f1,
+                    Module = "ped",
                     Err = errM,
                     Complex = "full",
                     Herm = "no",
                     UseAge = "yes",
                     args.AP=list(Discrete = TRUE, 
-                                 MinAgeParent = 1, MaxAgeParent = 1), # notice here! won't assign F0-F2 PO
+                                 MinAgeParent = 1, MaxAgeParent = 1),
                     CalcLLR = TRUE,
                     StrictGenoCheck = TRUE,
                     DummyPrefix = c("F", "M"),
                     Tfilter = -2,
                     Tassign = 0.5)
-# ✔ assigned 98 dams and 98 sires to 206 + 6 individuals (real + dummy) 
+# assigned 65 dams and 69 sires to 515 + 38 individuals (real + dummy)
 
-gmr_test <- GetMaybeRel(GenoM = check_thin100K_test,
+gmr_f0f1 <- GetMaybeRel(GenoM = check_thin100K_f0f1,
+                        SeqList = seq_f0f1,
+                        AgePrior = seq_f0f1[["AgePriors"]],
+                        Err = errM,
+                        Module = "ped",
+                        Complex = "full",
+                        LifeHistData = LH_f0f1,
+                        Herm = "no",
+                        quiet = FALSE,
+                        Tfilter = -2,
+                        Tassign = 0.5,
+                        MaxPairs = 7 * nrow(check_thin100K_f0f1))
+# Found 1 likely parent-offspring pairs, and 327, other non-assigned pairs of possible relatives
+
+# relm_f0f1 <- GetRelM(Pedigree = seq_f0f1[["Pedigree"]],
+#                      Pairs = gmr_f0f1$MaybeRel,
+#                      GenBack = 1, 
+#                      patmat = FALSE,
+#                      directed = TRUE,
+#                      Return = 'Matrix')
+# table(unique(relm_f0f1))
+# 
+# relmf0f1_plot <- PlotRelPairs(RelM = relm_f0f1, 
+#                               drop.U = TRUE, 
+#                               pch.symbols = TRUE,
+#                               cex.axis = 0.3,
+#                               mar = c(5, 5, 1, 8))
+# # no way are these plots useful if there are this many inds on each axis.
+# 
+# seq_f0f1_summary <- SummarySeq(SeqList = seq_f0f1)
+ 
+
+
+
+
+
+##### ---- f1_f1 ---- #####
+
+seq_f1 <- sequoia(GenoM = check_thin100K_f1,
+                  LifeHistData = LH_f1,
+                  Module = "ped",
+                  Err = errM,
+                  Complex = "full",
+                  Herm = "no",
+                  UseAge = "yes",
+                  args.AP=list(Discrete = TRUE, 
+                               MinAgeParent = 1, MaxAgeParent = 1),
+                  CalcLLR = TRUE,
+                  StrictGenoCheck = TRUE,
+                  DummyPrefix = c("F", "M"),
+                  Tfilter = -2,
+                  Tassign = 0.5)
+# assigned 20 dams and 20 sires to 309 + 18 individuals (real + dummy)
+
+gmr_f1 <- GetMaybeRel(GenoM = check_thin100K_f1,
+                      SeqList = seq_f1,
+                      AgePrior = seq_f1[["AgePriors"]],
+                      Err = errM,
+                      Module = "ped",
+                      Complex = "full",
+                      LifeHistData = LH_f1,
+                      Herm = "no",
+                      quiet = FALSE,
+                      Tfilter = -2,
+                      Tassign = 0.5,
+                      MaxPairs = 7 * nrow(check_thin100K_f1))
+# Found 0 likely parent-offspring pairs, and 142, other non-assigned pairs of possible relatives
+
+# relm_f1 <- GetRelM(Pedigree = seq_f1[["Pedigree"]],
+#                    Pairs = gmr_f1$MaybeRel,
+#                    GenBack = 1, 
+#                    patmat = FALSE,
+#                    directed = TRUE,
+#                    Return = 'Matrix')
+# table(unique(relm_f1))
+# 
+# relmf1_plot <- PlotRelPairs(RelM = relm_f1, 
+#                             drop.U = TRUE,
+#                             pch.symbols = TRUE,
+#                             cex.axis = 0.3,
+#                             mar = c(5, 5, 1, 8))
+# 
+# seq_f1_summary <- SummarySeq(SeqList = seq_f1)
+
+
+##### ---- f1_f2 ---- #####
+seq_f1f2 <- sequoia(GenoM = check_thin100K_f1f2,
+                    LifeHistData = LH_f1f2,
+                    Module = "ped",
+                    Err = errM,
+                    Complex = "full",
+                    Herm = "no",
+                    UseAge = "yes",
+                    args.AP=list(Discrete = TRUE, 
+                                 MinAgeParent = 1, MaxAgeParent = 1),
+                    CalcLLR = TRUE,
+                    StrictGenoCheck = TRUE,
+                    DummyPrefix = c("F", "M"),
+                    Tfilter = -2,
+                    Tassign = 0.5)
+# assigned 61 dams and 61 sires to 763 + 56 individuals (real + dummy)
+
+gmr_f1f2 <- GetMaybeRel(GenoM = check_thin100K_f1f2,
+                        SeqList = seq_f1f2,
+                        AgePrior = seq_f1f2[["AgePriors"]],
+                        Err = errM,
+                        Module = "ped",
+                        Complex = "full",
+                        LifeHistData = LH_f1f2,
+                        Herm = "no",
+                        quiet = FALSE,
+                        Tfilter = -2,
+                        Tassign = 0.5,
+                        MaxPairs = 7 * nrow(check_thin100K_f1f2))
+# Found 39 likely parent-offspring pairs, and 598, other non-assigned pairs of possible relatives
+# Found 1 parent-parent-offspring trios
+
+# relm_f1f2 <- GetRelM(Pedigree = seq_f1f2[["Pedigree"]],
+#                      Pairs = gmr_f1f2$MaybeRel,
+#                      GenBack = 1, 
+#                      patmat = FALSE,
+#                      directed = TRUE,
+#                      Return = 'Matrix')
+# table(unique(relm_f1f2))
+# 
+# relmf1f2_plot <- PlotRelPairs(RelM = relm_f1f2, 
+#                               drop.U = TRUE, 
+#                               pch.symbols = TRUE,
+#                               cex.axis = 0.3,
+#                               mar = c(5, 5, 1, 8))
+# 
+# seq_f1f2_summary <- SummarySeq(SeqList = seq_f1f2)
+
+##### ---- f2_f2 ---- #####
+
+seq_f2 <- sequoia(GenoM = check_thin100K_f2,
+                  LifeHistData = LH_f2,
+                  Module = "ped",
+                  Err = errM,
+                  Complex = "full",
+                  Herm = "no",
+                  UseAge = "yes",
+                  args.AP=list(Discrete = TRUE, 
+                               MinAgeParent = 1, MaxAgeParent = 1),
+                  CalcLLR = TRUE,
+                  StrictGenoCheck = TRUE,
+                  DummyPrefix = c("F", "M"),
+                  Tfilter = -2,
+                  Tassign = 0.5)
+# assigned 39 dams and 39 sires to 454 + 36 individuals (real + dummy)
+
+
+gmr_f2 <- GetMaybeRel(GenoM = check_thin100K_f2,
+                      SeqList = seq_f2,
+                      AgePrior = seq_f2[["AgePriors"]],
+                      Err = errM,
+                      Module = "ped",
+                      Complex = "full",
+                      LifeHistData = LH_f2,
+                      Herm = "no",
+                      quiet = FALSE,
+                      Tfilter = -2,
+                      Tassign = 0.5,
+                      MaxPairs = 7 * nrow(check_thin100K_f2))
+# Found 0 likely parent-offspring pairs, and 253, other non-assigned pairs of possible relatives
+
+
+# relm_f2 <- GetRelM(Pedigree = seq_f2[["Pedigree"]],
+#                    Pairs = gmr_f2$MaybeRel,
+#                    GenBack = 1, 
+#                    patmat = FALSE,
+#                    directed = TRUE,
+#                    Return = 'Matrix')
+# table(unique(relm_f2))
+# 
+# relmf2_plot <- PlotRelPairs(RelM = relm_f2, 
+#                             drop.U = TRUE,
+#                             pch.symbols = TRUE,
+#                             cex.axis = 0.3,
+#                             mar = c(5, 5, 1, 8))
+# 
+# seq_f2_summary <- SummarySeq(SeqList = seq_f2)
+
+##### ---- f0_f2 ---- #####
+seq_f0f2 <- sequoia(GenoM = check_thin100K_f0f2,
+                    LifeHistData = LH_f0f2,
+                    Module = "ped",
+                    Err = errM,
+                    Complex = "full",
+                    Herm = "no",
+                    UseAge = "yes",
+                    args.AP=list(Discrete = TRUE, 
+                                 MinAgeParent = 2, MaxAgeParent = 2),
+                    CalcLLR = TRUE,
+                    StrictGenoCheck = TRUE,
+                    DummyPrefix = c("F", "M"),
+                    Tfilter = -2,
+                    Tassign = 0.5)
+# assigned 75 dams and 73 sires to 660 + 61 individuals (real + dummy) 
+
+
+gmr_f0f2 <- GetMaybeRel(GenoM = check_thin100K_f0f2,
+                        SeqList = seq_f0f2,
+                        AgePrior = seq_f0f2[["AgePriors"]],
+                        Err = errM,
+                        Module = "ped",
+                        Complex = "full",
+                        LifeHistData = LH_f0f2,
+                        Herm = "no",
+                        quiet = FALSE,
+                        Tfilter = -2,
+                        Tassign = 0.5,
+                        MaxPairs = 7 * nrow(check_thin100K_f0f2))
+# Found 0 likely parent-offspring pairs, and 448, other non-assigned pairs of possible relatives
+
+# relm_f0f2 <- GetRelM(Pedigree = seq_f0f2[["Pedigree"]],
+#                      Pairs = gmr_f0f2$MaybeRel,
+#                      GenBack = 1, 
+#                      patmat = FALSE,
+#                      directed = TRUE,
+#                      Return = 'Matrix')
+# table(unique(relm_f0f2))
+# 
+# relmf0f2_plot <- PlotRelPairs(RelM = relm_f0f2, 
+#                               drop.U = TRUE, 
+#                               pch.symbols = TRUE,
+#                               cex.axis = 0.3,
+#                               mar = c(5, 5, 1, 8))
+# 
+# seq_f0f2_summary <- SummarySeq(SeqList = seq_f0f2)
+# # looks like a few PO duos between f0 and f2. crazy.
+
+
+
+
+
+
+
+
+##### ---- all_gens ---- #####
+dim(check_thin100K_all)
+dim(LH_All)
+table(LH_All$BirthYear)
+
+seq_all <- sequoia(GenoM = check_thin100K_all,
+                   LifeHistData = LH_All,
+                   Module = "ped",
+                   Err = errM,
+                   Complex = "full",
+                   Herm = "no",
+                   UseAge = "yes",
+                   args.AP=list(Discrete = TRUE, 
+                                MinAgeParent = 1, MaxAgeParent = 1), # notice here! won't assign F0-F2 PO
+                   CalcLLR = TRUE,
+                   StrictGenoCheck = TRUE,
+                   DummyPrefix = c("F", "M"),
+                   Tfilter = -2,
+                   Tassign = 0.5)
+# assigned 106 dams and 108 sires to 969 + 76 individuals (real + dummy) 
+
+
+gmr_all <- GetMaybeRel(GenoM = check_thin100K_all,
+                       SeqList = seq_all,
+                       AgePrior = seq_all[["AgePriors"]],
+                       Err = errM,
+                       Module = "ped",
+                       Complex = "full",
+                       LifeHistData = LH_All,
+                       Herm = "no",
+                       quiet = FALSE,
+                       Tfilter = -2,
+                       Tassign = 0.5,
+                       MaxPairs = 20 * nrow(check_thin100K_all)) # needed to increase
+# Found 43 likely parent-offspring pairs, and 977, other non-assigned pairs of possible relatives
+# Found 1 parent-parent-offspring trios
+
+# relm_all <- GetRelM(Pedigree = seq_all[["Pedigree"]],
+#                     Pairs = gmr_all$MaybeRel,
+#                     GenBack = 2, 
+#                     patmat = FALSE,
+#                     directed = FALSE, # CHANGED HERE: all good, will require less cleaning down the road...
+#                     Return = 'Matrix')
+# table(unique(relm_all))
+# 
+# relmall_plot <- PlotRelPairs(RelM = relm_all, 
+#                              drop.U = TRUE, 
+#                              pch.symbols = TRUE,
+#                              cex.axis = 0.3,
+#                              mar = c(5, 5, 1, 8)) # weird. can't plot it with two gens back...
+# 
+# seq_all_summary <- SummarySeq(SeqList = seq_all)
+
+##### ---- test ---- #####
+seq_test <- sequoia(GenoM = check_thin100K_test,
+                    LifeHistData = LH_Test,
+                    Module = "ped",
+                    Err = errM,
+                    Complex = "full",
+                    Herm = "no",
+                    UseAge = "yes",
+                    args.AP=list(Discrete = TRUE, 
+                                 MinAgeParent = 1, MaxAgeParent = 1),
+                    CalcLLR = TRUE,
+                    StrictGenoCheck = TRUE,
+                    DummyPrefix = c("F", "M"),
+                    Tfilter = -2,
+                    Tassign = 0.5)
+# assigned 98 dams and 98 sires to 205 + 7 individuals (real + dummy)
+
+gmr_test <- GetMaybeRel(GenoM = check_thin100K_test,                    
                         SeqList = seq_test,
                         AgePrior = seq_test[["AgePriors"]],
                         Err = errM,
                         Module = "ped",
                         Complex = "full",
-                        Herm = "no",
-                        quiet = FALSE,
-                        Tfilter = -2,
-                        Tassign = 0.5,
-                        MaxPairs = 20 * nrow(check_thin100K_test))
-# ✔ Found 0 likely parent-offspring pairs, and 42, other non-assigned pairs of possible relatives
-
-seq_test_summary <- SummarySeq(SeqList = seq_test)
-
-cpll_test <- CalcPairLL(GenoM = check_thin100K_test,
                         LifeHistData = LH_Test,
-                        AgePrior = TRUE,
-                        SeqList = seq_test,
-                        Module = "ped",
-                        Complex = "full",
                         Herm = "no",
                         quiet = FALSE,
-                        InclDup = FALSE,
-                        Err = errM,
-                        Tassign = 0.5,
                         Tfilter = -2,
-                        Plot = TRUE)
+                        Tassign = 0.5,
+                        MaxPairs = 7*nrow(check_thin100K_test))
+# Found 0 likely parent-offspring pairs, and 42, other non-assigned pairs of possible relatives
 
+# relm_test <- GetRelM(Pedigree = seq_test[["Pedigree"]],
+#                      Pairs = gmr_test$MaybeRel,
+#                      GenBack = 1, 
+#                      patmat = FALSE,
+#                      directed = TRUE,
+#                      Return = 'Matrix')
+# table(unique(relm_test))
+# 
+# relmtest_plot <- PlotRelPairs(RelM = relm_test,
+#                               pch.symbols = TRUE,
+#                               mar = c(5, 5, 1, 8))
+# 
+# seq_test_summary <- SummarySeq(SeqList = seq_test)
+
+
+
+
+##### ---- ---- #####
+
+setwd("/Users/samjohnson/Desktop/FinalApproachResults")
+save.image(file = "backup_postseqgmr.RData")
+
+##### ---- Pairs_f0 ---- #####
+# creating the pairs df: create all combinations of id1 and 2, remove rows where 
+# they're the same
+library(tidyr)
+IDs <- rownames(check_thin100K_f0)
+length(IDs)
+Pairs_f0 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f0 <- Pairs_f0 %>% 
+  left_join(LH_f0 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f0 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f0$AgeDif <- Pairs_f0$BY2 - Pairs_f0$BY1
+
+Pairs_f0$focal <- "U"
+
+dim(Pairs_f0)
+##### ---- Pairs_f0f1 ---- #####
+# creating the pairs df: create all combinations of id1 and 2, remove rows where 
+# they're the same
+IDs <- rownames(check_thin100K_f0f1)
+length(IDs)
+Pairs_f0f1 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f0f1 <- Pairs_f0f1 %>% 
+  left_join(LH_f0f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f0f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f0f1$AgeDif <- Pairs_f0f1$BY2 - Pairs_f0f1$BY1
+
+Pairs_f0f1$focal <- "U"
+
+dim(Pairs_f0f1)
+
+##### ---- Pairs_f1 ---- #####
+IDs <- rownames(check_thin100K_f1)
+length(IDs)
+Pairs_f1 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f1 <- Pairs_f1 %>% 
+  left_join(LH_f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f1 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f1$AgeDif <- Pairs_f1$BY2 - Pairs_f1$BY1
+
+Pairs_f1$focal <- "U"
+
+dim(Pairs_f1)
+
+##### ---- Pairs_f1f2 ---- #####
+IDs <- rownames(check_thin100K_f1f2)
+length(IDs)
+Pairs_f1f2 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f1f2 <- Pairs_f1f2 %>% 
+  left_join(LH_f1f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f1f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f1f2$AgeDif <- Pairs_f1f2$BY2 - Pairs_f1f2$BY1
+
+Pairs_f1f2$focal <- "U"
+
+dim(Pairs_f1f2)
+
+##### ---- Pairs_f2---- #####
+IDs <- rownames(check_thin100K_f2)
+length(IDs)
+Pairs_f2 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f2 <- Pairs_f2 %>% 
+  left_join(LH_f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f2$AgeDif <- Pairs_f2$BY2 - Pairs_f2$BY1
+
+Pairs_f2$focal <- "U"
+
+dim(Pairs_f2)
+
+##### ---- Pairs_f0f2 ---- #####
+IDs <- rownames(check_thin100K_f0f2)
+length(IDs)
+Pairs_f0f2 <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_f0f2 <- Pairs_f0f2 %>% 
+  left_join(LH_f0f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_f0f2 %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_f0f2$AgeDif <- Pairs_f0f2$BY2 - Pairs_f0f2$BY1
+
+Pairs_f0f2$focal <- "U"
+
+dim(Pairs_f0f2)
+
+##### ---- Pairs_test ---- #####
 IDs <- rownames(check_thin100K_test)
 Pairs_test <- expand_grid(
   ID1 = IDs,
@@ -347,6 +908,148 @@ Pairs_test$AgeDif <- Pairs_test$BY2 - Pairs_test$BY1
 Pairs_test$focal <- "U"
 
 dim(Pairs_test)
+##### ---- ---- #####
+save.image(file = "backup_prePairs_all.RData")
+##### ---- Pairs_all ---- #####
+IDs <- rownames(check_thin100K_all)
+Pairs_all <- expand_grid(
+  ID1 = IDs,
+  ID2 = IDs) %>%  
+  dplyr::filter(ID1 != ID2)
+
+# now join that with the LH_Data so you can get the birth years, sex, 
+Pairs_all <- Pairs_all %>% 
+  left_join(LH_All %>% select(ID, Sex, BirthYear),
+            by = c("ID1" = "ID")) %>% 
+  rename(Sex1 = Sex, BY1 = BirthYear) %>% 
+  
+  left_join(LH_All %>% select(ID, Sex, BirthYear),
+            by = c("ID2" = "ID")) %>% 
+  rename(Sex2 = Sex, BY2 = BirthYear)
+
+Pairs_all$AgeDif <- Pairs_all$BY2 - Pairs_all$BY1
+
+Pairs_all$focal <- "U"
+
+dim(Pairs_all)
+##### ---- ---- #####
+
+##### ---- Getting LLRs and probs for all relationships ---- #####
+save.image(file = "backup_preCalcPairLL.RData")
+##### ---- PairLL_f0 -> prob_pairs_f0  ---- #####
+
+PairLL_f0 <- CalcPairLL(Pairs = Pairs_f0,
+                        GenoM = check_thin100K_f0,
+                        LifeHistData = LH_f0,
+                        AgePrior = seq_f0[["AgePriors"]],
+                        Module = "ped",
+                        Complex = "full",
+                        Herm = 'no',
+                        InclDup = FALSE,
+                        Err = errM,
+                        Tassign = 0.5,
+                        Tfilter = -2,
+                        quiet = FALSE,
+                        Plot = TRUE)
+prob_pairs_f0 <- plyr::aaply(as.matrix(PairLL_f0[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f0 <- cbind(PairLL_f0[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0)
+
+##### ---- PairLL_f0f1 -> prob_pairs_f0f1 ---- #####
+
+PairLL_f0f1 <- CalcPairLL(Pairs = Pairs_f0f1,
+                          GenoM = check_thin100K_f0f1,
+                          LifeHistData = LH_f0f1,
+                          AgePrior = seq_f0f1[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 0.5,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_f0f1 <- plyr::aaply(as.matrix(PairLL_f0f1[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f0f1 <- cbind(PairLL_f0f1[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f1)
+
+##### ---- PairLL_f1 -> prob_pairs_f1 ---- #####
+
+PairLL_f1 <- CalcPairLL(Pairs = Pairs_f1,
+                        GenoM = check_thin100K_f1,
+                        LifeHistData = LH_f1,
+                        AgePrior = seq_f1[["AgePriors"]],
+                        Module = "ped",
+                        Complex = "full",
+                        Herm = 'no',
+                        InclDup = FALSE,
+                        Err = errM,
+                        Tassign = 0.5,
+                        Tfilter = -2,
+                        quiet = FALSE,
+                        Plot = TRUE)
+prob_pairs_f1 <- plyr::aaply(as.matrix(PairLL_f1[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f1 <- cbind(PairLL_f1[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f1)
+
+
+##### ---- PairLL_f1f2 -> prob_pairs_f1f2 ---- #####
+
+PairLL_f1f2 <- CalcPairLL(Pairs = Pairs_f1f2,
+                          GenoM = check_thin100K_f1f2,
+                          LifeHistData = LH_f1f2,
+                          AgePrior = seq_f1f2[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 0.5,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_f1f2 <- plyr::aaply(as.matrix(PairLL_f1f2[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f1f2 <- cbind(PairLL_f1f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f1f2)
+
+##### ---- PairLL_f2 -> prob_pairs_f2 ---- #####
+
+PairLL_f2 <- CalcPairLL(Pairs = Pairs_f2,
+                        GenoM = check_thin100K_f2,
+                        LifeHistData = LH_f2,
+                        AgePrior = seq_f2[["AgePriors"]],
+                        Module = "ped",
+                        Complex = "full",
+                        Herm = 'no',
+                        InclDup = FALSE,
+                        Err = errM,
+                        Tassign = 0.5,
+                        Tfilter = -2,
+                        quiet = FALSE,
+                        Plot = TRUE)
+prob_pairs_f2 <- plyr::aaply(as.matrix(PairLL_f2[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f2 <- cbind(PairLL_f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f2)
+
+##### ---- PairLL_f0f2 -> prob_pairs_f0f2 ---- #####
+
+PairLL_f0f2 <- CalcPairLL(Pairs = Pairs_f0f2,
+                          GenoM = check_thin100K_f0f2,
+                          LifeHistData = LH_f0f2,
+                          AgePrior = seq_f0f2[["AgePriors"]],
+                          Module = "ped",
+                          Complex = "full",
+                          Herm = 'no',
+                          InclDup = FALSE,
+                          Err = errM,
+                          Tassign = 0.5,
+                          Tfilter = -2,
+                          quiet = FALSE,
+                          Plot = TRUE)
+prob_pairs_f0f2 <- plyr::aaply(as.matrix(PairLL_f0f2[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_f0f2 <- cbind(PairLL_f0f2[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_f0f2)
+
+##### ---- PairLL_test -> prob_pairs_test ---- #####
+
+# IMPORTANT NOTE: I did the test group AFTER all the rest of the combinations in
+# this script, seq_test, gmr_test, and relm_test were all made below in the "a quick 
+# check on the thresholds and test group" section
 
 PairLL_test <- CalcPairLL(Pairs = Pairs_test,
                           GenoM = check_thin100K_test,
@@ -365,6 +1068,227 @@ prob_pairs_test <- plyr::aaply(as.matrix(PairLL_test[,10:16]), .margin = 1, LLto
 prob_pairs_test <- cbind(PairLL_test[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_test)
 
 
+##### ---- PairLL_all -> prob_pairs_all ---- #####
+
+PairLL_all <- CalcPairLL(Pairs = Pairs_all,
+                         GenoM = check_thin100K_all,
+                         LifeHistData = LH_All,
+                         AgePrior = seq_all[["AgePriors"]],
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = 'no',
+                         InclDup = FALSE,
+                         Err = errM,
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = TRUE)
+# here, you're applying LLtoProb (row by row) to the 10th t0 16th columns of the 
+# PairLL_all, (see help for that function, that's where )
+prob_pairs_all <- plyr::aaply(as.matrix(PairLL_all[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_all <- cbind(PairLL_all[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_all)
+
+save.image(file = "backup_postPairLL_all.RData")
+
+##### ---- after creating those... ---- #####
+
+##### ---- keep only distinct pairs ---- #####
+
+# first, create a "pair" column, and keep only distinct pairs
+
+prob_pairs_f0_unique <- prob_pairs_f0 %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_f0f1_unique <- prob_pairs_f0f1 %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_f1_unique <- prob_pairs_f1 %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_f1f2_unique <- prob_pairs_f1f2 %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_f2_unique <- prob_pairs_f2 %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_f0f2_unique <- prob_pairs_f0f2 %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_test_unique <- prob_pairs_test %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+
+prob_pairs_all_unique <- prob_pairs_all %>%
+  mutate(Pair = paste(pmin(ID1, ID2), pmax(ID1, ID2), sep = "_")) %>%
+  distinct(Pair, .keep_all = TRUE)
+# OKAY, THE ALL HAS AN ISSUE WITH THE AgeDif. There are -1's in there, but they
+# won't affect the GP stuff so let's move on w it for now. 
 
 ##### ---- ---- #####
+
+##### ---- assign generations to the pairs ---- #####
+assign_gen <- function(x) {
+  case_when(
+    x %in% f0_inds ~ "F0",
+    x %in% f1_inds ~ "F1",
+    x %in% f2_inds ~ "F2",
+    TRUE ~ NA_character_ # shouldn't be the case, but put an NA if an ind isn't there
+  )
+}
+
+prob_pairs_f0_unique_gen <- prob_pairs_f0_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+prob_pairs_f0f1_unique_gen <- prob_pairs_f0f1_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+prob_pairs_f1_unique_gen <- prob_pairs_f1_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+prob_pairs_f1f2_unique_gen <- prob_pairs_f1f2_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+prob_pairs_f2_unique_gen <- prob_pairs_f2_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+prob_pairs_f0f2_unique_gen <- prob_pairs_f0f2_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+test_f1_inds <- LH_Test$ID[111:nrow(LH_Test)]
+length(test_f1_inds)
+assign_gen_test <- function(x) {
+  case_when(
+    x %in% f0_inds ~ "F0",
+    x %in% test_f1_inds ~ "TestF1",
+    TRUE ~ NA_character_ # shouldn't be the case, but put an NA if an ind isn't there
+  )
+}
+
+prob_pairs_test_unique_gen <- prob_pairs_test_unique %>%
+  mutate(group_ind1 = assign_gen_test(ID1),
+         group_ind2 = assign_gen_test(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+prob_pairs_all_unique_gen <- prob_pairs_all_unique %>%
+  mutate(group_ind1 = assign_gen(ID1),
+         group_ind2 = assign_gen(ID2),
+         # now we'll use our same pmin and pmax setup to create a group_pair col
+         group_pair = paste(pmin(group_ind1, group_ind2),
+                            pmax(group_ind1, group_ind2),
+                            sep = "_"))
+
+
+# now we're workin with...
+prob_pairs_f0_unique_gen
+prob_pairs_f0f1_unique_gen
+prob_pairs_f1_unique_gen
+prob_pairs_f1f2_unique_gen
+prob_pairs_f2_unique_gen
+prob_pairs_f0f2_unique_gen
+prob_pairs_test_unique_gen
+prob_pairs_all_unique_gen
+
+##### ---- ---- #####
+
+##### ---- take just the PO's and the GP's ---- #####
+# prob_pairs_f0_unique_gen
+# PO_f1 <- prob_pairs_f1_unique_gen
+# PO_f2 <- prob_pairs_f2_unique_gen
+# PO_f0f2 <- prob_pairs_f0f2_unique_gen
+
+PO_f0f1 <- prob_pairs_f0f1_unique_gen %>%
+  filter(TopRel == "PO")
+dim(PO_f0f1)
+
+PO_f1f2 <- prob_pairs_f1f2_unique_gen %>% 
+  filter(TopRel == "PO")
+dim(PO_f1f2)
+
+PO_test <- prob_pairs_test_unique_gen %>% 
+  filter(TopRel == "PO")
+dim(PO_test)
+
+GP_all <- prob_pairs_all_unique_gen %>% 
+  filter(TopRel == "GP")
+dim(GP_all)
+
+##### ---- ---- #####
+
+#### ---- how many assignments and unique individuals in each gen? ---- ####
+
+# here are the four objects that are going to constitute the plots.
+PO_test
+PO_f0f1
+PO_f1f2
+GP_all
+
+### PO_test ### 
+dim(PO_test) # 172 assignments made
+length(unique(PO_test$ID2)) # 94 test f1's assigned
+table(table(PO_test$ID2)) # 78 assigned to two, 16 assigned to one
+
+### PO_f0f1 ##
+dim(PO_f0f1) # 53 assignments made
+length(unique(PO_f0f1$ID2)) # 39 spawning f1's assigned
+table(table(PO_f0f1$ID2)) # 1 assigned to three, 12 assigned to two, 26 assigned to one
+
+### PO_f1f2 ##
+dim(PO_f1f2) # 39 assignments made
+length(unique(PO_f1f2$ID2)) # 37 juvenile f2's assigned  
+table(table(PO_f1f2$ID2)) # 2 assigned to two, 35 assigned to one
+
+### GP_all ##
+dim(GP_all) # 398 assignments made
+length(unique(GP_all$ID2)) # 307 juvenile f2's assigned 
+table(table(GP_all$ID2)) # 231 assigned to one, 64 to two, 9 to three, 3 to four
+
+##### ---- ---- #####
+
+getwd()
+save.image(file = "backup_prevalid.RData")
+
+# got through recreating all of the information. now we need to continue to go thru
+# these objects to validate the inferred sets of parents for each offspring. going
+# to take some time for sure. then we can create (AT LEAST) the stacked barplot
+# and the boxplots. gonna be okay.
+
 
