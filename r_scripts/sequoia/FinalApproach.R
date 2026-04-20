@@ -1496,20 +1496,28 @@ summary_df$category <- factor(
   levels = c("0", "1", "2T", "2U", "2F", "3T", "3F", "4F"))
 
 ggplot(summary_df, aes(x = dummy, y = prop, fill = category)) +
-  geom_col(width = 0.8, color = "black") +
+  geom_col(width = 0.8, alpha = 0.8, color = "black") +
   facet_wrap(~group, nrow = 1) +
   scale_fill_manual(
     values = color_map,
-    name = "n Parents/Grandparents"
+    name = "n Inferred\nParents/Grandparents"
   ) +
   scale_y_continuous(labels = scales::percent) +
   ylab("Proportion of Individuals") +
   xlab(NULL) +
   theme_bw() +
+  theme_bw() +
+  guides(fill = guide_legend(ncol = 2)) +
   theme(
+    strip.text = element_text(face = "bold", size = 13),
+    strip.background = element_rect(fill = "grey85", color = "black", linewidth = 0.8),
     axis.text.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    strip.background = element_blank()
+    axis.title.y = element_text(face = "bold", size = 11),
+    axis.text.y = element_text(face = "bold", size = 11),
+    legend.title = element_text(face = "bold"),
+    legend.key.size = unit(1.5, "lines"),
+    legend.spacing.y = unit(0.3, "cm"),
+    legend.text = element_text(face = "bold")
   )
 ##### ---- ---- #####
 
@@ -1593,25 +1601,39 @@ boxplot_inp$category <- factor(boxplot_inp$category,
                                levels = c("0", "1", "2T", "2F", 
                                           "2U", "3T", "3F", "4F"))
 
-ggplot(boxplot_inp, aes(x = category, y = prob_toprel, fill = category)) +
-  geom_boxplot(width = 0.7, color = "black", outlier.size = 0.8) +
-  facet_wrap(~group, nrow = 1, scales = "free_x") +
+library(scales)
+library(colorspace)
+color_map_dark <- darken(color_map, amount = 0.25)
+
+ggplot(boxplot_inp, aes(x = category, y = prob_toprel, fill = category)) + 
+  geom_boxplot( width = 0.7, color = "black", alpha = 0.65, outlier.shape = NA ) + 
+  geom_jitter( aes(color = category), width = 0.15, size = 1.5, alpha = 0.8 ) + 
+  facet_wrap(~group, nrow = 1, scales = "free_x") + 
   scale_fill_manual(
-    values = color_map,
-    name = "n Parents/Grandparents"
-  ) +
-  coord_cartesian(ylim = c(0, 1)) +
-  ylab("Assignment Probability") +
-  xlab(NULL) +
-  theme_bw() +
-  theme(
-    strip.background = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
+    values = color_map, 
+    name = "n Inferred\nParents/Grandparents") + 
+  scale_color_manual(
+    values = color_map_dark, 
+    guide = "none" ) + 
+  coord_cartesian(ylim = c(0, 1)) + ylab("Assignment Probability") + xlab(NULL) + 
+  theme_bw() + 
+  guides(fill = guide_legend(ncol = 1)) + 
+  theme( strip.text = element_text(face = "bold", size = 13), 
+         strip.background = element_rect(fill = "grey85", color = "black", linewidth = 0.8), 
+         axis.text.x = element_text(face = "bold", angle = 45, hjust = 1), 
+         axis.title.y = element_text(face = "bold", size = 11), 
+         axis.text.y = element_text(face = "bold", size = 11), 
+         legend.title = element_text(face = "bold"), 
+         legend.key.size = unit(1.5, "lines"), 
+         legend.spacing.y = unit(0.3, "cm"), 
+         legend.text = element_text(face = "bold") 
+      )
+
 ##### ---- ---- #####
 
-
-
+inferred_f0_fullsibs <- 
+inferred_offsprnig_of_f0s <- unique(PO_f0f1$ID2)
+inferred_parents_of_f2s <- unique(PO_f1f2$ID1)
 
 
 
