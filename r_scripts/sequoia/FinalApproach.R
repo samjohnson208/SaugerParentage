@@ -934,8 +934,9 @@ Pairs_all$focal <- "U"
 dim(Pairs_all)
 ##### ---- ---- #####
 
-##### ---- Getting LLRs and probs for all relationships ---- #####
 save.image(file = "backup_preCalcPairLL.RData")
+
+##### ---- Getting LLRs and probs for all relationships ---- #####
 ##### ---- PairLL_f0 -> prob_pairs_f0  ---- #####
 
 PairLL_f0 <- CalcPairLL(Pairs = Pairs_f0,
@@ -1290,5 +1291,332 @@ save.image(file = "backup_prevalid.RData")
 # these objects to validate the inferred sets of parents for each offspring. going
 # to take some time for sure. then we can create (AT LEAST) the stacked barplot
 # and the boxplots. gonna be okay.
+
+##### ---- preparing to validate against the known F0 crosses ---- #####
+
+# here are the groups need to subset
+# test: 1 and 2 inf. parents.
+# f0f1: 1 and 2 inf. parents.
+# f1f2: 1 and 2 inf. parents.
+# gp: 1, 2, 3, and 4 inf. gp's 
+
+PO_test_counts <- PO_test %>%
+  group_by(ID2) %>%
+  mutate(n_parents = n()) %>%
+  ungroup()
+table(PO_test_counts$n_parents) # 1 and 2
+PO_test_1 <- PO_test_counts %>% filter(n_parents == 1)
+PO_test_2 <- PO_test_counts %>% filter(n_parents == 2)
+
+PO_f0f1_counts <- PO_f0f1 %>%
+  group_by(ID2) %>%
+  mutate(n_parents = n()) %>%
+  ungroup()
+table(PO_f0f1_counts$n_parents) # 1, 2, and 3
+PO_f0f1_1 <- PO_f0f1_counts %>% filter(n_parents == 1)
+PO_f0f1_2 <- PO_f0f1_counts %>% filter(n_parents == 2)
+PO_f0f1_3 <- PO_f0f1_counts %>% filter(n_parents == 3)
+
+PO_f1f2_counts <- PO_f1f2 %>%
+  group_by(ID2) %>%
+  mutate(n_parents = n()) %>%
+  ungroup()
+table(PO_f1f2_counts$n_parents) # 1 and 2
+PO_f1f2_1 <- PO_f1f2_counts %>% filter(n_parents == 1)
+PO_f1f2_2 <- PO_f1f2_counts %>% filter(n_parents == 2)
+
+GP_all_counts <- GP_all %>%
+  group_by(ID2) %>%
+  mutate(n_grandparents = n()) %>%
+  ungroup()
+table(GP_all_counts$n_grandparents) # 1, 2, 3, and 4
+GP_all_1 <- GP_all_counts %>% filter(n_grandparents == 1)
+GP_all_2 <- GP_all_counts %>% filter(n_grandparents == 2)
+GP_all_3 <- GP_all_counts %>% filter(n_grandparents == 3)
+GP_all_4 <- GP_all_counts %>% filter(n_grandparents == 4)
+##### ---- ---- #####
+
+##### ---- validate the inferred parent/grandparent crosses ---- #####
+
+# the groups we can validate
+# Test: inds assigned to 2 parents
+# F0F1: inds assigned to 2 parents
+# F1F2: none.
+# GP: inds assigned to 2 gp's. check 3 and 4 by hand.
+# we can do 3 ad 4 w the check_crosses function!
+
+# load f0 crosses
+setwd("/Users/samjohnson/Documents/Sauger_102325/GeneticData/F0_CROSSES_021326")
+crosses_2015 <- read.csv(file = "sar_2015_filt_split_pair.csv", header = TRUE)
+crosses_2016 <- read.csv(file = "sar_2016_filt_split_pair.csv", header = TRUE)
+f0_crosses <- bind_rows(crosses_2015, crosses_2016)
+
+# validate groups of inferred parents
+PO_test_2_valid <- PO_test_2 %>%
+  group_by(ID2) %>%
+  mutate(
+    inferred_pair = paste(sort(ID1), collapse = "_"),
+    valid_cross = inferred_pair %in% f0_crosses$Pair
+  ) %>%
+  ungroup()
+
+PO_f0f1_2_valid <- PO_f0f1_2 %>% 
+  group_by(ID2) %>%
+  mutate(
+    inferred_pair = paste(sort(ID1), collapse = "_"),
+    valid_cross = inferred_pair %in% f0_crosses$Pair
+  ) %>%
+  ungroup()
+
+PO_f0f1_3_valid <- PO_f0f1_3 %>%
+  group_by(ID2) %>%
+  mutate(
+    n_parents = n(),
+    valid_cross = check_crosses(ID1)
+  ) %>%
+  ungroup()
+table(PO_f0f1_3_valid$valid_cross)
+
+# no validation on f1f2 stuff
+
+GP_all_2_valid <- GP_all_2 %>% 
+  group_by(ID2) %>%
+  mutate(
+    inferred_pair = paste(sort(ID1), collapse = "_"),
+    valid_cross = inferred_pair %in% f0_crosses$Pair
+  ) %>%
+  ungroup()
+
+# check for GP 3 and 4
+check_crosses <- function(parents) {
+  pairs <- combn(sort(parents), 2, FUN = function(x) paste(x, collapse = "_"))
+  any(pairs %in% f0_crosses$Pair)
+}
+
+GP_all_3_valid <- GP_all_3 %>%
+  group_by(ID2) %>%
+  mutate(
+    n_parents = n(),
+    valid_cross = check_crosses(ID1)
+  ) %>%
+  ungroup()
+table(GP_all_3_valid$valid_cross) # 18 F, 9 T, means 6 inds for F, 3 inds for T
+
+GP_all_4_valid <- GP_all_4 %>%
+  group_by(ID2) %>%
+  mutate(
+    n_parents = n(),
+    valid_cross = check_crosses(ID1)
+  ) %>%
+  ungroup()
+table(GP_all_4_valid$valid_cross) # 4 F, 8 T, means 1 ind for F, 2 inds for T
+
+##### ---- ---- #####
+
+##### ---- create proportions for plotting ---- #####
+
+# Test 2T/2F/1/0
+table(PO_test_2_valid$valid_cross) # 78 inds T, 0 F
+length(unique(PO_test_2_valid$ID1)) # 57 parents
+length(unique(PO_test_2_valid$ID2)) # 78 offspring 2T
+length(unique(PO_test_1$ID2)) # 16 offspring 1
+# proportions:
+# 78/95 = 2T
+# 0/95 = 2F
+# 16/95 = 1
+# 1/95 = 0
+
+# F0-F1 2T/2F/1/0
+table(PO_f0f1_2_valid$valid_cross) # 12 inds T, 0F
+length(unique(PO_f0f1$ID1)) # 41 parents
+length(unique(PO_f0f1$ID2)) # 39 offspring
+length(unique(PO_f0f1_2_valid$ID2)) # 12 offspring 2T
+table(PO_f0f1_2_valid$valid_cross)
+length(unique(PO_f0f1_1$ID2)) # 26 offspring 1
+length(unique(PO_f0f1_3$ID2)) # 1 offspring 3T
+# proportions:
+# 1/309 = 3T
+# 12/309 = 2T
+# 0/309 = 2F
+# 26/309 = 1
+# 271/309 = 0
+
+# F1-F2 2T/2F/1/0
+length(unique(PO_f1f2$ID1)) # 38 parents
+length(unique(PO_f1f2$ID2)) # 37 offspring
+length(unique(PO_f1f2_2$ID2)) # 2 offspring 2U
+length(unique(PO_f1f2_1$ID2)) # 35 offspring 1
+# proportions:
+# 2/454 = 2U
+# 35/454 = 1
+# 417/454 = 0
+
+# GP 0/1/2T/2F/3T/3F/
+length(unique(GP_all$ID1)) # 75 grandparents
+length(unique(GP_all$ID2)) # 307 grandchildren
+length(unique(GP_all_1$ID2)) # 231 grandchildren 1
+table(GP_all_2_valid$valid_cross) # 58 grandchildren 2F, 6 2T
+table(GP_all_3_valid$valid_cross) # 6 grandchildren 3F, 3 3T
+# 4F AND 4T NEED TO BE EVALUATED DIFFERENTLY. THIS CODE DOES NOT DO IT CORRECTLY
+# need to see if BOTH PAIRS are valid for an individual to be 4T
+View(GP_all_4_valid)
+# SAR_19_5972
+# SAR_20_6060
+# SAR_21_6353
+# none of these have both inferred GP pairs as valid_cross = TRUE
+# proportions:
+# 3/454 = 4F
+# 6/454 = 3F
+# 3/454 = 3T
+# 58/454 = 2F
+# 6/454 = 2T
+# 231/454 = 1
+# 147/454 = 0
+
+##### ---- ---- #####
+
+##### ---- create stacked barplot ---- #####
+setwd("/Users/samjohnson/Desktop/")
+summary_df <- read.csv(file = "stacked_barplot.csv", header = TRUE)
+str(summary_df)
+summary_df$group <- factor(
+  summary_df$group,
+  levels = c("Test (PO)", "F0-F1 (PO)", "F1-F2 (PO)", "F0-F2 (GP)"))
+summary_df$category <- factor(summary_df$category, 
+                              levels = c("0", "1", "2T", "2F", 
+                                         "2U", "3T", "3F", "4F"))
+
+color_map <- data.frame(category = c("0", "1", "2T", "2U", "2F", "3T", "3F", "4F"),
+                        color = c("#453581", "#31688e", "#4cc26c", "#21a585","darkgreen", 
+                        "#f7e225", "#fca537", "#da5a6a"))
+color_map <- setNames(color_map$color, color_map$category)
+                        
+summary_df$category <- factor(
+  summary_df$category,
+  levels = c("0", "1", "2T", "2U", "2F", "3T", "3F", "4F"))
+
+ggplot(summary_df, aes(x = dummy, y = prop, fill = category)) +
+  geom_col(width = 0.8, color = "black") +
+  facet_wrap(~group, nrow = 1) +
+  scale_fill_manual(
+    values = color_map,
+    name = "n Parents/Grandparents"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  ylab("Proportion of Individuals") +
+  xlab(NULL) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    strip.background = element_blank()
+  )
+##### ---- ---- #####
+
+##### ---- create objects for boxplot ---- #####
+# Test (1 and 2T)
+PO_test_1_toplot <- PO_test_1 %>% 
+    mutate(group = "Test (PO)") %>% 
+  mutate(category = "1")
+PO_test_2_validT_toplot <- PO_test_2_valid %>% 
+    filter(valid_cross == TRUE) %>%
+    mutate(group = "Test (PO)") %>% 
+    mutate(category = "2T")
+
+# F0-F1 (1, 2T, 3T)
+PO_f0f1_1_toplot <- PO_f0f1_1 %>% 
+  mutate(group = "F0-F1 (PO)") %>% 
+  mutate(category = "1")
+PO_f0f1_2_validT_toplot <- PO_f0f1_2_valid %>% 
+  filter(valid_cross == TRUE) %>%
+  mutate(group = "F0-F1 (PO)") %>% 
+  mutate(category = "2T")
+PO_f0f1_3_validT_toplot <- PO_f0f1_3_valid %>% 
+  filter(valid_cross == TRUE) %>%
+  mutate(group = "F0-F1 (PO)") %>% 
+  mutate(category = "3T")
+
+# F1-F2 (1, 2U)
+PO_f1f2_1_toplot <- PO_f1f2_1 %>% 
+  mutate(group = "F1-F2 (PO)") %>% 
+  mutate(category = "1")
+PO_f1f2_2_toplot <- PO_f1f2_2 %>% 
+  mutate(group = "F1-F2 (PO)") %>% 
+  mutate(category = "2U")
+
+# F0-F2 (GP)
+GP_all_1_toplot <- GP_all_1 %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "1")
+GP_all_2_validT_toplot <- GP_all_2_valid %>% 
+  filter(valid_cross == TRUE) %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "2T")
+GP_all_2_validF_toplot <- GP_all_2_valid %>% 
+  filter(valid_cross == FALSE) %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "2F")
+GP_all_3_validT_toplot <- GP_all_3_valid %>% 
+  filter(valid_cross == TRUE) %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "3T")
+GP_all_3_validF_toplot <- GP_all_3_valid %>% 
+  filter(valid_cross == FALSE) %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "3F")
+GP_all_4_validF_toplot <- GP_all_4_valid %>% 
+  filter(valid_cross == FALSE) %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "4F")
+
+boxplot_inp <- bind_rows(PO_test_1_toplot, PO_test_2_validT_toplot, 
+                         PO_f0f1_1_toplot, PO_f0f1_2_validT_toplot, PO_f0f1_3_validT_toplot,
+                         PO_f1f2_1_toplot, PO_f1f2_2_toplot,
+                         GP_all_1_toplot, GP_all_2_validT_toplot, GP_all_2_validF_toplot, 
+                         GP_all_3_validT_toplot, GP_all_3_validF_toplot, GP_all_4_validF_toplot)
+boxplot_inp <- boxplot_inp %>%
+  mutate(
+    prob_toprel = case_when(
+      TopRel == "PO" ~ PO,
+      TopRel == "GP" ~ GP,
+      TRUE ~ NA_real_
+    )
+  )
+##### ---- ---- #####
+
+##### ---- create boxplot ---- #####
+boxplot_inp$group <- factor(boxplot_inp$group,
+                            levels = c("Test (PO)", "F0-F1 (PO)", 
+                                       "F1-F2 (PO)", "F0-F2 (GP)"))
+
+boxplot_inp$category <- factor(boxplot_inp$category,
+                               levels = c("0", "1", "2T", "2F", 
+                                          "2U", "3T", "3F", "4F"))
+
+ggplot(boxplot_inp, aes(x = category, y = prob_toprel, fill = category)) +
+  geom_boxplot(width = 0.7, color = "black", outlier.size = 0.8) +
+  facet_wrap(~group, nrow = 1, scales = "free_x") +
+  scale_fill_manual(
+    values = color_map,
+    name = "n Parents/Grandparents"
+  ) +
+  coord_cartesian(ylim = c(0, 1)) +
+  ylab("Assignment Probability") +
+  xlab(NULL) +
+  theme_bw() +
+  theme(
+    strip.background = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+##### ---- ---- #####
+
+
+
+
+
+
+
+
+
 
 
