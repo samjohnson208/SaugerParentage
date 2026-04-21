@@ -1353,10 +1353,10 @@ f0_crosses <- bind_rows(crosses_2015, crosses_2016)
 
 # validate groups of inferred parents
 PO_test_2_valid <- PO_test_2 %>%
-  group_by(ID2) %>%
+  group_by(ID2) %>% # group by the offspring
   mutate(
-    inferred_pair = paste(sort(ID1), collapse = "_"),
-    valid_cross = inferred_pair %in% f0_crosses$Pair
+    inferred_pair = paste(sort(ID1), collapse = "_"), # grab all the parents, sort, sep w/ underscore
+    valid_cross = inferred_pair %in% f0_crosses$Pair # create the column, T if it's in the crosses
   ) %>%
   ungroup()
 
@@ -1503,7 +1503,7 @@ ggplot(summary_df, aes(x = dummy, y = prop, fill = category)) +
     name = "n Inferred\nParents/Grandparents"
   ) +
   scale_y_continuous(labels = scales::percent) +
-  ylab("Proportion of Individuals") +
+  ylab("Proportion of Offspring") +
   xlab(NULL) +
   theme_bw() +
   theme_bw() +
@@ -1631,14 +1631,177 @@ ggplot(boxplot_inp, aes(x = category, y = prob_toprel, fill = category)) +
 
 ##### ---- ---- #####
 
-inferred_f0_fullsibs <- 
-inferred_offsprnig_of_f0s <- unique(PO_f0f1$ID2)
-inferred_parents_of_f2s <- unique(PO_f1f2$ID1)
+##### ---- do the inferred parents of f2's get assigned to f0 parents? ---- #####
+# who was assigned to F0 parents?
+inferred_offspring_of_f0s <- unique(PO_f0f1$ID2)
 
+# who were the F2 juvies assigned to? (keep in mind, we must pull from both ID1 
+# and ID2 from the PO_f1f2 object)
+f1f2_assignedinds <- c(PO_f1f2$ID1, PO_f1f2$ID2)
+inferred_parents_of_f2s <- f1f2_assignedinds[f1f2_assignedinds %in% f1_inds]
 
+# which inds appear in both groups? and how many parents were they assigned to?
+overlap_f1 <- intersect(inferred_parents_of_f2s, inferred_offspring_of_f0s)
 
+overlap_f1_counts <- PO_f0f1_counts %>% 
+  filter(ID2 %in% overlap_f1)
+# only one individual assigned to 2 F0 parents, and it's 5706. found this in the 
+# last time we ran everything in extrapolation_120925.R. 5706 assigned to 6557 and
+# 6654, who were crossed together in 2016. pretty great to still see this case.
 
+# who was the F2? were they assigned to those same GP's?
+# SAR_21_6307, yes they were. those two grandparents, 16_6557 and 16_6654
 
+##### ---- ---- #####
+
+##### ---- how many of the f0's were assigned to the test inds/wild f1's? ---- #####
+#### --- Test Group --- ####
+parents_from_testgroup <- unique(LH_Test$ID[!grepl("^SAR_15_67", LH_Test$ID)]) # 110 parents
+dim(PO_test) # 172 assignments
+length(unique(PO_test$ID1)) # 60 parents included
+
+# does 60 fall outside the mean ± 95% CI if we were to take 100 random draws of 
+# 172 from the 110 parents and see how many showed up?
+
+n_parents <- 110
+observed <- 60
+n_assignments <- 172
+n_perms <- 10000
+
+set.seed(05191999)
+
+# sampling (1000 iterations)
+null_dist <- replicate(n_perms, {
+  draws <- sample(1:n_parents, size = n_assignments, replace = TRUE)
+  length(unique(draws))
+})
+mean_null <- mean(null_dist)
+ci_null <- quantile(null_dist, c(0.025, 0.975))
+null_df <- data.frame(unique_parents = null_dist)
+
+# plotting
+ggplot(null_df, aes(x = unique_parents)) +
+  geom_histogram(binwidth = 1, fill = "grey70", color = "black") +
+  # mean line, 95 confidence interval lines
+  geom_vline(xintercept = mean_null,
+             color = "blue",
+             linewidth = 1) +
+  geom_vline(xintercept = ci_null,
+             color = "blue",
+             linetype = "dashed",
+             linewidth = 1) +
+  # observed n parents
+  geom_vline(xintercept = observed,
+             color = "red",
+             linewidth = 1.2) +
+  labs(x = "Number of unique parents sampled", 
+       y = "Frequency",
+       title = "Permutation test: Number of unique parents sampled (Test Group)") +
+  theme_classic()
+
+# how often does the null distribution produce values that are at least this far
+# from the mean? (two tailed) 
+p_value_test <- ecdf(null_dist)(observed)
+# only % of the time (p = 0)
+#### --- --- ####
+#### --- F0-F1 Group --- ####
+dim(check_thin100K_f0) # 206 parents total (15 and 16)
+dim(PO_f0f1) # 53 assignments
+length(unique(PO_f0f1$ID1)) # 41 parents included
+
+# does 41 fall outside the mean ± 95% CI if we were to take 1000 random draws of 
+# 53 from the 206 parents and see how many showed up?
+
+n_parents <- 206
+observed <- 41
+n_assignments <- 53
+n_perms <- 10000
+
+set.seed(05191999)
+
+# sampling (1000 iterations)
+null_dist <- replicate(n_perms, {
+  draws <- sample(1:n_parents, size = n_assignments, replace = TRUE)
+  length(unique(draws))
+})
+mean_null <- mean(null_dist)
+ci_null <- quantile(null_dist, c(0.025, 0.975))
+null_df <- data.frame(unique_parents = null_dist)
+
+# plotting
+ggplot(null_df, aes(x = unique_parents)) +
+  geom_histogram(binwidth = 1, fill = "grey70", color = "black") +
+  # mean line, 95 confidence interval lines
+  geom_vline(xintercept = mean_null,
+             color = "blue",
+             linewidth = 1) +
+  geom_vline(xintercept = ci_null,
+             color = "blue",
+             linetype = "dashed",
+             linewidth = 1) +
+  # observed n parents
+  geom_vline(xintercept = observed,
+             color = "red",
+             linewidth = 1.2) +
+  labs(x = "Number of unique F0 parents sampled", 
+       y = "Frequency",
+       title = "Permutation test: Number of unique parents sampled (F0-F1 Group)") +
+  theme_classic()
+
+# how often does the null distribution produce values that are at least this far
+# from the mean? (two tailed) 
+p_value_f0f1 <- ecdf(null_dist)(observed)
+# only 1.1% of the time (p < 0.01)
+#### ---- ---- ####
+#### ---- are the f0's that DO show up closely related? ---- ####
+f0s_from_PO_test <- unique(PO_test$ID1) # 60
+f0s_from_PO_f0f1 <- unique(PO_f0f1$ID1) # 41
+
+# how are all of the f0's related?
+table(prob_pairs_f0$TopRel)
+
+# how are the parents of the test f1 inds related?
+prob_pairs_f0_inferredPOfortest <- prob_pairs_f0 %>% 
+  filter(ID1 %in% f0s_from_PO_test) %>% 
+  filter(ID2 %in% f0s_from_PO_test)
+# how are the inferred parents of the test f1 inds related? (60 f0's)
+table(prob_pairs_f0_inferredPOfortest$TopRel)
+
+prob_pairs_f0_inferredPOforspawnadultf1 <- prob_pairs_f0 %>% 
+  filter(ID1 %in% f0s_from_PO_f0f1) %>% 
+  filter(ID2 %in% f0s_from_PO_f0f1)
+# how are the inferred parents of the spawning adult f1 inds related? (41 f0's)
+table(prob_pairs_f0_inferredPOforspawnadultf1$TopRel)
+
+# also doesn't seem like there's a complete absence or presence of closely related
+# individuals in the inferred sets of po's vs the whole f0 set. there are SOME FS
+# and some HS... could just be a good link? need to double-check for the number 
+# of unique pairs of FS and HS in there...
+
+prob_pairs_f0_FS <- prob_pairs_f0_unique_gen %>% 
+  filter(TopRel == "FS")
+length(unique(prob_pairs_f0_FS$Pair)) # 19 FULL SIBLING PAIRS
+prob_pairs_f0_HS <- prob_pairs_f0_unique_gen %>% 
+  filter(TopRel == "HS")
+length(unique(prob_pairs_f0_HS$Pair)) # 74 HALF SIBLING PAIRS
+# in a possible 42,230 pairs... hm...
+
+# are any of the individuals overly-represented?
+table(PO_test$ID1)
+table(table(PO_test$ID1)) # 6417 ten times, female, crossed w three males
+                          # 6440 nine times, female, crossed w one male
+                          # 6429 eight times, male, crossed w one female
+                          # 6454 eight times, female, crossed w two males
+table(PO_f0f1$ID1)
+table(table(PO_f0f1$ID1)) # 6462 four times, female, crossed w one male
+                          # 6498 three times, male, crossed w one female
+
+# okay, so 6417 has to have been a big female if she was crossed w/ three males,
+# and she's represented for OVER 10% of the test individuals. could be huge repro.
+# skew there in the hatchery based on the crosses (we know this), but it doesn't
+# necessarily persist to adulthood...?
+#### ---- ---- ####
+##### ---- ---- #####
 
 
 
