@@ -1435,7 +1435,7 @@ table(PO_f0f1_2_valid$valid_cross)
 length(unique(PO_f0f1_1$ID2)) # 26 offspring 1
 length(unique(PO_f0f1_3$ID2)) # 1 offspring 3T
 # proportions:
-# 1/309 = 3T
+# 1/309 = 3T (adding to 2T)
 # 12/309 = 2T
 # 0/309 = 2F
 # 26/309 = 1
@@ -1465,10 +1465,10 @@ View(GP_all_4_valid)
 # SAR_21_6353
 # none of these have both inferred GP pairs as valid_cross = TRUE
 # proportions:
-# 3/454 = 4F
+# 3/454 = 4F (4 in plot)
 # 6/454 = 3F
-# 3/454 = 3T
-# 58/454 = 2F
+# 3/454 = 3T (3 in plot)
+# 58/454 = 2F (changing to 2 unknown)
 # 6/454 = 2T
 # 231/454 = 1
 # 147/454 = 0
@@ -1483,31 +1483,37 @@ summary_df$group <- factor(
   summary_df$group,
   levels = c("Test (PO)", "F0-F1 (PO)", "F1-F2 (PO)", "F0-F2 (GP)"))
 summary_df$category <- factor(summary_df$category, 
-                              levels = c("0", "1", "2T", "2F", 
-                                         "2U", "3T", "3F", "4F"))
+                              levels = c("0", "1 Unknown", "2 True", 
+                                         "2 Unknown", "3", "4"))
 
-color_map <- data.frame(category = c("0", "1", "2T", "2U", "2F", "3T", "3F", "4F"),
-                        color = c("#453581", "#31688e", "#4cc26c", "#21a585","darkgreen", 
-                        "#f7e225", "#fca537", "#da5a6a"))
+color_map <- data.frame(category = c("0", "1 Unknown", "2 True", "2 Unknown", "3", "4"),
+                        color = c("#453581", "#31688e", "#4cc26c", "darkgreen",
+                                  "#fca537", "#da5a6a"))
 color_map <- setNames(color_map$color, color_map$category)
                         
-summary_df$category <- factor(
-  summary_df$category,
-  levels = c("0", "1", "2T", "2U", "2F", "3T", "3F", "4F"))
+summary_df$category <- factor(summary_df$category, levels = c("0", "1 Unknown", "2 True", 
+                                                              "2 Unknown", "3", "4"))
+label_df <- summary_df %>% 
+  distinct(group, total_inds)
 
 ggplot(summary_df, aes(x = dummy, y = prop, fill = category)) +
   geom_col(width = 0.8, alpha = 0.8, color = "black") +
+  geom_text(data = label_df,
+            aes(x = 1, y = 1.02, label = paste0("n = ", total_inds)),
+            inherit.aes = FALSE,
+            fontface = "bold",
+            size = 4) +
   facet_wrap(~group, nrow = 1) +
   scale_fill_manual(
     values = color_map,
-    name = "n Inferred\nParents/Grandparents"
+    name = "n Inferred\nParents or\nGrandparents"
   ) +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.02))) +
   ylab("Proportion of Offspring") +
   xlab(NULL) +
   theme_bw() +
   theme_bw() +
-  guides(fill = guide_legend(ncol = 2)) +
+  guides(fill = guide_legend(ncol = 1)) +
   theme(
     strip.text = element_text(face = "bold", size = 13),
     strip.background = element_rect(fill = "grey85", color = "black", linewidth = 0.8),
@@ -1519,69 +1525,76 @@ ggplot(summary_df, aes(x = dummy, y = prop, fill = category)) +
     legend.spacing.y = unit(0.3, "cm"),
     legend.text = element_text(face = "bold")
   )
+
 ##### ---- ---- #####
 
 ##### ---- create objects for boxplot ---- #####
 # Test (1 and 2T)
 PO_test_1_toplot <- PO_test_1 %>% 
     mutate(group = "Test (PO)") %>% 
-  mutate(category = "1")
+  mutate(category = "1 Unknown")
 PO_test_2_validT_toplot <- PO_test_2_valid %>% 
     filter(valid_cross == TRUE) %>%
     mutate(group = "Test (PO)") %>% 
-    mutate(category = "2T")
+    mutate(category = "2 True")
 
 # F0-F1 (1, 2T, 3T)
 PO_f0f1_1_toplot <- PO_f0f1_1 %>% 
   mutate(group = "F0-F1 (PO)") %>% 
-  mutate(category = "1")
+  mutate(category = "1 Unknown")
 PO_f0f1_2_validT_toplot <- PO_f0f1_2_valid %>% 
   filter(valid_cross == TRUE) %>%
   mutate(group = "F0-F1 (PO)") %>% 
-  mutate(category = "2T")
+  mutate(category = "2 True")
 PO_f0f1_3_validT_toplot <- PO_f0f1_3_valid %>% 
   filter(valid_cross == TRUE) %>%
   mutate(group = "F0-F1 (PO)") %>% 
-  mutate(category = "3T")
+  mutate(category = "2 True") # mixing this in with the 2 Trues for now
 
 # F1-F2 (1, 2U)
 PO_f1f2_1_toplot <- PO_f1f2_1 %>% 
   mutate(group = "F1-F2 (PO)") %>% 
-  mutate(category = "1")
+  mutate(category = "1 Unknown")
 PO_f1f2_2_toplot <- PO_f1f2_2 %>% 
   mutate(group = "F1-F2 (PO)") %>% 
-  mutate(category = "2U")
+  mutate(category = "2 Unknown")
 
 # F0-F2 (GP)
 GP_all_1_toplot <- GP_all_1 %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "1")
+  mutate(category = "1 Unknown")
 GP_all_2_validT_toplot <- GP_all_2_valid %>% 
   filter(valid_cross == TRUE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "2T")
+  mutate(category = "2 True")
 GP_all_2_validF_toplot <- GP_all_2_valid %>% 
   filter(valid_cross == FALSE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "2F")
+  mutate(category = "2 Unknown")
 GP_all_3_validT_toplot <- GP_all_3_valid %>% 
   filter(valid_cross == TRUE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "3T")
+  mutate(category = "3")
 GP_all_3_validF_toplot <- GP_all_3_valid %>% 
   filter(valid_cross == FALSE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "3F")
+  mutate(category = "3")
+GP_all_4_validT_toplot <- GP_all_4_valid %>% 
+  filter(valid_cross == TRUE) %>% 
+  mutate(group = "F0-F2 (GP)") %>% 
+  mutate(category = "4")
 GP_all_4_validF_toplot <- GP_all_4_valid %>% 
   filter(valid_cross == FALSE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "4F")
+  mutate(category = "4")
 
-boxplot_inp <- bind_rows(PO_test_1_toplot, PO_test_2_validT_toplot, 
+boxplot_inp <- bind_rows(PO_test_1_toplot, PO_test_2_validT_toplot,
                          PO_f0f1_1_toplot, PO_f0f1_2_validT_toplot, PO_f0f1_3_validT_toplot,
                          PO_f1f2_1_toplot, PO_f1f2_2_toplot,
-                         GP_all_1_toplot, GP_all_2_validT_toplot, GP_all_2_validF_toplot, 
-                         GP_all_3_validT_toplot, GP_all_3_validF_toplot, GP_all_4_validF_toplot)
+                         GP_all_1_toplot, GP_all_2_validT_toplot, GP_all_2_validF_toplot,
+                         GP_all_3_validT_toplot, GP_all_3_validF_toplot, 
+                         GP_all_4_validF_toplot, GP_all_4_validF_toplot)
+
 boxplot_inp <- boxplot_inp %>%
   mutate(
     prob_toprel = case_when(
@@ -1590,34 +1603,64 @@ boxplot_inp <- boxplot_inp %>%
       TRUE ~ NA_real_
     )
   )
+
 ##### ---- ---- #####
 
 ##### ---- create boxplot ---- #####
+boxplot_label_df <- read.csv(file = "boxplot_label_df.csv", header = TRUE)
+
 boxplot_inp$group <- factor(boxplot_inp$group,
                             levels = c("Test (PO)", "F0-F1 (PO)", 
                                        "F1-F2 (PO)", "F0-F2 (GP)"))
+boxplot_label_df$group <- factor(boxplot_label_df$group,
+                                 levels = c("Test (PO)", "F0-F1 (PO)", 
+                                            "F1-F2 (PO)", "F0-F2 (GP)"))
 
 boxplot_inp$category <- factor(boxplot_inp$category,
-                               levels = c("0", "1", "2T", "2F", 
-                                          "2U", "3T", "3F", "4F"))
+                               levels = c("0", "1 Unknown", "2 True", 
+                                          "2 Unknown", "3", "4"))
+boxplot_label_df$category <- factor(boxplot_label_df$category,
+                               levels = c("0", "1 Unknown", "2 True", 
+                                          "2 Unknown", "3", "4"))
 
 library(scales)
 library(colorspace)
-color_map_dark <- darken(color_map, amount = 0.25)
+boxplot_color_map <- data.frame(category = c("1 Unknown", "2 True", "2 Unknown", "3", "4"),
+                                             color = c("#31688e", "#4cc26c", "darkgreen",
+                                                       "#fca537", "#da5a6a"))
+color_map_dark <- darken(boxplot_color_map$color, amount = 0.25)
 
 ggplot(boxplot_inp, aes(x = category, y = prob_toprel, fill = category)) + 
   geom_boxplot( width = 0.7, color = "black", alpha = 0.65, outlier.shape = NA ) + 
   geom_jitter( aes(color = category), width = 0.15, size = 1.5, alpha = 0.8 ) + 
-  facet_wrap(~group, nrow = 1, scales = "free_x") + 
+  geom_text(data = boxplot_label_df,
+    aes(x = category, y = 1.03, label = paste0("n = ", n_inds)),
+        inherit.aes = FALSE,
+        fontface = "bold",
+        size = 3.5) +
+  # facet_wrap(~group, nrow = 1, scales = "free_x") +
+  facet_grid(~group, scales = "free_x", space = "free_x") +
   scale_fill_manual(
-    values = color_map, 
-    name = "n Inferred\nParents/Grandparents") + 
+    values = boxplot_color_map$color,
+    name = "n Inferred\nParents or\nGrandparents"
+  ) +
   scale_color_manual(
-    values = color_map_dark, 
-    guide = "none" ) + 
+    values = color_map_dark,
+    guide = "none"
+  ) +
   coord_cartesian(ylim = c(0, 1)) + ylab("Assignment Probability") + xlab(NULL) + 
   theme_bw() + 
-  guides(fill = guide_legend(ncol = 1)) + 
+  guides(
+    fill = guide_legend(
+      ncol = 1,
+      override.aes = list(
+        fill = boxplot_color_map$color,
+        colour = "black",   # <- keeps box outlines black
+        alpha = 0.65,
+        shape = 22           # <- box-like legend key
+      )
+    )
+  ) +
   theme( strip.text = element_text(face = "bold", size = 13), 
          strip.background = element_rect(fill = "grey85", color = "black", linewidth = 0.8), 
          axis.text.x = element_text(face = "bold", angle = 45, hjust = 1), 
@@ -1651,7 +1694,6 @@ overlap_f1_counts <- PO_f0f1_counts %>%
 
 # who was the F2? were they assigned to those same GP's?
 # SAR_21_6307, yes they were. those two grandparents, 16_6557 and 16_6654
-
 ##### ---- ---- #####
 
 ##### ---- how many of the f0's were assigned to the test inds/wild f1's? ---- #####
@@ -1702,7 +1744,7 @@ ggplot(null_df, aes(x = unique_parents)) +
 # how often does the null distribution produce values that are at least this far
 # from the mean? (two tailed) 
 p_value_test <- ecdf(null_dist)(observed)
-# only % of the time (p = 0)
+# only 0% of the time (p = 0)
 #### --- --- ####
 #### --- F0-F1 Group --- ####
 dim(check_thin100K_f0) # 206 parents total (15 and 16)
@@ -1752,8 +1794,114 @@ ggplot(null_df, aes(x = unique_parents)) +
 # from the mean? (two tailed) 
 p_value_f0f1 <- ecdf(null_dist)(observed)
 # only 1.1% of the time (p < 0.01)
-#### ---- ---- ####
-#### ---- are the f0's that DO show up closely related? ---- ####
+#### --- --- ####
+##### ---- ---- #####
+
+##### ---- how many of the f0 CROSSES were assigned to the test inds/wild f1's? ---- #####
+#### --- Test Group --- ####
+testgroup_crosses <- sar_2015_filt_split_pair
+length(unique(testgroup_crosses$Pair)) # 61 crosses used
+length(unique(PO_test_2_valid$inferred_pair)) # 31 crosses recovered for 2True
+
+# does 31 fall outside the mean ± 95% CI if we were to take 10000 random draws of 
+# 78 from the 110 parents and see how many showed up?
+
+n_crosses <- 61
+observed <- 31
+n_offspring <- 78
+n_perms <- 10000
+
+set.seed(05191999)
+
+# sampling (1000 iterations)
+null_dist <- replicate(n_perms, {
+  draws <- sample(1:n_crosses, size = n_offspring, replace = TRUE)
+  length(unique(draws))
+})
+mean_null <- mean(null_dist)
+ci_null <- quantile(null_dist, c(0.025, 0.975))
+null_df <- data.frame(unique_parents = null_dist)
+
+# plotting
+ggplot(null_df, aes(x = unique_parents)) +
+  geom_histogram(binwidth = 1, fill = "grey70", color = "black") +
+  # mean line, 95 confidence interval lines
+  geom_vline(xintercept = mean_null,
+             color = "blue",
+             linewidth = 1) +
+  geom_vline(xintercept = ci_null,
+             color = "blue",
+             linetype = "dashed",
+             linewidth = 1) +
+  # observed n parents
+  geom_vline(xintercept = observed,
+             color = "red",
+             linewidth = 1.2) +
+  labs(x = "Number of True F0 Crosses Recovered", 
+       y = "Frequency",
+       title = "Permutation Test: Number of True F0 Crosses Recovered",
+       subtitle = "Test Group = 61 Unique Crosses, 31 Crosses Recovered for 78 Test F1 Offspring Assigned to 2 Parents") +
+  theme_classic()
+
+# how often does the null distribution produce values that are at least this far
+# from the mean? (two tailed) 
+p_value_test <- ecdf(null_dist)(observed)
+# only 0% of the time (p = 0)
+#### --- --- ####
+#### --- F0-F1 Group --- ####
+f0_crosses
+length(unique(f0_crosses$Pair)) # 117 crosses used
+length(unique(PO_f0f1_2_valid$inferred_pair)) # 11 crosses recovered for 2True
+length(unique(PO_f0f1_2_valid$inferred_pair)) # for 12 offspring
+
+# does 11 fall outside the mean ± 95% CI if we were to take 10000 random draws of 
+# 12 from the 110 parents and see how many showed up?
+
+n_crosses <- 117
+observed <- 11
+n_offspring <- 12
+n_perms <- 10000
+
+set.seed(05191999)
+
+# sampling (1000 iterations)
+null_dist <- replicate(n_perms, {
+  draws <- sample(1:n_crosses, size = n_offspring, replace = TRUE)
+  length(unique(draws))
+})
+mean_null <- mean(null_dist)
+ci_null <- quantile(null_dist, c(0.025, 0.975))
+null_df <- data.frame(unique_parents = null_dist)
+
+# plotting
+ggplot(null_df, aes(x = unique_parents)) +
+  geom_histogram(binwidth = 1, fill = "grey70", color = "black") +
+  # mean line, 95 confidence interval lines
+  geom_vline(xintercept = mean_null,
+             color = "blue",
+             linewidth = 1) +
+  geom_vline(xintercept = ci_null,
+             color = "blue",
+             linetype = "dashed",
+             linewidth = 1) +
+  # observed n parents
+  geom_vline(xintercept = observed,
+             color = "red",
+             linewidth = 1.2) +
+  labs(x = "Number of True F0 Crosses Recovered", 
+       y = "Frequency",
+       title = "Permutation Test: Number of True F0 Crosses Recovered",
+       subtitle = "2015 and 2016 F0's = 117 Unique Crosses, 11 Crosses Recovered for 12 Spawning Adult F1 Offspring Assigned to 2 Parents") +
+  theme_classic()
+
+# how often does the null distribution produce values that are at least this far
+# from the mean? (two tailed) 
+p_value_test <- ecdf(null_dist)(observed)
+# 43% of the time (p = .4357)
+#### --- --- ####
+##### ---- ---- #####
+
+##### ---- are the f0's that DO show up closely related? ---- #####
 f0s_from_PO_test <- unique(PO_test$ID1) # 60
 f0s_from_PO_f0f1 <- unique(PO_f0f1$ID1) # 41
 
@@ -1790,8 +1938,9 @@ length(unique(prob_pairs_f0_HS$Pair)) # 74 HALF SIBLING PAIRS
 table(PO_test$ID1)
 table(table(PO_test$ID1)) # 6417 ten times, female, crossed w three males
                           # 6440 nine times, female, crossed w one male
-                          # 6429 eight times, male, crossed w one female
-                          # 6454 eight times, female, crossed w two males
+                          # 6429 eight times, male, crossed w one 6446
+                          # 6446 eight times, female, crossed with 6429
+                          # 6454 eight times, female, crossed w one male
 table(PO_f0f1$ID1)
 table(table(PO_f0f1$ID1)) # 6462 four times, female, crossed w one male
                           # 6498 three times, male, crossed w one female
@@ -1800,8 +1949,59 @@ table(table(PO_f0f1$ID1)) # 6462 four times, female, crossed w one male
 # and she's represented for OVER 10% of the test individuals. could be huge repro.
 # skew there in the hatchery based on the crosses (we know this), but it doesn't
 # necessarily persist to adulthood...?
-#### ---- ---- ####
+
+# how many crosses were there?
+length(unique(f0_crosses$Pair)) # 117 crosses across both years
+# how many of those were FS?
+
+# FULL SIBS
+prob_pairs_f0_FS <- prob_pairs_f0_unique_gen %>% 
+  filter(TopRel == "FS") # 19 pairs of full sibs inferred among ALL f0s
+
+f0_fullsibs <- c(prob_pairs_f0_FS$ID1, prob_pairs_f0_FS$ID2)
+f0_fullsibs <- unique(f0_fullsibs)
+length(f0_fullsibs) # 31 inds arranged in 19 pairs
+
+# were f0 full sibs crossed during streamside spawning?
+crossed_f0fullsibs <- intersect(prob_pairs_f0_FS$Pair, f0_crosses$Pair)
+# ONLY ONE PAIR: 6401 AND 6417
+
+# do they show up as inferred parents of the test group or the spawning f1's?
+PO_test_2_valid_fs <- PO_test_2_valid %>% 
+    filter(inferred_pair %in% crossed_f0fullsibs) # one test f1 assigned to that cross
+PO_f0f1_2_valid_fs <- PO_f0f1_2_valid %>% 
+    filter(inferred_pair %in% crossed_f0fullsibs) # none represented here
+
+# HALF SIBS
+prob_pairs_f0_HS <- prob_pairs_f0_unique_gen %>% 
+  filter(TopRel == "HS") # 74 pairs of full sibs inferred among ALL f0s
+
+f0_halfsibs <- c(prob_pairs_f0_HS$ID1, prob_pairs_f0_HS$ID2)
+f0_halfsibs <- unique(f0_halfsibs)
+length(f0_halfsibs) # 95 inds arranged in 74 pairs
+
+# were f0 full sibs crossed during streamside spawning?
+crossed_f0halfsibs <- intersect(prob_pairs_f0_HS$Pair, f0_crosses$Pair)
+# NONE
+
+# do they show up as inferred parents of the test group or the spawning f1's?
+PO_test_2_valid_fs <- PO_test_2_valid %>% 
+  filter(inferred_pair %in% crossed_f0fullsibs) # one test f1 assigned to that cross
+PO_f0f1_2_valid_fs <- PO_f0f1_2_valid %>% 
+  filter(inferred_pair %in% crossed_f0fullsibs) # none represented here
 ##### ---- ---- #####
+
+##### ---- are inferred grandparents of f2s the same inds that produced f1s? ---- #####
+inferred_grandparents_of_f2s <- unique(GP_all$ID1)
+inferred_parents_of_f1s <- unique(PO_f0f1$ID1)
+overlap_f0 <- intersect(inferred_grandparents_of_f2s, inferred_parents_of_f1s)
+length(overlap_f0)
+#### ---- ---- ####
+
+setwd("/Users/samjohnson/Desktop/FinalApproachResults/")
+save.image(file = "backup_postpermutations_042426.RData")
+
+
 
 
 
