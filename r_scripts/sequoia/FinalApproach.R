@@ -1483,16 +1483,17 @@ summary_df$group <- factor(
   summary_df$group,
   levels = c("Test (PO)", "F0-F1 (PO)", "F1-F2 (PO)", "F0-F2 (GP)"))
 summary_df$category <- factor(summary_df$category, 
-                              levels = c("0", "1 Unknown", "2 True", 
-                                         "2 Unknown", "3", "4"))
+                              levels = c("0", "1 Unknown", "2 Crossed", 
+                                         "2 Not Crossed", "3", "4"))
 
-color_map <- data.frame(category = c("0", "1 Unknown", "2 True", "2 Unknown", "3", "4"),
+color_map <- data.frame(category = c("0", "1 Unknown", "2 Crossed", 
+                                     "2 Not Crossed", "3", "4"),
                         color = c("#453581", "#31688e", "#4cc26c", "darkgreen",
                                   "#fca537", "#da5a6a"))
 color_map <- setNames(color_map$color, color_map$category)
                         
-summary_df$category <- factor(summary_df$category, levels = c("0", "1 Unknown", "2 True", 
-                                                              "2 Unknown", "3", "4"))
+summary_df$category <- factor(summary_df$category, levels = c("0", "1 Unknown", "2 Crossed", 
+                                                              "2 Not Crossed", "3", "4"))
 label_df <- summary_df %>% 
   distinct(group, total_inds)
 
@@ -1536,7 +1537,7 @@ PO_test_1_toplot <- PO_test_1 %>%
 PO_test_2_validT_toplot <- PO_test_2_valid %>% 
     filter(valid_cross == TRUE) %>%
     mutate(group = "Test (PO)") %>% 
-    mutate(category = "2 True")
+    mutate(category = "2 Crossed")
 
 # F0-F1 (1, 2T, 3T)
 PO_f0f1_1_toplot <- PO_f0f1_1 %>% 
@@ -1545,11 +1546,11 @@ PO_f0f1_1_toplot <- PO_f0f1_1 %>%
 PO_f0f1_2_validT_toplot <- PO_f0f1_2_valid %>% 
   filter(valid_cross == TRUE) %>%
   mutate(group = "F0-F1 (PO)") %>% 
-  mutate(category = "2 True")
+  mutate(category = "2 Crossed")
 PO_f0f1_3_validT_toplot <- PO_f0f1_3_valid %>% 
   filter(valid_cross == TRUE) %>%
   mutate(group = "F0-F1 (PO)") %>% 
-  mutate(category = "2 True") # mixing this in with the 2 Trues for now
+  mutate(category = "2 Crossed") # mixing this in with the 2 Trues for now
 
 # F1-F2 (1, 2U)
 PO_f1f2_1_toplot <- PO_f1f2_1 %>% 
@@ -1557,7 +1558,7 @@ PO_f1f2_1_toplot <- PO_f1f2_1 %>%
   mutate(category = "1 Unknown")
 PO_f1f2_2_toplot <- PO_f1f2_2 %>% 
   mutate(group = "F1-F2 (PO)") %>% 
-  mutate(category = "2 Unknown")
+  mutate(category = "2 Not Crossed")
 
 # F0-F2 (GP)
 GP_all_1_toplot <- GP_all_1 %>% 
@@ -1566,11 +1567,11 @@ GP_all_1_toplot <- GP_all_1 %>%
 GP_all_2_validT_toplot <- GP_all_2_valid %>% 
   filter(valid_cross == TRUE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "2 True")
+  mutate(category = "2 Crossed")
 GP_all_2_validF_toplot <- GP_all_2_valid %>% 
   filter(valid_cross == FALSE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
-  mutate(category = "2 Unknown")
+  mutate(category = "2 Not Crossed")
 GP_all_3_validT_toplot <- GP_all_3_valid %>% 
   filter(valid_cross == TRUE) %>% 
   mutate(group = "F0-F2 (GP)") %>% 
@@ -1617,15 +1618,16 @@ boxplot_label_df$group <- factor(boxplot_label_df$group,
                                             "F1-F2 (PO)", "F0-F2 (GP)"))
 
 boxplot_inp$category <- factor(boxplot_inp$category,
-                               levels = c("0", "1 Unknown", "2 True", 
-                                          "2 Unknown", "3", "4"))
+                               levels = c("0", "1 Unknown", "2 Crossed", 
+                                          "2 Not Crossed", "3", "4"))
 boxplot_label_df$category <- factor(boxplot_label_df$category,
-                               levels = c("0", "1 Unknown", "2 True", 
-                                          "2 Unknown", "3", "4"))
+                               levels = c("0", "1 Unknown", "2 Crossed", 
+                                          "2 Not Crossed", "3", "4"))
 
 library(scales)
 library(colorspace)
-boxplot_color_map <- data.frame(category = c("1 Unknown", "2 True", "2 Unknown", "3", "4"),
+boxplot_color_map <- data.frame(category = c("1 Unknown", "2 Crossed", 
+                                             "2 Not Crossed", "3", "4"),
                                              color = c("#31688e", "#4cc26c", "darkgreen",
                                                        "#fca537", "#da5a6a"))
 color_map_dark <- darken(boxplot_color_map$color, amount = 0.25)
