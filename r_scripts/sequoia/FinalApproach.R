@@ -1252,6 +1252,10 @@ GP_all <- prob_pairs_all_unique_gen %>%
   filter(TopRel == "GP")
 dim(GP_all)
 
+PO_f0f2 <- prob_pairs_f0f2_unique_gen %>% 
+  filter(TopRel == "PO")
+
+
 ##### ---- ---- #####
 
 #### ---- how many assignments and unique individuals in each gen? ---- ####
@@ -1281,6 +1285,12 @@ table(table(PO_f1f2$ID2)) # 2 assigned to two, 35 assigned to one
 dim(GP_all) # 398 assignments made
 length(unique(GP_all$ID2)) # 307 juvenile f2's assigned 
 table(table(GP_all$ID2)) # 231 assigned to one, 64 to two, 9 to three, 3 to four
+
+### PO_f0f2 ## (added 05/08/26)
+dim(PO_f0f2) # assignments made
+length(unique(PO_f0f2$ID2)) # 7 juvenile f2's assigned
+table(table(PO_f0f2$ID2)) # 6 assigned to one, 1 to two
+
 
 ##### ---- ---- #####
 

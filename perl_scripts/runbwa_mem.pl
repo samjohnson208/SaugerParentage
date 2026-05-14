@@ -2,8 +2,8 @@
 
 # run bwa mem on fastq files passed from the command line. run from an empty sam_sai_species_mem directory
 ## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/*.fastq
-## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/SAR_16_6550.fastq
-## USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/contam_cleaned/ind_files/SAR_21_6100.fastq
+## test USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/rawfastqs/SAR_16_6550.fastq
+## test USAGE: perl /project/ysctrout/hatchsauger/SaugerParentage/perl_scripts/runbwa_mem.pl /project/ysctrout/hatchsauger/1Saug/contam_cleaned/ind_files/SAR_21_6100.fastq
 
 
 use warnings;
@@ -22,9 +22,10 @@ foreach $fastq (@ARGV){
     
     # THIS CHUNK ABOVE THAT I USUALLY USE DID NOT WORK ON CONTAM TO FASTP FASTQS
     # because instead of just being SAR_YY_XXXX.fastq, they're trim_read_SAR_YY_XXXX.fastq
-    # after being output from fastp. This new chunk (27 - 35) should fix this.
+    # after being output from fastp. This new chunk (27 - 36) should fix this.
     
-    # Remove path and extension
+    # to gather sample names... 
+    # first remove the path and file extension 
 	(my $file = $fastq) =~ s!.*/!!;
 	$file =~ s/\.fastq$//;
 
