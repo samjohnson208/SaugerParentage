@@ -30,7 +30,9 @@ module load arcc/1.0 gcc/14.2.0 vcftools/0.1.17
 # cd /project/ysctrout/hatchsauger/sam_sai_svit_mem/thin_filtered
 # cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8/geno_mat/miss90
 # cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs
-cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8
+# cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8
+
+cd /project/ysctrout/hatchsauger/wcr_data/mindep8
 
 
 # filter first output file (variants_bial_noindels_q20.recode.vcf) by min and max mean depth per site across all samples.
@@ -55,6 +57,9 @@ cd /project/ysctrout/hatchsauger/sam_sai_contam_fastp_svit_mem/vcfs/q40/mindep8
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20.recode.vcf --min-meanDP 4 --max-meanDP 75 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20_mindep4_maxdep75
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30.recode.vcf --min-meanDP 4 --max-meanDP 75 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30_GQ30_mindep4_maxdep75
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40.recode.vcf --min-meanDP 4 --max-meanDP 75 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_GQ40_mindep4_maxdep75
+
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40.recode.vcf --min-meanDP 8 --max-meanDP 75 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75
+
 
 
 # filter the vcf that now includes depth by maf and missing data per site.
