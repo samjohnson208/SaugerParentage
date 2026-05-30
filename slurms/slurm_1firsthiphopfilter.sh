@@ -40,7 +40,7 @@ vcftools --vcf wind_sauger.recode.vcf --min-alleles 2 --max-alleles 2 --recode -
 # filter bial vcf for indels
 # vcftools --vcf variants_pflav_mem_t2_bial.recode.vcf --remove-indels  --out variants_pflav_mem_t2_bial_noindels --recode
 # vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial.recode.vcf --remove-indels --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels --recode
-vcftools --vcf rehead_variants_wcr_svit_mem_bial.recode.vcf --remove-indels --recode --out rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf
+vcftools --vcf rehead_variants_wcr_svit_mem_bial.recode.vcf --remove-indels --recode --out rehead_variants_wcr_svit_mem_bial_noindels
 
 # now biallelic sites, no indels ----->  quality > 20
 # vcftools --vcf variants_pflav_mem_t2_bial_noindels.recode.vcf --minQ 20 --out variants_pflav_mem_t2_bial_noindels_q20 --recode
@@ -48,9 +48,9 @@ vcftools --vcf rehead_variants_wcr_svit_mem_bial.recode.vcf --remove-indels --re
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 30 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q30 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels.recode.vcf --minQ 40 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40 --recode
 
-vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf --minQ 20 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q20.recode.vcf
-vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf --minQ 30 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q30.recode.vcf
-vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf --minQ 40 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40.recode.vcf
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf --minQ 20 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q20
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf --minQ 30 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q30
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels.recode.vcf --minQ 40 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40
 
 # read 09/02025 that --recode should come before --out
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20.recode.vcf --minGQ 20 --recode --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q20_GQ20
