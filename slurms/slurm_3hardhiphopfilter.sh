@@ -13,6 +13,7 @@
 ## note: also used 090825 to loosen --miss to 90, --thin 1-5M for sequoia table. "does more md and more snps with the same thin help assignment/accuracy rates?"
 ## note: also used 091225 to create new vcfs to supplement
 ## note: also used 091625 to make matrices for 90% miss 2-5M and 85% miss 
+## note: used 053026 to create an empirical sfs from will's sauger (above-dam only)
 
 #SBATCH --job-name=hardfilter
 #SBATCH --account=ysctrout
@@ -109,8 +110,15 @@ cd /project/ysctrout/hatchsauger/wcr_data/mindep8
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.75 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss75 --recode
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.3 --max-missing 0.7 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss70 --recode
 
-vcftoools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.01 --max-missing 0.90 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss90
-vcftoools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.30 --max-missing 0.95 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss95
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --max-missing 0.99 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss99
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --max-missing 0.975 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss975
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --max-missing 0.95 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95
+
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.01 --max-missing 0.90 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss90
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.01 --max-missing 0.85 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss85
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.30 --max-missing 0.95 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss95
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.recode.vcf --maf 0.30 --max-missing 0.85 --recode --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss85
+
 
 # thin!
 # vcftools --vcf hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80.recode.vcf --thin 1000 --out hard_variants_pflav_mem_t2_bial_noindels_q20_mindep4_maxdep75_maf1_miss80_thin1K --recode
@@ -317,6 +325,15 @@ vcftoools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin800K.recode.vcf --012 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin800K 
 #vcftools --vcf rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin900K.recode.vcf --012 --out rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin900K 
 
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss85.recode.vcf --012 --out geno_mat/rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss85
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss90.recode.vcf --012 --out geno_mat/rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss90
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss95.recode.vcf --012 --out geno_mat/rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss95
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss90.recode.vcf --012 --out geno_mat/rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss90
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss85.recode.vcf --012 --out geno_mat/rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss85
+
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95.recode.vcf --012 --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95
+
+
 #convert
 
 # miss 85
@@ -344,6 +361,24 @@ vcftoools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75.
 #sed "s/-1/-9/g" rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin700K.012 > rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin700K.012_conv
 #sed "s/-1/-9/g" rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin800K.012 > rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin800K.012_conv
 #sed "s/-1/-9/g" rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin900K.012 > rehead_variants_rawfiltered_svit_mem_contam_fastp_bial_noindels_q40_mindep8_maxdep75_maf30_miss95_thin900K.012_conv
+
+sed "s/-1/-9/g" rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss85.012 > rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss85.012_conv
+sed "s/-1/-9/g" rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss90.012 > rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf1_miss90.012_conv
+sed "s/-1/-9/g" rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss95.012 > rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss95.012_conv
+sed "s/-1/-9/g" rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss90.012 > rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss90.012_conv
+sed "s/-1/-9/g" rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss85.012 > rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_maf30_miss85.012_conv
+
+sed "s/-1/-9/g" rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95.012 > rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95.012_conv
+
+
+# empirical sfs generated from will's data (depth, miss 95, no maf)
+# this file: rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95.012_conv
+# let's use the vcftools --freq tool to get a tabular file that describes the dist. we'll fit the beta dist with that file.
+
+vcftools --vcf rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95.recode.vcf --freq --out rehead_variants_wcr_svit_mem_bial_noindels_q40_mindep8_maxdep75_miss95
+
+
+
 
 
 

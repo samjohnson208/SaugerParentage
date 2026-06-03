@@ -253,7 +253,7 @@ inds_to_discard <- miss_per_ind$INDV[miss_per_ind$F_MISS > 0.2]
 length(inds_to_keep) # 1154
 dim(miss_per_ind) # 1184, means 30 inds are filtered out...
 
-dim(check_thin100K_all) # 990 samples from JUST the groups we're interested in (F0, F1Spawn, F2)
+dim(check_thin100K _all) # 990 samples from JUST the groups we're interested in (F0, F1Spawn, F2)
 check_thin100K_all <- check_thin100K_all[rownames(check_thin100K_all) %in% inds_to_keep, ]
 dim(check_thin100K_all) # 969 samples remaining.
 
