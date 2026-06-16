@@ -257,13 +257,15 @@ rownames(geno_mat_f1test) <- true_parents$offspring[1001:1095]
 
 ### simulate genotypes for the test f1 group
 for(i in 1:95){
+  # designate which test f1 we're talking about
   row <- 1000 + i
   
+  # grab that ind's true parents
   p1 <- true_parents$parent1[row]
   p2 <- true_parents$parent2[row]
   
+  # now, for each of that ind's loci, generate the genotype based on the parents' genotypes
   for(j in 1:nloci){
-    
     if      (geno_mat_f0[p1,j]==0 && geno_mat_f0[p2,j]==0) { geno_mat_f1test[i,j] <- 0}
     else if (geno_mat_f0[p1,j]==0 && geno_mat_f0[p2,j]==1) { geno_mat_f1test[i,j] <- rbinom(1,1,0.5) }
     else if (geno_mat_f0[p1,j]==0 && geno_mat_f0[p2,j]==2) { geno_mat_f1test[i,j] <- 1 }
@@ -278,7 +280,9 @@ for(i in 1:95){
 
 # now create the genotype matrix for the test parents and offspring
 # BUT ONLY THE PARENTS THAT WERE ACTUALLY CROSSED
+# grab the crossed parents' ids from the true parents table
 crossed_parents <- unique(c(true_parents$parent1[1001:1095], true_parents$parent2[1001:1095]))
+# and filter the genomat for only those crossed parents
 geno_mat_crossed_parents <- geno_mat_testparents[rownames(geno_mat_testparents) %in% crossed_parents, ]
 dim(geno_mat_crossed_parents) # 65 parents
 
@@ -333,7 +337,7 @@ geno_mat_bestcase_filt <- geno_mat_bestcase[, sites_to_keep]
 dim(geno_mat_bestcase_filt) # 160 inds and 1802 sites, that's so awesome.
 
 # but we need 940, just sample the one time so all datasets have the same snps
-# keep_cols <- sort(sample(ncol(geno_mat_bestcase_filt), 940))
+keep_cols <- sort(sample(ncol(geno_mat_bestcase_filt), 940))
 geno_mat_bestcase_filt <- geno_mat_bestcase_filt[, keep_cols] 
 dim(geno_mat_bestcase_filt)
 # ^ PASTE JUST THIS WHEN DOING OTHER GROUPS
@@ -1597,9 +1601,185 @@ PO_100extra_2_valid <- PO_100extra_2 %>%
 table(PO_100extra_2_valid$valid_cross) ## 190 true means 95 inferred correctly
 ##### ---- ---- #####
 
+######################### INCORPORATING GENTOYPING ERROR ########################
 
+# 06/15/26
+# i am starting to think about how to best incorporate genotyping error into these
+# simulations. first, we'll need a way to take the geno_mat_bestcase_filt and hit
+# it with error according to multiple combinations of e0 and e1.
 
+# reminder: goal is to establish 36 matrices with differing error rates.
+# then test sequoia on those 36 with NO error, and with the error we used.
+# so 36 tests * 2 (for e0 = 0 and e1 = 0, and for e0 = 0.075 and e1 = 0.025)
 
+# so we're mirroring the real world scenario of specifying our error rates without
+# an idea of what the real error looks like in the genotype matrix.
 
+# we already did option 1, which is keep the genotype matrix constant and evaluate
+# performance when changing the error rates in sequoia (cuz we only had one matrix)
 
+# now that we have multiple matrices (that we've simulated), we can do option two,
+# where we keep the error rates in sequoia the same (two pairs of rates), and see
+# how they perform when changing the genotype matrix that they're acting on.
+
+# we have the machinery to add varying levels of error to a genotype matrix. now
+# we just need to make 36 matrices and set up the code to run everything and get
+# the performance stats on all of those matrices by looping through each of the
+# named matrices that we've stored in a list. that's where we go from here.
+
+##### ---- creating functions to add error to a genotype matrix ---- #####
+
+# here's a function to make the bresadola matrix if you input an e0 and e1
+make_error_matrix <- function(e0, e1){
+  # create the matrix
+  err_mat <- matrix(c((1-e0)^2,     2*e0*(1-e0),       e0^2,
+                       e1*(1-e1),    (1-e1)^2 + e1^2,   e1*(1-e1),
+                       e0^2,         2*e0*(1-e0),       (1-e0)^2),
+                    nrow = 3, # with these formulas split into 3 rows (3 by 3)
+                    byrow = TRUE) # and fill it by rows so it appears exactly as
+                                  # we've entered it above
+  
+  # set row and colnames
+  rownames(err_mat) <- c("0","1","2")
+  colnames(err_mat) <- c("0","1","2")
+  # and print it
+  err_mat
+}
+
+# here's a function that applies that bresadola error to a genotype matrix.
+# this function uses arguments of the original genomat, e0, and e1. here's what
+# happens in this function.
+add_genotyping_error <- function(geno_mat, e0, e1){
+  # first, we make the error matrix based on the error terms
+  err_mat <- make_error_matrix(e0, e1)
+  
+  # then we define the new matrix (with error)
+  geno_err <- geno_mat
+  # for each individual...
+  for(i in seq_len(nrow(geno_mat))){
+    # and for each site...
+    for(j in seq_len(ncol(geno_mat))){
+      # take the true genotype,
+      true_g <- geno_mat[i,j]
+      # and use the true genotype to index for the row of the error matrix that
+      # corresponds to it. then sample the values 0, 1, and 2 based on their
+      # probabilities of being observed given the true genotype (this is what
+      # the indexing by row does). size = 1 because we're taking just one draw.
+      geno_err[i,j] <- sample(
+        x = c(0,1,2),
+        size = 1,
+        prob = err_mat[as.character(true_g), ]
+      )
+    }
+  }
+  geno_err # and you must write it out at the end or it turns to a NULL value
+}
+
+##### ---- ---- #####
+
+##### ---- testing functions to add error to a genotype matrix ---- #####
+
+# okay, now we need to check to make sure that this process generates something
+# similar to what we'd expect given the bresadola model. let's test one.
+
+gink <- add_genotyping_error(geno_mat_bestcase_filt, e0 = 0.05, e1 = 0.05)
+
+table(True = as.vector(geno_mat_bestcase_filt),
+      Observed = as.vector(gink))
+# > table(True = as.vector(geno_mat_bestcase_filt),
+#         +       Observed = as.vector(gink))
+# Observed
+# True     0     1     2
+# 0 37159  3888   114
+# 1  3443 64987  3465
+# 2   102  3547 33695
+
+# when you turn these to percentages, you get...
+# Observed
+# True     0     1     2
+# 0     0.9027  0.0946   0.0277
+# 1     0.0488  0.9037   0.0482
+# 2     0.00273 0.0950   0.9023
+
+# and here are the expectations for 0.05 and 0.05
+bonk <- make_error_matrix(e0 = 0.05, e1 = 0.05)
+# > bonk
+# 0     1      2
+# 0 0.9025 0.095 0.0025
+# 1 0.0475 0.905 0.0475
+# 2 0.0025 0.095 0.9025
+
+# nice work.
+
+##### ---- ---- #####
+
+##### ---- creating 36 matrices with varying error rates ---- #####
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_bestcase_filt <- list()
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_bestcase_filt_e0_", e0,
+    "_e1_", e1
+  )
+  
+  err_geno_mat_bestcase_filt[[mat_name]] <-
+    add_genotyping_error(
+      geno_mat = geno_mat_bestcase_filt,
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+# list of 36 gentoype matrices (+ error)
+err_geno_mat_bestcase_filt
+
+# okay, now we need to run the whole pipeline on all 36 of these matrices.
+# here's what we need
+
+# each of the 36 matrices
+# LH_bestcase
+# Pairs_bestcase
+
+# then you start at the step where you go from...
+
+##### ---- PairLL_bestcase -> prob_pairs_bestcase ---- #####
+PairLL_bestcase <- CalcPairLL(Pairs = Pairs_bestcase,
+                              GenoM = geno_mat_bestcase_filt,
+                              LifeHistData = LH_bestcase,
+                              AgePrior = seq_bestcase[["AgePriors"]],
+                              Module = "ped",
+                              Complex = "full",
+                              Herm = 'no',
+                              InclDup = FALSE,
+                              # Err = errM,
+                              Tassign = 0.5,
+                              Tfilter = -2,
+                              quiet = FALSE,
+                              Plot = TRUE)
+prob_pairs_bestcase <- plyr::aaply(as.matrix(PairLL_bestcase[,10:16]), .margin = 1, LLtoProb)
+prob_pairs_bestcase <- cbind(PairLL_bestcase[, c("ID1", "ID2","AgeDif", "TopRel")], prob_pairs_bestcase)
+##### ---- ---- #####
+
+# and you need to run that step once for each of the matrices, and for each one, 
+# you need to either NOT include error, or include it as e0 = 0.075 and e1 = 0.025.
+
+# then you do prob_pairs_bestcase_e0_blah_e1_blah. then we're just looking for
+# the assignment and accuracy rates, then we'll calculate the composite scores
+
+# and what we should end up with are six matrices of 36, three for each of the
+# specified sets of error params that we've entered into sequoia. (no error, my error)
+# and we'll have the assignment, accuracy, and composite for each of those.
 
