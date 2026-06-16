@@ -230,7 +230,8 @@ dev.off()
 # overestimating at those intermediate frequencies... gonna go ahead with the params
 # estimated from the sfs with the 0.0107 cutoff for now. we'll discuss with them.
 
-
+setwd("/Users/samjohnson/Desktop/")
+save.image(file = "backup_postsimstrial1_060426.RData")
 
 
 
