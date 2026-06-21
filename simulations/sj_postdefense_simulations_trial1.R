@@ -1682,10 +1682,13 @@ add_genotyping_error <- function(geno_mat, e0, e1){
 # okay, now we need to check to make sure that this process generates something
 # similar to what we'd expect given the bresadola model. let's test one.
 
+# create a new matrix from the bestcase one, with these e0 and e1 values
 gink <- add_genotyping_error(geno_mat_bestcase_filt, e0 = 0.05, e1 = 0.05)
 
+# now compare the true vs observed values after inducing error
 table(True = as.vector(geno_mat_bestcase_filt),
       Observed = as.vector(gink))
+
 # > table(True = as.vector(geno_mat_bestcase_filt),
 #         +       Observed = as.vector(gink))
 # Observed
@@ -1704,7 +1707,7 @@ table(True = as.vector(geno_mat_bestcase_filt),
 # and here are the expectations for 0.05 and 0.05
 bonk <- make_error_matrix(e0 = 0.05, e1 = 0.05)
 # > bonk
-# 0     1      2
+#     0     1      2
 # 0 0.9025 0.095 0.0025
 # 1 0.0475 0.905 0.0475
 # 2 0.0025 0.095 0.9025
@@ -2109,7 +2112,2124 @@ cat("\nTotal runtime:", end_time - start_time, "\n")
 
 results_summary # contains two entries per genotype matrix (w/ and w/o error)
 
+# Total runtime: 1.599851 hours
+# this is great. why don't we let this run for 20 replicates or something and
+# get an average performance for each of the params with different sampling?
 
+# EDIT ON 062026
+# each of these summary objects need to be named for every run of this pipeline
+# since this was for bestcase...
 
+PairLL_results_noerr_bestcase <- PairLL_results_noerr
+PairLL_results_witherr_bestcase <- PairLL_results_witherr
+results_summary_bestcase <- results_summary
 
+##### ---- ---- #####
+
+# work 062026
+# today i'm going back through and running this whole pipeline 7 more times, to 
+# illustrate results for sequoia on several genotype matrices with differing 
+# levels of induced error. the "7" in "7 more times" is referring to the several
+# genotype matrices with differing levels of ptps and extras that we worked to 
+# construct and validate at the beginning of this script.
+
+# NOW. the tradeoff here is: i want to get these things running, but this loop
+# and set of functions are not built to be replicated (dunno why i didn't think
+# to do that when constructing them). so if i were to keep things the way that
+# they are now, i'd have to go through and make sure that several objects through
+# the pipeline are changed and named accordingly. this would be nightmarish.
+# however, what also might be nightmarish is going through and coding this whole
+# pipeline to be loop-able. i think i might just do it by hand, that way it's not
+# a 16 hour run, and i'm just running things on a 1.6 hour by 1.6 hour basis.
+
+# seems reasonable enough. let's begin.
+
+################################### PTPS 75 ####################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_75ptps_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_75ptps_filt_e0_", e0,
+    "_e1_", e1
+  )                                                               # CHANGE!!!
+  
+  err_geno_mat_75ptps_filt[[mat_name]] <-                         # CHANGE!!!
+    add_genotyping_error(
+      geno_mat = geno_mat_75ptps_filt,                            # CHANGE!!!
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE ---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_75ptps,                     # CHANGE!!!
+                         GenoM = geno_mat,                         # CHANGE!!!
+                         LifeHistData = LH_75ptps,                 # CHANGE!!!
+                         AgePrior = seq_75ptps[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_75ptps,                     # CHANGE!!!
+                         GenoM = geno_mat,                         # CHANGE!!!
+                         LifeHistData = LH_75ptps,                 # CHANGE!!!
+                         AgePrior = seq_75ptps[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_75ptps_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_75ptps_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime: 1.599851 hours                                    # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_75ptps <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_75ptps <- PairLL_results_witherr            # CHANGE!!!
+results_summary_75ptps <- results_summary                          # CHANGE!!!
+
+##### ---- ---- #####
+
+################################### PTPS 50 ####################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_50ptps_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_50ptps_filt_e0_", e0,
+    "_e1_", e1
+  )                                                               # CHANGE!!!
+  
+  err_geno_mat_50ptps_filt[[mat_name]] <-                         # CHANGE!!!
+    add_genotyping_error(
+      geno_mat = geno_mat_50ptps_filt,                            # CHANGE!!!
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE (6 CHANGES)---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_50ptps,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_50ptps,                 # CHANGE!!!
+                         AgePrior = seq_50ptps[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_50ptps,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_50ptps,                 # CHANGE!!!
+                         AgePrior = seq_50ptps[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES (2 CHANGES) ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_50ptps_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_50ptps_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime: 58.5905 minutes                                    # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_50ptps <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_50ptps <- PairLL_results_witherr            # CHANGE!!!
+results_summary_50ptps <- results_summary                          # CHANGE!!!
+##### ---- ---- #####
+
+save.image(file = "POsims_testwitherror_post50ptps.RData")
+
+################################### PTPS 25 ####################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_25ptps_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_25ptps_filt_e0_", e0,
+    "_e1_", e1
+  )                                                               # CHANGE!!!
+  
+  err_geno_mat_25ptps_filt[[mat_name]] <-                         # CHANGE!!!
+    add_genotyping_error(
+      geno_mat = geno_mat_25ptps_filt,                            # CHANGE!!!
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE (6 CHANGES)---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_25ptps,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_25ptps,                 # CHANGE!!!
+                         AgePrior = seq_25ptps[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_25ptps,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_25ptps,                 # CHANGE!!!
+                         AgePrior = seq_25ptps[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES (2 CHANGES) ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_25ptps_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_25ptps_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! (4 CHANGES) ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime: 44.37225 minutes                                  # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_25ptps <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_25ptps <- PairLL_results_witherr            # CHANGE!!!
+results_summary_25ptps <- results_summary                          # CHANGE!!!
+##### ---- ---- #####
+
+save.image(file = "POsims_testwitherror_post25ptps.RData")
+
+################################### EXTRA 25 ###################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_25extra_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_25extra_filt_e0_", e0,
+    "_e1_", e1
+  )                                                               # CHANGE!!!
+  
+  err_geno_mat_25extra_filt[[mat_name]] <-                         # CHANGE!!!
+    add_genotyping_error(
+      geno_mat = geno_mat_25extra_filt,                            # CHANGE!!!
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE (6 CHANGES)---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_25extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_25extra,                 # CHANGE!!!
+                         AgePrior = seq_25extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_25extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_25extra,                 # CHANGE!!!
+                         AgePrior = seq_25extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES (2 CHANGES) ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_25extra_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_25extra_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! (4 CHANGES) ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime:                                     # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_25extra <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_25extra <- PairLL_results_witherr            # CHANGE!!!
+results_summary_25extra <- results_summary                          # CHANGE!!!
+##### ---- ---- #####
+
+save.image(file = "POsims_testwitherror_post25extra.RData")
+
+################################### EXTRA 50 ###################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_50extra_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_50extra_filt_e0_", e0,
+    "_e1_", e1
+  )                                                               # CHANGE!!!
+  
+  err_geno_mat_50extra_filt[[mat_name]] <-                         # CHANGE!!!
+    add_genotyping_error(
+      geno_mat = geno_mat_50extra_filt,                            # CHANGE!!!
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE (6 CHANGES)---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_50extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_50extra,                 # CHANGE!!!
+                         AgePrior = seq_50extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_50extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_50extra,                 # CHANGE!!!
+                         AgePrior = seq_50extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES (2 CHANGES) ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_50extra_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_50extra_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! (4 CHANGES) ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime:                                     # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_50extra <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_50extra <- PairLL_results_witherr            # CHANGE!!!
+results_summary_50extra <- results_summary                          # CHANGE!!!
+##### ---- ---- #####
+
+save.image(file = "POsims_testwitherror_post50extra.RData")
+
+################################### EXTRA 75 ###################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_75extra_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0(
+    "geno_mat_75extra_filt_e0_", e0,
+    "_e1_", e1
+  )                                                               # CHANGE!!!
+  
+  err_geno_mat_75extra_filt[[mat_name]] <-                         # CHANGE!!!
+    add_genotyping_error(
+      geno_mat = geno_mat_75extra_filt,                            # CHANGE!!!
+      e0 = e0,
+      e1 = e1
+    )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE (6 CHANGES)---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_75extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_75extra,                 # CHANGE!!!
+                         AgePrior = seq_75extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_75extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_75extra,                 # CHANGE!!!
+                         AgePrior = seq_75extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES (2 CHANGES) ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_75extra_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_75extra_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! (4 CHANGES) ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime:                                     # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_75extra <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_75extra <- PairLL_results_witherr            # CHANGE!!!
+results_summary_75extra <- results_summary                          # CHANGE!!!
+##### ---- ---- #####
+
+save.image(file = "POsims_testwitherror_post75extra.RData")
+
+################################### EXTRA 100 ##################################
+
+##### ---- induce error onto genotype matrices (4 CHANGES) ---- #####
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# now create the 36 matrices from the grid, and store them in this list
+err_geno_mat_100extra_filt <- list()                                # CHANGE!!!
+
+for(k in seq_len(nrow(error_grid))){
+  
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  mat_name <- paste0("geno_mat_100extra_filt_e0_", e0, "_e1_", e1)  # CHANGE!!!
+  
+  err_geno_mat_100extra_filt[[mat_name]] <-                         # CHANGE!!!
+      add_genotyping_error(geno_mat = geno_mat_100extra_filt,       # CHANGE!!!
+      e0 = e0,
+      e1 = e1)
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE A FUNCTION TO RUN THE WHOLE PIPELINE (6 CHANGES)---- #####
+
+run_parentage_summary <- function(geno_mat,
+                                  use_err = FALSE){
+  # create the PairLL object, if you're using error, use the one we landed on for
+  # our empirical data, if not, then use nothing
+  if(use_err){
+    PairLL <- CalcPairLL(Pairs = Pairs_100extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_100extra,                 # CHANGE!!!
+                         AgePrior = seq_100extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  else {
+    PairLL <- CalcPairLL(Pairs = Pairs_100extra,                     # CHANGE!!!
+                         GenoM = geno_mat,                         
+                         LifeHistData = LH_100extra,                 # CHANGE!!!
+                         AgePrior = seq_100extra[["AgePriors"]],     # CHANGE!!!
+                         Module = "ped",
+                         Complex = "full",
+                         Herm = "no",
+                         InclDup = FALSE,
+                         # Err = Err_RADseq(E0 = 0.075, E1 = 0.025),
+                         Tassign = 0.5,
+                         Tfilter = -2,
+                         quiet = FALSE,
+                         Plot = FALSE)}
+  
+  # convert from LLRs to probabilities
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb)
+  
+  # bind those two outputs together to view the probabilities for each pair
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 95 * 100
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(inferred_pair = {parent_nums <- sort(as.numeric(sub("f0_", "", ID1)))
+    paste0("f0_", parent_nums, collapse = "__")},
+    # now make the valid_cross column and fill it based on the inferred pair
+    valid_cross = inferred_pair %in% test_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+}
+
+##### ---- ---- #####
+
+##### ---- CREATE SUMMARY MATRICES ---- #####
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_noerr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+assignment_witherr <- assignment_noerr
+
+accuracy_noerr <- assignment_noerr
+accuracy_witherr <- assignment_noerr
+
+composite_noerr <- assignment_noerr
+composite_witherr <- assignment_noerr
+
+##### ---- ---- #####
+
+##### ---- CREATE PairLL STORAGE LISTS ---- #####
+PairLL_results_noerr <- list()
+
+PairLL_results_witherr <- list()
+##### ---- ---- #####
+
+##### ---- CREATE LONG-FORMAT SUMMARY TABLE ---- #####
+# i think it will be beneficial to store everything in a long-format table to 
+# potentially plot downstream. what we want to do here is create an empty summary
+# dataframe that has a column for each parameter, whether or not error was used
+# in the LLR calculations and parentage assignments, and the assignment, accuracy
+# and composite score for that combination of error params.
+
+results_summary <- data.frame(e0 = numeric(), 
+                              e1 = numeric(),
+                              use_err = logical(),
+                              assignment_rate = numeric(),
+                              accuracy_rate = numeric(),
+                              composite_score = numeric())
+##### ---- ---- #####
+
+start_time <- Sys.time()
+
+##### ---- MAIN LOOP TO RUN THE PIPELINE 36 * 2 TIMES (2 CHANGES) ---- #####
+# from 1 to the 36 matrices...
+for(k in seq_len(nrow(error_grid))){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning matrix", k, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  e0 <- error_grid$e0[k]
+  e1 <- error_grid$e1[k]
+  
+  # and generate the matrix name by pasting those params into this formula that
+  # we've already used to name each of the ones in the list err_geno_mat_bestcase_filt
+  mat_name <- paste0("geno_mat_100extra_filt_e0_", e0, "_e1_", e1)                # CHANGE HERE!!!
+  
+  # and select that matrix as the focal geno_mat for this iteration
+  geno_mat <- err_geno_mat_100extra_filt[[mat_name]]                              # CHANGE HERE!!!
+  
+  ##### now run the run_parentage_summary function on this genomat WITHOUT error
+  results_noerr <- run_parentage_summary(geno_mat = geno_mat, use_err = FALSE)
+  
+  ##### and run the run_parentage_summary function on this genomat WITH error
+  results_witherr <- run_parentage_summary(geno_mat = geno_mat, use_err = TRUE)
+  
+  ### store PairLL outputs ###
+  # store the PairLL output for this iteration in these results lists
+  # without error
+  PairLL_results_noerr[[mat_name]] <- results_noerr$PairLL
+  # and with error
+  PairLL_results_witherr[[mat_name]] <- results_witherr$PairLL
+  
+  ### store assignment and accuracy rates ###
+  # first we need to create row and column indices to locate the place in the 
+  # summary matrix where the information needs to be stored. to maintain 
+  # consistency with previous sensitivity results (tuning e0 and e1 to best perform
+  # for the empirical data), store e0 values in the columns and e1 in rows.
+  row_idx <- which(error_values == e1)
+  col_idx <- which(error_values == e0)
+  
+  # now store the assignment and accuracy rates in the summary matrices
+  # no error
+  assignment_noerr[row_idx, col_idx] <-
+    results_noerr$assignment_rate
+  accuracy_noerr[row_idx, col_idx] <-
+    results_noerr$accuracy_rate
+  # with error
+  assignment_witherr[row_idx, col_idx] <-
+    results_witherr$assignment_rate
+  accuracy_witherr[row_idx, col_idx] <-
+    results_witherr$accuracy_rate
+  
+  ### calculate the composite scores for that run... ###
+  # no error
+  composite_score_noerr <- results_noerr$assignment_rate * results_noerr$accuracy_rate / 100
+  # with error
+  composite_score_witherr <- results_witherr$assignment_rate * results_witherr$accuracy_rate / 100
+  
+  # ... and store them in the composite score matrix
+  # no error
+  composite_noerr[row_idx, col_idx] <- composite_score_noerr
+  # with error
+  composite_witherr[row_idx, col_idx] <- composite_score_witherr
+  
+  ##### append long-format results summary table #####
+  results_summary <- rbind( results_summary,
+                            # bind with the existing entries...
+                            # ... the information from the run without error...
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = FALSE,
+                                       assignment_rate = results_noerr$assignment_rate,
+                                       accuracy_rate = results_noerr$accuracy_rate,
+                                       composite_score = composite_score_noerr),
+                            # ... and the run with error.
+                            data.frame(e0 = e0,
+                                       e1 = e1,
+                                       use_err = TRUE,
+                                       assignment_rate = results_witherr$assignment_rate,
+                                       accuracy_rate = results_witherr$accuracy_rate,
+                                       composite_score = composite_score_witherr))
+  
+  # close loop
+}
+
+end_time <- Sys.time()
+
+# print total runtime
+cat("\nTotal runtime:", end_time - start_time, "\n")
+
+##### ---- ---- #####
+
+##### ---- view outputs! (4 CHANGES) ---- #####
+# no error
+assignment_noerr
+accuracy_noerr
+composite_noerr
+
+# with error  
+assignment_witherr
+accuracy_witherr
+composite_witherr
+
+results_summary # contains two entries per genotype matrix (w/ and w/o error)
+
+# Total runtime:                                     # CHANGE!!!
+
+# STORE INFO FOR THIS DATASET
+PairLL_results_noerr_100extra <- PairLL_results_noerr                # CHANGE!!!
+PairLL_results_witherr_100extra <- PairLL_results_witherr            # CHANGE!!!
+results_summary_100extra <- results_summary                          # CHANGE!!!
+##### ---- ---- #####
+
+save.image(file = "POsims_testwitherror_post100extra.RData")
+
+################################################################################
 
