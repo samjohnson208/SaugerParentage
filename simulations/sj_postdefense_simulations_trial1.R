@@ -3329,7 +3329,7 @@ composite_witherr
 
 results_summary # contains two entries per genotype matrix (w/ and w/o error)
 
-# Total runtime:                                     # CHANGE!!!
+# Total runtime: 1.920644 hours                                     # CHANGE!!!
 
 # STORE INFO FOR THIS DATASET
 PairLL_results_noerr_25extra <- PairLL_results_noerr                # CHANGE!!!
@@ -3628,7 +3628,7 @@ composite_witherr
 
 results_summary # contains two entries per genotype matrix (w/ and w/o error)
 
-# Total runtime:                                     # CHANGE!!!
+# Total runtime: 2.303588 hours                                     # CHANGE!!!
 
 # STORE INFO FOR THIS DATASET
 PairLL_results_noerr_50extra <- PairLL_results_noerr                # CHANGE!!!
@@ -3927,7 +3927,7 @@ composite_witherr
 
 results_summary # contains two entries per genotype matrix (w/ and w/o error)
 
-# Total runtime:                                     # CHANGE!!!
+# Total runtime: 2.721626 hours                                     # CHANGE!!!
 
 # STORE INFO FOR THIS DATASET
 PairLL_results_noerr_75extra <- PairLL_results_noerr                # CHANGE!!!
