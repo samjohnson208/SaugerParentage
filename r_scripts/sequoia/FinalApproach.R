@@ -2013,6 +2013,188 @@ length(overlap_f0)
 setwd("/Users/samjohnson/Desktop/FinalApproachResults/")
 save.image(file = "backup_postpermutations_042426.RData")
 
+##### ---- How does inferred error influence assignment for the spawning F1's? ---- #####
+
+load(file = "backup_postpermutations_042426.RData")
+
+# okay, goal here is to see what happens to our stats when we infer differing
+# per-allele genotyping error rates along our list of combinations in the error_grid
+
+# going to require some data and functions from the sj_postdefense_simulations_trial1.R
+# so make sure you've got that open, or at least the .Rdata loaded.
+
+# create the vector of error values
+error_values <- c(0.005, 0.01, 0.025, 0.05, 0.075, 0.1)
+
+# and create a grid with the 36 combinations
+error_grid <- expand.grid(e0 = error_values, e1 = error_values)
+
+# create the matrices with the same architecture of previous sensitivity work
+# (fitting e0 and e1 to maximize performance of the empirical data for the test group)
+assignment_witherr <- matrix(NA, nrow = 6, ncol = 6, 
+                           dimnames = list(paste0("e1_", error_values),
+                                           paste0("e0_", error_values)))
+accuracy_witherr <- assignment_witherr
+
+composite_witherr <- assignment_witherr
+
+for(i in 1:nrow(error_grid)){
+# for(i in 1:2){
+  
+  # print that you're running the current iteration to monitor progress
+  cat("\nRunning combination", i, "of", nrow(error_grid), "\n")
+  
+  # pull each of the error parameters
+  inferred_e0 <- error_grid$e0[i]
+  inferred_e1 <- error_grid$e1[i]
+  
+  ### RUN SEQUOIA PIPELINE
+  PairLL <- CalcPairLL(Pairs = Pairs_f0f1,
+                       GenoM = check_thin100K_f0f1,                         
+                       LifeHistData = LH_f0f1,
+                       AgePrior = seq_f0f1[["AgePriors"]],
+                       Module = "ped",
+                       Complex = "full",
+                       Herm = "no",
+                       InclDup = FALSE,
+                       Err = Err_RADseq(E0 = inferred_e0, E1 = inferred_e1),
+                       Tassign = 0.5,
+                       Tfilter = -2,
+                       quiet = FALSE,
+                       Plot = FALSE)
+  
+  prob_pairs <- plyr::aaply(as.matrix(PairLL[,10:16]), .margin = 1, LLtoProb) 
+  
+  prob_pairs <- cbind(PairLL[, c("ID1","ID2","AgeDif","TopRel")], prob_pairs)
+  
+  # keep only unique pairs, sort them numerically, and place them in a pair column
+  prob_pairs_unique <- prob_pairs %>%
+    mutate(id1_num = as.numeric(sub(".*_", "", ID1)),
+           id2_num = as.numeric(sub(".*_", "", ID2)),
+           Pair = ifelse(id1_num < id2_num,
+                         paste(ID1, ID2, sep = "__"),
+                         paste(ID2, ID1, sep = "__"))) %>%
+    distinct(Pair, .keep_all = TRUE) %>%
+    select(-id1_num, -id2_num) # and remove columns w/ just the numbers
+  
+  # create the group pair column (should end up with all F0_F1Test)  
+  prob_pairs_unique_gen <- prob_pairs_unique %>%
+    mutate(group_ind1 = assign_gen(ID1),
+           group_ind2 = assign_gen(ID2),
+           group_pair = paste(pmin(group_ind1, group_ind2),
+                              pmax(group_ind1, group_ind2),
+                              sep = "_"))
+  
+  # filter for only pairs with TopRel = PO
+  PO <- prob_pairs_unique_gen %>%
+    filter(TopRel == "PO", AgeDif == 1)
+  
+  # now group by offspring, and create the n_parents column to denote how many
+  # parents were inferred for each offspring
+  PO_counts <- PO %>%
+    group_by(ID2) %>%
+    mutate(n_parents = n()) %>%
+    ungroup()
+  
+  # keep only individuals that were assigned to two parents  
+  PO_2 <- PO_counts %>%
+    filter(n_parents == 2)
+  
+  #### calculate assignment rate ####
+  # "how many offspring of the 309 were assigned to two parents?"
+  assignment_rate <-
+    length(unique(PO_2$ID2)) / 309 * 100 # fixed here
+    
+  
+  #### calculate accuracy rate ####
+  # create the object and group by offspring   
+  PO_2_valid <- PO_2 %>%
+    group_by(ID2) %>%
+    # create a new column to store the two inferred parents for the offspring
+    # sort them numerically, and paste the sample names into the column  
+    mutate(
+      inferred_pair = paste(sort(ID1), collapse = "_"),
+      # now make the valid_cross column and fill it based on the inferred pair
+      valid_cross = inferred_pair %in% f0_crosses$Pair) %>%
+    ungroup()
+  
+  # now calculate the accuracy rate by taking the distinct offspring...
+  accuracy_rate <- PO_2_valid %>%
+    distinct(ID2, valid_cross) %>%
+    # and take the number of offspring w/ valid_cross = TRUE, and divide it by
+    # the number of distinct offspring in the dataframe * 100
+    summarise(
+      pct_valid =
+        sum(valid_cross) /
+        n() * 100 # fixed here too
+    ) %>%
+    pull(pct_valid)
+  
+  # now store the information so that it can be placed in the summary matrices
+  # and the PairLL storage list.
+  list(PairLL = PairLL,
+       assignment_rate = assignment_rate,
+       accuracy_rate = accuracy_rate
+  )
+
+### store assignment and accuracy rates ###
+# because those error matrices have dimensions 6 x 6, where each is comprised of 
+# the 6 error_values, we can set the indices based on which values of the 6 we're
+# currently using as the inferred values, and then use those numbers 1:6 to set
+# the correct location in the assignment, accuracy, composite matrices
+
+# "which of the 6 error values are currently being used as e0 and e1?"
+row_idx <- which(error_values == inferred_e0)
+col_idx <- which(error_values == inferred_e1)
+
+# now place the assignment and accuracy rates in THAT place of the assignment_witherr
+# and accuracy_witherr matrices.
+assignment_witherr[row_idx, col_idx] <- assignment_rate
+accuracy_witherr[row_idx, col_idx] <- accuracy_rate
+
+### calculate the composite scores for that run... ###
+composite_score <- assignment_rate * accuracy_rate * 100
+
+# ... and store them in the composite score matrix
+composite_witherr[row_idx, col_idx] <- composite_score
+
+cat(assignment_witherr)
+cat(accuracy_witherr)
+cat(composite_witherr)
+
+}
+
+n_inds_assigned <- assignment_witherr * 95 / 100
+n_inds_accurate <- accuracy_witherr * 309 / 100
+
+assignment_witherr <- n_inds_assigned / 309 * 100
+accuracy_witherr <- n_inds_accurate / n_inds_assigned * 100
+
+composite_witherr <- assignment_witherr * accuracy_witherr / 100
+
+# YOU MESSED IT UP! these accuracy rate are calculated as...
+# n valid / 309 * 100 (how many were valid out of the whole offspring pool?)
+# rather than...
+# n valid / n assigned * 100 (how many were valid, of the ones assigned to 2 parents?)
+
+# so what you need to do now, is let this finish
+# then take the assignment rates into excel, need to convert them to n indivs 
+# assigned, which means divide by 100, multiply by 95
+
+# then, for the accuracy, divide by 100, then multiply by 309, then divide by 
+# HOWEVER MANY WERE ASSIGNED
+
+
+
+##### ---- ---- #####k
+
+
+
+
+
+
+
+
 
 
 

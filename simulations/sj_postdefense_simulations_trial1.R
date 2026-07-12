@@ -4221,7 +4221,7 @@ composite_witherr
 
 results_summary # contains two entries per genotype matrix (w/ and w/o error)
 
-# Total runtime:                                     # CHANGE!!!
+# Total runtime: A LONG TIME FOR THIS ONE HA                         # CHANGE!!!
 
 # STORE INFO FOR THIS DATASET
 PairLL_results_noerr_100extra <- PairLL_results_noerr                # CHANGE!!!
