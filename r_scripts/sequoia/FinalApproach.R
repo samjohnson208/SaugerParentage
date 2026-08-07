@@ -2038,6 +2038,8 @@ accuracy_witherr <- assignment_witherr
 
 composite_witherr <- assignment_witherr
 
+### for loop
+
 for(i in 1:nrow(error_grid)){
 # for(i in 1:2){
   
@@ -2184,9 +2186,10 @@ composite_witherr <- assignment_witherr * accuracy_witherr / 100
 # then, for the accuracy, divide by 100, then multiply by 309, then divide by 
 # HOWEVER MANY WERE ASSIGNED
 
+# okay, things seem to have been corrected now, but i DIDN'T SAVE THE .RData
+# so that's quite frustrating.
 
-
-##### ---- ---- #####k
+##### ---- ---- #####
 
 
 

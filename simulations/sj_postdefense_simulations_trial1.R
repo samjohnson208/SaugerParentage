@@ -3,6 +3,9 @@
 
 library(sequoia)
 library(tidyverse)
+library(ggplot2)
+library(patchwork)
+library(plotly)
 
 ##### ---- notes on goals and approach ---- #####
 
@@ -4232,4 +4235,259 @@ results_summary_100extra <- results_summary                          # CHANGE!!!
 save.image(file = "POsims_testwitherror_post100extra.RData")
 
 ################################################################################
+
+
+
+
+############################## Data Visualizations #############################
+
+##### ----- heatmaps ----- #####
+
+# create plotting function
+plot_heatmap <- function(results_df, # we're using the long-form data here
+                         metric = c("assignment_rate",
+                                    "accuracy_rate",
+                                    "composite_score"), # which response variable?
+                         use_err = FALSE, # do you want to plot w/ or w/o inferred err?
+                         title = NULL){ # specify plot title
+  
+  metric <- match.arg(metric) # did you specify a valid response variable? if so,
+                              # match it to the correct column in the results_df
+  
+  # filter the results_df based on whether or not inferred error will be plotted
+  df <- results_df %>%
+    filter(use_err == .env$use_err)
+  
+  # pull data of interest
+  mat <- df %>%
+    dplyr::select(e0, e1, value = all_of(metric)) %>%
+    tidyr::pivot_wider(names_from = e0,
+                       values_from = value)
+    # this chunk creates a 6 x 6 matrix of the e0 and e1 values, where the data
+    # that are displayed belong to the specified "metric" column
+  
+  # convert back to long-format for ggplot
+  plot_df <- mat %>%
+    tidyr::pivot_longer(-e1,
+                        names_to = "e0",
+                        values_to = "value")
+  # i am a bit unsure as to why this step is necessary at the moment. however,
+  # we've now created a clean df that has only the metric of interest and is 
+  # easily plottable.
+  
+  # specify e0 and e1 level orders. not necessary but precautionary.
+  error_levels <- c("0.005",
+                    "0.01",
+                    "0.025",
+                    "0.05",
+                    "0.075",
+                    "0.1")
+  plot_df$e0 <- factor(plot_df$e0, levels = error_levels)
+  plot_df$e1 <- factor(as.character(plot_df$e1), levels = error_levels)
+  
+  # create the plot!
+  ggplot(plot_df, # newly created 6 x 6 matrix
+         aes(x = e0, y = e1, fill = value)) + # specify axes, fill by the metric
+    # each row of the df becomes a square tile...
+    geom_tile(color = "grey80", linewidth = 0.4) + # specify tile border color/width 
+    # and we're placing text within that tile (unless it's an NA, then don't put text)
+    # print the number with one floating decimal place.
+    geom_text(aes(label = ifelse(is.na(value), "", sprintf("%.1f", value))), size = 3.5) +
+    
+    # now create the color scale for the heatmap.
+    # very low values presented in a light blue so black text will appear over it
+    # specify the color value for na's, don't want it pure white
+    # and make the name of the color scale the percentage symbol
+    scale_fill_gradient(low = "#deebf7", high = "firebrick", limits = c(0,100),
+                        na.value = "grey95", name = "%") +
+    
+    # not positive how this works, but it makes sure that all cells are remain
+    # forced as squares 
+    coord_fixed() +
+    
+    # specify axis labels of induced error and place the pre-specified title on there
+    labs(x = expression(Induced~e0),
+         y = expression(Induced~e1),
+         title = title) +
+    
+    # default bw theme
+    theme_bw() +
+    
+    # specify font sizes and faces.
+    theme( panel.grid = element_blank(),
+           plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+           axis.title = element_text(size = 12),
+           axis.text = element_text(size = 11),
+           legend.title = element_text(size = 11),
+           legend.text = element_text(size = 10))
+}
+
+### create plots ###
+
+p1 <- plot_heatmap(results_summary_bestcase,
+                   metric = "assignment_rate",
+                   use_err = TRUE,
+                   title = "Assignment Rate")
+
+p2 <- plot_heatmap(results_summary_bestcase,
+                   metric = "accuracy_rate",
+                   use_err = TRUE,
+                   title = "Accuracy Rate")
+
+p3 <- plot_heatmap(results_summary_bestcase,
+                   metric = "composite_score",
+                   use_err = TRUE,
+                   title = "Composite Score")
+
+p4 <- plot_heatmap(results_summary_50ptps,
+                   metric = "assignment_rate",
+                   use_err = TRUE,
+                   title = "Assignment Rate")
+
+p5 <- plot_heatmap(results_summary_50ptps,
+                   metric = "accuracy_rate",
+                   use_err = TRUE,
+                   title = "Accuracy Rate")
+
+p6 <- plot_heatmap(results_summary_50ptps,
+                   metric = "composite_score",
+                   use_err = TRUE,
+                   title = "Composite Score")
+
+p7 <- plot_heatmap(results_summary_50extra,
+                   metric = "assignment_rate",
+                   use_err = TRUE,
+                   title = "Assignment Rate")
+
+p8 <- plot_heatmap(results_summary_50extra,
+                   metric = "accuracy_rate",
+                   use_err = TRUE,
+                   title = "Accuracy Rate")
+
+p9 <- plot_heatmap(results_summary_50extra,
+                   metric = "composite_score",
+                   use_err = TRUE,
+                   title = "Composite Score")
+
+### plot ###
+p1 + p2 + p3
+
+p4 + p5 + p6
+
+p7 + p8 + p9
+
+
+##### ----- ----- #####
+
+##### ----- 3d surface plots ----- #####
+plot_surface <- function(results_df, # long-format results dataframe
+                         metric = c("assignment_rate",
+                                    "accuracy_rate",
+                                    "composite_score"), # response variable
+                         use_err = FALSE, # use Sequoia error?
+                         title = NULL){ # plot title
+  
+  metric <- match.arg(metric) # same architecture as heatmap plot function
+  # i.e., did you choose a valid response variable?
+  
+  # same here. do you want inferred error?
+  df <- results_df %>%
+    dplyr::filter(use_err == .env$use_err)
+  
+  
+  # generate surface matrix (z axis data)
+  # plotly needs a 6x6 matrix (rows = e1, columns = e0)
+  z <- df %>%
+    select(e1, e0, value = all_of(metric)) %>%
+    pivot_wider(names_from = e0, values_from = value)
+  
+  # remove the first column and set row/column names
+  z <- as.matrix(z[,-1])
+  rownames(z) <- error_values
+  colnames(z) <- error_values
+  
+  # the actual e0 and e1 values do not scale linearly, but we want the wires to
+  # be equally spaced on the plot, so we'll set up the 6 "experimental levels
+  # of error"
+  x <- 1:6
+  y <- 1:6
+  
+  # create points layer.
+  # i'm not entirely sure how this works, but we're assigning the z axis values
+  # to each one of the 36 combinations of x and y values (runs). we need to then
+  # transpose the matrix so that the ordering matches plotly's interpretation
+  # of the surface matrix. unsure as to how this 90 degree rotation of the points
+  # relative to the surface happens, but it does...
+  # create one point for each experimental combination
+  pts <- expand.grid(y = 1:6, x = 1:6)
+  
+  # assign the z values in row-major order
+  pts$z <- c(z)
+  
+  # raise the points slightly above the surface so they remain entirely visible
+  pts$z <- pts$z + 0.3
+
+  # create surface layer.
+  fig <- plot_ly(x = x, y = y, z = z, type = "surface",
+    
+    # specify color palette (same as heatmaps)
+    # this appraoch is similar to scale_fill_gradient() in ggplot()
+    colors = c("#deebf7", "firebrick"),
+        
+    # draw contour lines on the surface layer
+        contours = list(x = list(show = TRUE, color = "black", width = 2),
+                        y = list(show = TRUE, color = "black", width = 2)))
+  
+  # add markers for the points layer.
+  fig <- fig %>%
+    add_markers(data = pts, x = ~x, y = ~y, z = ~z, inherit = FALSE, showlegend = FALSE, 
+                marker = list(size = 5, color = "black", 
+                              line = list(color = "white", width = 1)))
+  
+  
+  # plot formatting
+  fig <- fig %>% 
+    layout(title = list(text = title, x = 0.5),
+           scene = list(
+             xaxis = list(title = "Induced e1", tickvals = x, ticktext = error_values),
+             yaxis = list(title = "Induced e0", tickvals = y, ticktext = error_values),
+             zaxis = list(title = "%", range = c(0, 101)),
+        
+        # orient the plot so the low-error corner is nearest the viewer
+        # and the high-error corner is furthest away.
+        camera = list(eye = list(x = 1.8, y = 1.8, z = 1.2))))
+  
+  # and display it
+  fig
+  
+}
+
+# bestcase assign, acc, composite
+plot_surface(results_summary_bestcase, metric = "assignment_rate", 
+                      use_err = TRUE, title = "Assignment Rate")
+plot_surface(results_summary_bestcase, metric = "accuracy_rate", 
+             use_err = TRUE, title = "Accuracy Rate")
+plot_surface(results_summary_bestcase, metric = "composite_score", 
+             use_err = TRUE, title = "Composite Score")
+
+# 50ptps assign, acc, composite
+plot_surface(results_summary_50ptps, metric = "assignment_rate", 
+             use_err = TRUE, title = "Assignment Rate")
+plot_surface(results_summary_50ptps, metric = "accuracy_rate", 
+             use_err = TRUE, title = "Accuracy Rate")
+plot_surface(results_summary_50ptps, metric = "composite_score", 
+             use_err = TRUE, title = "Composite Score")
+
+# 100ptps + 50extra assign, acc, composite
+plot_surface(results_summary_50extra, metric = "assignment_rate", 
+             use_err = TRUE, title = "Assignment Rate")
+plot_surface(results_summary_50extra, metric = "accuracy_rate", 
+             use_err = TRUE, title = "Accuracy Rate")
+plot_surface(results_summary_50extra, metric = "composite_score", 
+             use_err = TRUE, title = "Composite Score")
+
+##### ----- ----- #####
+
+################################################################################
+
 
