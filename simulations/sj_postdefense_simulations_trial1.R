@@ -4306,8 +4306,8 @@ plot_heatmap <- function(results_df, # we're using the long-form data here
     coord_fixed() +
     
     # specify axis labels of induced error and place the pre-specified title on there
-    labs(x = expression(Induced~e0),
-         y = expression(Induced~e1),
+    labs(x = expression(Simulated~e0),
+         y = expression(Simulated~e1),
          title = title) +
     
     # default bw theme
@@ -4370,11 +4370,16 @@ p9 <- plot_heatmap(results_summary_50extra,
                    title = "Composite Score")
 
 ### plot ###
+# to arrange in rows
 p1 + p2 + p3
-
 p4 + p5 + p6
-
 p7 + p8 + p9
+
+# to arrange in columns
+p1 / p2 / p3
+p4 / p5 / p6
+p7 / p8 / p9
+
 
 
 ##### ----- ----- #####
