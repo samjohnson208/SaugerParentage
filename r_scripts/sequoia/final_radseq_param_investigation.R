@@ -5,7 +5,7 @@
 # the new cross lookup table is temporarily stored here:
 #/Users/samjohnson/Desktop/sar_2015_filt_split_pair.csv
 
-# UPDATE WITH PERMANENT LOCATION: /Users/samjohnson/Documents/GeneticData/F0_CROSSES_021326
+# UPDATE WITH PERMANENT LOCATION: /Users/samjohnson/Documents/Sauger_082626/GeneticData/F0_CROSSES_021326
 
 
 # we'll start with the same genotype matrix and LH data that we've been working
